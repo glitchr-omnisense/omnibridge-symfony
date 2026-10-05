@@ -1,0 +1,15 @@
+{
+    "name": "omnibridge/symfony",
+    "description": "Reserved, not released yet: Symfony for glitchr/omnibridge, the family that connects omnibase to a framework, a storage layer or a view layer.",
+    "type": "library",
+    "license": "LGPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "Marco Meyer",
+            "email": "marco.meyer@glitchr.io"
+        }
+    ],
+    "require": {
+        "php": ">=8.2"
+    }
+}
