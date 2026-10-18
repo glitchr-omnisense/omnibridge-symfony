@@ -1,6 +1,6 @@
 {
     "name": "omnibridge/symfony",
-    "description": "Reserved, not released yet: Symfony for glitchr/omnibridge, the family that connects omnibase to a framework, a storage layer or a view layer.",
+    "description": "The Symfony side of omnibase: the framework packages omniscient/omnibase no longer requires (its Fondation loads none of them). A Symfony site requires it beside the core.",
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -10,6 +10,36 @@
         }
     ],
     "require": {
-        "php": ">=8.2"
+        "php": ">=8.2",
+        "doctrine/doctrine-bundle": "^2.0|^3.0",
+        "symfony/config": "^6.0|^7.0|^8.0",
+        "symfony/console": "^6.0|^7.0|^8.0",
+        "symfony/dependency-injection": "^6.0|^7.0|^8.0",
+        "symfony/doctrine-bridge": "^6.0|^7.0|^8.0",
+        "symfony/dotenv": "^6.0|^7.0|^8.0",
+        "symfony/form": "^6.0|^7.0|^8.0",
+        "symfony/framework-bundle": "^6.0|^7.0|^8.0",
+        "symfony/http-foundation": "^6.0|^7.0|^8.0",
+        "symfony/http-kernel": "^6.0|^7.0|^8.0",
+        "symfony/messenger": "^6.0|^7.0|^8.0",
+        "symfony/monolog-bundle": "^3.8|^4.0",
+        "symfony/routing": "^6.0|^7.0|^8.0",
+        "symfony/security-bundle": "^6.0|^7.0|^8.0",
+        "symfony/security-core": "^6.0|^7.0|^8.0",
+        "symfony/security-csrf": "^6.0|^7.0|^8.0",
+        "symfony/security-http": "^6.0|^7.0|^8.0",
+        "symfony/twig-bridge": "^6.0|^7.0|^8.0",
+        "symfony/twig-bundle": "^6.0|^7.0|^8.0",
+        "twig/extra-bundle": "^3.0"
+    },
+    "keywords": [
+        "omnibase",
+        "omnibridge",
+        "symfony"
+    ],
+    "extra": {
+        "branch-alias": {
+            "dev-1.x": "1.x-dev"
+        }
     }
 }
