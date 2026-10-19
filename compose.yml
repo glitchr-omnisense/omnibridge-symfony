@@ -1,0 +1,12 @@
+# The test suite: docker compose run --rm test
+# A minimal Symfony kernel (FrameworkBundle, SecurityBundle, OmnibridgeBundle) binding each contract.
+services:
+  test:
+    build: docker
+    image: omnibridge-symfony:php8.4
+    volumes:
+      - .:/package
+      - composer-cache:/tmp/composer/cache
+    command: sh -c "composer update --no-progress && vendor/bin/phpunit"
+volumes:
+  composer-cache:
