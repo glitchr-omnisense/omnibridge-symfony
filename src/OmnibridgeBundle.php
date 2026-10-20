@@ -3,6 +3,7 @@
 namespace Omnibridge\Symfony;
 
 use Omnibridge\Runtime;
+use Omnibridge\Symfony\Auth\DependencyInjection\OmniauthExtension;
 use Omnibridge\Symfony\DependencyInjection\ContractsPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -32,6 +33,8 @@ final class OmnibridgeBundle extends AbstractBundle
     public function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new ContractsPass());
+        // omniauth's sign-in (config/packages/omniauth.yaml), where omniauth is installed.
+        OmniauthExtension::register($container);
     }
 
     public function boot(): void

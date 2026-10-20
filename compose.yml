@@ -1,5 +1,8 @@
 # The test suite: docker compose run --rm test
-# A minimal Symfony kernel (FrameworkBundle, SecurityBundle, OmnibridgeBundle) binding each contract.
+# Kernels of FrameworkBundle, SecurityBundle, TwigBundle and OmnibridgeBundle: each contract bound,
+# and omniauth's sign-in through Omnibridge\Symfony\Auth\ (tests/AuthTest).
+# docker compose run --rm bare: the same package without omniscient/omniauth and its methods
+# (only suggested), where a kernel compiles and has nothing of Auth\ (group without-omniauth).
 services:
   test:
     build: docker
@@ -8,5 +11,12 @@ services:
       - .:/package
       - composer-cache:/tmp/composer/cache
     command: sh -c "composer update --no-progress && vendor/bin/phpunit"
+  bare:
+    build: docker
+    image: omnibridge-symfony:php8.4
+    volumes:
+      - .:/source:ro
+      - composer-cache:/tmp/composer/cache
+    command: sh /source/docker/bare.sh
 volumes:
   composer-cache:

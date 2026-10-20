@@ -108,6 +108,51 @@ Stayed in the core, `Base\` (omnibase's domain under Symfony, D3):
 The former names are removed at omnibase 4's final pass, once the sites name the
 new classes.
 
+## Signing in: `Omnibridge\Symfony\Auth\` (omniauth)
+
+Where [omniscient/omniauth](https://github.com/glitchr-studio/omniauth) is installed
+(it is only suggested), `OmnibridgeBundle` registers omniauth's extension
+(`Auth\DependencyInjection\OmniauthExtension`; an omnibase site's `BaseBundle` calls
+`OmniauthExtension::register()` too). With no `config/packages/omniauth.yaml`, nothing
+is wired. With one, every way of signing in goes through omniauth's conductor and
+**one Symfony authenticator**:
+
+```yaml
+# config/packages/security.yaml
+firewalls:
+    main:
+        custom_authenticators: [Omnibridge\Symfony\Auth\OmniauthAuthenticator]
+access_control:
+    - { path: ^/login/2fa, roles: IS_AUTHENTICATED_2FA_IN_PROGRESS }
+
+# config/routes/omniauth.yaml
+omniauth: { resource: ., type: omniauth }
+
+# config/packages/omniauth.yaml - each key turns its method on
+omniauth:
+    password: { routes: [security_login] }
+    link: { route: security_loginWithToken }      # 15 minutes, once, hashed
+    email_code: ~
+    backup_codes: ~
+    trusted_device: ~                              # scheb/2fa's cookie and tokens
+    totp: ~                                        # omniauth/totp
+    passkey: { rp_id: '%env(RELYING_PARTY_ID)%' }  # omniauth/passkey
+    oauth: { providers: { google: { client_id: '...', client_secret: '...' } } }   # omniauth/oauth
+```
+
+| Class | Role |
+|---|---|
+| `OmniauthAuthenticator` | the password form, the sign-in link (a GET of its route with a token), a passkey (JSON), the second factor's form, a provider's return, each turned into omniauth's `Proof` and `Context` and verified; the forms' CSRF token checked by the `Tokens` contract; Security's remember-me when omniauth says so, the `trusted_device` cookie when it gives one; failures as stable messages (`messages`), a passkey's in the JSON web-auth/webauthn-symfony-bundle answered |
+| `PendingToken`, `PendingVoter`, `PendingTrustResolver` | the visitor between two factors: no role, never fully signed in, and `IS_AUTHENTICATED_2FA_IN_PROGRESS` (scheb/2fa's name) granted to it alone |
+| `SecondFactorGate` | between two factors, every page sends to the second factor's (but those open to all, and the sign-out) |
+| `CeremonyController`, `AuthRouteLoader` | the second factor's page (scheb/2fa's template variables), a passkey's options, the trip out to a provider; their routes under the names and at the addresses scheb/2fa, webauthn-symfony-bundle and hwi/oauth-bundle had (`2fa_login`, `2fa_login_check`, `oauth_<name>`, `oauth_<name>_check`; `passkey_login_options`, `passkey_login`) |
+| `SessionState`, `Contexts`, omniauth's `CacheThrottle` on a cache pool | the host's duties: the attempt in the session, the request as a `Context`, the tries limited |
+| `OmniauthBadge` | on each passport made here: Security's own listeners that do what omniauth's listeners do skip it |
+
+The stores (`Omniauth\Contract\Accounts`... the passkeys, the sender) are the
+application's, by their contracts' names or those `omniauth.yaml`'s `stores` names;
+omniauth's events go to Symfony's dispatcher (listen to `Omniauth\Event\SignedIn`...).
+
 ## Tests
 
 ```
@@ -117,7 +162,11 @@ docker compose run --rm test
 PHP 8.4, the latest Symfony: a kernel of FrameworkBundle, SecurityBundle and
 OmnibridgeBundle binding each contract (one object through `Runtime` and the
 container, the answers of Symfony's services), a kernel without SecurityBundle that
-compiles without Access, Sessions and Tokens, and `FileLinks`.
+compiles without Access, Sessions and Tokens, and `FileLinks`; `AuthTest`, a kernel
+signing in through omniauth alone (each method, the second factor, its page and
+nobody else's, refusals, CSRF, throttle, remember-me, trusted device, a simulated
+Google). `docker compose run --rm bare`: without omniauth installed, a kernel
+compiles and has nothing of `Auth\`.
 
 ## Licence
 
