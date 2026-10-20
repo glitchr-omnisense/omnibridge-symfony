@@ -38,6 +38,13 @@ Localizer, its Flysystem storages and its router (`Base\Bridge\Symfony\*`, below
 Laravel's bridge binds them, and omnibase's own contracts, itself, because Laravel
 has none of omnibase's services.
 
+The pages' Twig functions on the contracts: omnibridge/twig's `AccessExtension`
+(`is_granted()` on `Access`, `csrf_token()` on `Tokens`) is registered here, after
+twig-bridge's `SecurityExtension` and `CsrfExtension` (TwigBundle adds the bridge's
+extensions first), so a page asks the same code under Symfony as under Laravel
+(omnibridge/laravel's `View\Twig`), answered by the same services. Without
+SecurityBundle or CSRF protection the contract is missing and its function left out.
+
 Also here: `FileLinks`, the links of the error pages and the profiler mapped from
 the container to the developer's machine (`APP_PATH`), Symfony's own
 `FileLinkFormatter` on a mapped format.

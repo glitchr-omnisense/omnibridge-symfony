@@ -12,6 +12,7 @@
     "require": {
         "php": ">=8.2",
         "doctrine/doctrine-bundle": "^2.0|^3.0",
+        "omnibridge/twig": "^1.0",
         "omniscient/omnibridge": "^1.0",
         "symfony/config": "^6.1|^7.0|^8.0",
         "symfony/console": "^6.0|^7.0|^8.0",

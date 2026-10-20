@@ -9,6 +9,13 @@
  * adapter whose framework service the application lacks (no SecurityBundle,
  * no CSRF protection).
  *
+ * Twig's functions on the contracts (omnibridge/twig's AccessExtension:
+ * is_granted on Access, csrf_token on Tokens), the code a page asks under
+ * every host: registered after twig-bridge's SecurityExtension and
+ * CsrfExtension (TwigBundle adds the bridge's extensions first), whose
+ * functions it then answers through the same services; a contract this
+ * container lacks leaves its function to the bridge, or to nothing.
+ *
  * Not bound here: Locales and Files (an application's languages and storages
  * are its own - omnibase binds its Localizer and Flysystem storages), the
  * clock and the event dispatcher (Symfony's, by their PSR names, when the
@@ -28,6 +35,7 @@ use Omnibridge\Symfony\Contract\SecuritySessions;
 use Omnibridge\Symfony\DependencyInjection\ContractsPass;
 use Omnibridge\Symfony\RouterUrls;
 use Omnibridge\Symfony\TranslatorTranslations;
+use Omnibridge\Twig\AccessExtension;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -64,4 +72,8 @@ return static function (ContainerConfigurator $container): void {
         ->args([service('security.csrf.token_manager')])
         ->tag(ContractsPass::ADAPTER);
     $services->alias(Tokens::class, CsrfTokens::class);
+
+    $services->set(AccessExtension::class)
+        ->args([service(Access::class)->nullOnInvalid(), service(Tokens::class)->nullOnInvalid()])
+        ->tag('twig.extension');
 };

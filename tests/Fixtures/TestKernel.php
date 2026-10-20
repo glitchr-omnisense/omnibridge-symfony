@@ -6,6 +6,7 @@ use Omnibridge\Symfony\OmnibridgeBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\SecurityBundle\SecurityBundle;
+use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
@@ -13,7 +14,8 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 /**
  * The smallest Symfony application binding the contracts: FrameworkBundle
  * (router, translator, CSRF on a mock session), SecurityBundle (an in-memory
- * user) and OmnibridgeBundle; without SecurityBundle when $security is false.
+ * user), TwigBundle (twig-bridge's functions, then omnibridge/twig's on the
+ * contracts) and OmnibridgeBundle; without SecurityBundle when $security is false.
  */
 final class TestKernel extends Kernel
 {
@@ -30,6 +32,7 @@ final class TestKernel extends Kernel
         if ($this->security) {
             yield new SecurityBundle();
         }
+        yield new TwigBundle();
         yield new OmnibridgeBundle();
     }
 
