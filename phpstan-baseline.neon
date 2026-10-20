@@ -1,0 +1,1231 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: src/Auth/AuthRouteLoader.php
+
+		-
+			message: '#^Cannot access offset ''check_path'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Auth/AuthRouteLoader.php
+
+		-
+			message: '#^Cannot access offset ''check_route'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Auth/AuthRouteLoader.php
+
+		-
+			message: '#^Cannot access offset ''form_path'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/AuthRouteLoader.php
+
+		-
+			message: '#^Cannot access offset ''form_route'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/AuthRouteLoader.php
+
+		-
+			message: '#^Cannot access offset ''options_path'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/AuthRouteLoader.php
+
+		-
+			message: '#^Cannot access offset ''options_route'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/AuthRouteLoader.php
+
+		-
+			message: '#^Cannot access offset ''path'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/AuthRouteLoader.php
+
+		-
+			message: '#^Cannot access offset ''providers'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/AuthRouteLoader.php
+
+		-
+			message: '#^Cannot access offset ''route'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/AuthRouteLoader.php
+
+		-
+			message: '#^Cannot access offset ''start_path'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/AuthRouteLoader.php
+
+		-
+			message: '#^Cannot access offset ''start_route'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/AuthRouteLoader.php
+
+		-
+			message: '#^Parameter \#1 \$name of method Symfony\\Component\\Routing\\RouteCollection\:\:add\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 6
+			path: src/Auth/AuthRouteLoader.php
+
+		-
+			message: '#^Parameter \#1 \$path of class Symfony\\Component\\Routing\\Route constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 6
+			path: src/Auth/AuthRouteLoader.php
+
+		-
+			message: '#^Binary operation "\+" between array\{status\: ''ok'', errorMessage\: ''''\} and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: src/Auth/CeremonyController.php
+
+		-
+			message: '#^Cannot access offset ''check_route'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Auth/CeremonyController.php
+
+		-
+			message: '#^Cannot access offset ''code'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/CeremonyController.php
+
+		-
+			message: '#^Cannot access offset ''csrf'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
+			path: src/Auth/CeremonyController.php
+
+		-
+			message: '#^Cannot access offset ''field'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/CeremonyController.php
+
+		-
+			message: '#^Cannot access offset ''form_route'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/CeremonyController.php
+
+		-
+			message: '#^Cannot access offset ''intent'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/CeremonyController.php
+
+		-
+			message: '#^Cannot access offset ''template'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/CeremonyController.php
+
+		-
+			message: '#^Cannot access offset ''trusted'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/CeremonyController.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: src/Auth/CeremonyController.php
+
+		-
+			message: '#^Parameter \#1 \$name of method Symfony\\Component\\Routing\\Generator\\UrlGeneratorInterface\:\:generate\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 4
+			path: src/Auth/CeremonyController.php
+
+		-
+			message: '#^Parameter \#1 \$name of method Twig\\Environment\:\:render\(\) expects string\|Twig\\TemplateWrapper, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Auth/CeremonyController.php
+
+		-
+			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Binary operation "\." between ''/connect/'' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 2
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Binary operation "\." between ''oauth_'' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 2
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''after'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''check_path'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''check_route'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''cookie'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''count'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''csrf'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''default_target_path'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''digits'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 4
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''enabled'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 12
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''firewall'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''form'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''form_route'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''identifier'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''issuer'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''leeway'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''lifetime'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 4
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''limits'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''link_by_email'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''origins'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''parameter'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''password'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''period'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''pool'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''providers'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''remember'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''route'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''routes'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''rp_id'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''rp_name'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''server_name'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''service'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''sign_up_route'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''start_path'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''start_route'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''target_path_parameter'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''timeout'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset ''user_class'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot access offset string on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 2
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_intersect_key expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_values expects array\<T\>, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Parameter \#1 \$c of closure expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(mixed\)\: mixed\)\|null, Closure\(array\)\: array\{int, int\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(mixed\)\: mixed\)\|null, Closure\(string\)\: Omniauth\\Factor given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Parameter \#1 \$config of static method Omnibridge\\Symfony\\Auth\\DependencyInjection\\OmniauthExtension\:\:runtime\(\) expects array\<string, mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Parameter \#1 \$id of class Symfony\\Component\\DependencyInjection\\Reference constructor expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Parameter \#1 \$keys of function array_combine expects an array of values castable to string, list\<mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Parameter \#1 \$keys of function array_combine expects array\<int\|string\>, list\<mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Parameter \#2 \$array of function array_map expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Parameter \#2 \$providers of static method Omnibridge\\Symfony\\Auth\\DependencyInjection\\OmniauthExtension\:\:runtime\(\) expects array\<string, array\<string, mixed\>\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 2
+			path: src/Auth/DependencyInjection/OmniauthExtension.php
+
+		-
+			message: '#^Method Omnibridge\\Symfony\\Auth\\Exception\\SignInRefused\:\:__construct\(\) has parameter \$messageData with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Auth/Exception/SignInRefused.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: src/Auth/OAuthProviders.php
+
+		-
+			message: '#^Parameter \#1 \$id of method Psr\\Container\\ContainerInterface\:\:get\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Auth/OAuthProviders.php
+
+		-
+			message: '#^Parameter \#1 \$name of method Symfony\\Component\\Routing\\Generator\\UrlGeneratorInterface\:\:generate\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Auth/OAuthProviders.php
+
+		-
+			message: '#^Parameter \#2 \.\.\.\$providers of class Omniauth\\OAuth\\Provider\\Providers constructor expects Omniauth\\OAuth\\Provider\\Provider, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Auth/OAuthProviders.php
+
+		-
+			message: '#^Binary operation "\+" between int\<1, max\> and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Binary operation "\+" between mixed and array\{bad\-credentials\: ''Invalid credentials\.'', bad\-code\: ''code_invalid'', invalid\-link\: ''Invalid credentials\.'', expired\: ''Authentication…'', throttled\: ''Too many failed…'', account\-refused\: ''Account is disabled\.'', refused\: ''Invalid credentials\.'', no\-attempt\: ''Authentication…'', \.\.\.\} results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Binary operation "\." between ''~\^\\\\d\{'' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''backup\-code''\|''email\-code''\|''link''\|''oauth''\|''passkey''\|''password''\|''totp''\|''trusted\-device'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''check_route'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''code'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''cookie'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''csrf'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 5
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''default_target_path'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''digits'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''field'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''form'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''form_route'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''identifier'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''lifetime'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''parameter'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 4
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''password'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''remember'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''route'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''routes'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 3
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''sign_up_route'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''target_path_parameter'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset ''trusted'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset mixed on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot access offset string on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 3
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Method Omnibridge\\Symfony\\Auth\\OmniauthAuthenticator\:\:targetPath\(\) should return string but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Parameter \#1 \$key of method Symfony\\Component\\HttpFoundation\\InputBag\<bool\|float\|int\|string\|null\>\:\:get\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 6
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Parameter \#1 \$key of method Symfony\\Component\\HttpFoundation\\InputBag\<string\>\:\:get\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Parameter \#1 \$key of method Symfony\\Component\\HttpFoundation\\ParameterBag\:\:all\(\) expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Parameter \#1 \$key of method Symfony\\Component\\HttpFoundation\\ParameterBag\:\:get\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Parameter \#1 \$key of method Symfony\\Component\\HttpFoundation\\ParameterBag\:\:set\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Parameter \#1 \$name of method Symfony\\Component\\Routing\\Generator\\UrlGeneratorInterface\:\:generate\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 6
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Parameter \#1 \$name of static method Symfony\\Component\\HttpFoundation\\Cookie\:\:create\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Parameter \#2 \$csrf of method Omnibridge\\Symfony\\Auth\\OmniauthAuthenticator\:\:checkCsrf\(\) expects array\{field\: string, intent\: string\}\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of function in_array expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 4
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to method Symfony\\Component\\HttpFoundation\\ParameterBag\:\:all\(\)$#'
+			identifier: argument.templateType
+			count: 1
+			path: src/Auth/OmniauthAuthenticator.php
+
+		-
+			message: '#^Method Omnibridge\\Symfony\\Auth\\PendingToken\:\:__unserialize\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Auth/PendingToken.php
+
+		-
+			message: '#^Method Omnibridge\\Symfony\\Auth\\PendingToken\:\:getAttributes\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Auth/PendingToken.php
+
+		-
+			message: '#^Method Omnibridge\\Symfony\\Auth\\PendingToken\:\:setAttributes\(\) has parameter \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Auth/PendingToken.php
+
+		-
+			message: '#^Property Omnibridge\\Symfony\\Auth\\PendingToken\:\:\$attributes \(array\<string, mixed\>\) does not accept array\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Auth/PendingToken.php
+
+		-
+			message: '#^Property Omnibridge\\Symfony\\Auth\\PendingToken\:\:\$attributes \(array\<string, mixed\>\) does not accept mixed\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Auth/PendingToken.php
+
+		-
+			message: '#^Property Omnibridge\\Symfony\\Auth\\PendingToken\:\:\$firewallName \(string\) does not accept mixed\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Auth/PendingToken.php
+
+		-
+			message: '#^Property Omnibridge\\Symfony\\Auth\\PendingToken\:\:\$offered \(list\<string\>\) does not accept mixed\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Auth/PendingToken.php
+
+		-
+			message: '#^Property Omnibridge\\Symfony\\Auth\\PendingToken\:\:\$user \(Symfony\\Component\\Security\\Core\\User\\UserInterface\) does not accept mixed\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Auth/PendingToken.php
+
+		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/FileLinks.php
+
+		-
+			message: '#^Offset ''install_path'' on array\{name\: string, pretty_version\: string, version\: string, reference\: string\|null, type\: string, install_path\: string, aliases\: array\<string\>, dev\: bool\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/FileLinks.php
+
+		-
+			message: '#^Method Omnibridge\\Symfony\\OmnibridgeBundle\:\:loadExtension\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/OmnibridgeBundle.php
+
+		-
+			message: '#^Parameter \#1 \$container of static method Omnibridge\\Runtime\:\:setContainer\(\) expects Psr\\Container\\ContainerInterface\|null, object given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/OmnibridgeBundle.php
+
+		-
+			message: '#^Call to method getUrl\(\) on an unknown class Symfony\\Component\\Asset\\Packages\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/RouterUrls.php
+
+		-
+			message: '#^Method Omnibridge\\Symfony\\RouterUrls\:\:asset\(\) should return string but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/RouterUrls.php
+
+		-
+			message: '#^Method Omnibridge\\Symfony\\RouterUrls\:\:generate\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/RouterUrls.php
+
+		-
+			message: '#^Parameter \$packages of method Omnibridge\\Symfony\\RouterUrls\:\:__construct\(\) has invalid type Symfony\\Component\\Asset\\Packages\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/RouterUrls.php
+
+		-
+			message: '#^Property Omnibridge\\Symfony\\RouterUrls\:\:\$packages has unknown class Symfony\\Component\\Asset\\Packages as its type\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/RouterUrls.php
+
+		-
+			message: '#^Method Omnibridge\\Symfony\\TranslatorTranslations\:\:exists\(\) should return bool but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/TranslatorTranslations.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$exchanges\.$#'
+			identifier: property.notFound
+			count: 2
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Binary operation "\." between ''/link/'' and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 2
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Call to an undefined method object\:\:add\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Call to an undefined method object\:\:count\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getToken\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Call to an undefined method object\:\:last\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Call to static method PHPUnit\\Framework\\Assert\:\:assertSame\(\) with ''signed\-out'' and ''signed\-out'' will always evaluate to true\.$#'
+			identifier: staticMethod.alreadyNarrowedType
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Cannot access offset ''csrf'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Cannot access offset ''error'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Cannot access offset ''errorMessage'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Cannot access offset ''fwl'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Cannot access offset ''rpId'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Cannot access offset ''status'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Cannot access offset ''subject'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Cannot access offset ''usr'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Cannot access offset ''vsn'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Cannot access property \$factor on mixed\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Cannot access property \$secret on mixed\.$#'
+			identifier: property.nonObject
+			count: 3
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Method Omnibridge\\Symfony\\Tests\\AuthTest\:\:account\(\) has parameter \$backupCodes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Method Omnibridge\\Symfony\\Tests\\AuthTest\:\:csrf\(\) should return string but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Method Omnibridge\\Symfony\\Tests\\AuthTest\:\:lastError\(\) should return string\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Method Omnibridge\\Symfony\\Tests\\AuthTest\:\:toGoogle\(\) has parameter \$person with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Method Omnibridge\\Symfony\\Tests\\AuthTest\:\:token\(\) should return object\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Method Omnibridge\\Symfony\\Tests\\AuthTest\:\:users\(\) should return Omnibridge\\Symfony\\Tests\\Fixtures\\Auth\\Users but returns object\.$#'
+			identifier: return.type
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(mixed\)\: mixed\)\|null, Closure\(string\)\: non\-empty\-string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Parameter \#1 \$code of method Omnibridge\\Symfony\\Tests\\AuthTest\:\:secondFactor\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Parameter \#1 \$google of method Omnibridge\\Symfony\\Tests\\AuthTest\:\:toGoogle\(\) expects Omniauth\\OAuth\\Testing\\FakeProvider, object given\.$#'
+			identifier: argument.type
+			count: 4
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Parameter \#1 \$options of method Omniauth\\Passkey\\Testing\\SoftwareAuthenticator\:\:get\(\) expects array\<string, mixed\>\|string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of function count expects array\|Countable, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Omniauth\\Link\\LinkMethod\:\:hash\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertCount\(\) expects Countable\|iterable, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Parameter \#2 \$person of method Omniauth\\OAuth\\Testing\\FakeProvider\:\:consent\(\) expects array\{sub\: string, email\?\: string, email_verified\?\: bool\|string, name\?\: string\}\|Omniauth\\OAuth\\Identity, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Parameter \#2 \$string of static method PHPUnit\\Framework\\Assert\:\:assertMatchesRegularExpression\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Parameter \#6 \$content of method Symfony\\Component\\BrowserKit\\AbstractBrowser\<Symfony\\Component\\HttpFoundation\\Request,Symfony\\Component\\HttpFoundation\\Response\>\:\:request\(\) expects string\|null, string\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Property Omnibridge\\Symfony\\Tests\\Fixtures\\Auth\\User\:\:\$backupCodes \(list\<string\>\) does not accept array\<non\-empty\-string\>\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: tests/AuthTest.php
+
+		-
+			message: '#^Call to an undefined method Omnibridge\\Contract\\Urls\:\:generate\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/ContractsTest.php
+
+		-
+			message: '#^Call to an undefined method object\:\:get\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/ContractsTest.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getToken\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/ContractsTest.php
+
+		-
+			message: '#^Call to an undefined method object\:\:isTokenValid\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: tests/ContractsTest.php
+
+		-
+			message: '#^Call to an undefined method object\:\:push\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/ContractsTest.php
+
+		-
+			message: '#^Call to an undefined method object\:\:setToken\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/ContractsTest.php
+
+		-
+			message: '#^Cannot call method format\(\) on Symfony\\Component\\ErrorHandler\\ErrorRenderer\\FileLinkFormatter\|null\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: tests/FileLinksTest.php
+
+		-
+			message: '#^Property Omnibridge\\Symfony\\Tests\\FileLinksTest\:\:\$env type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/FileLinksTest.php
+
+		-
+			message: '#^Property Omnibridge\\Symfony\\Tests\\FileLinksTest\:\:\$server type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/FileLinksTest.php
+
+		-
+			message: '#^Method Omnibridge\\Symfony\\Tests\\Fixtures\\Auth\\User\:\:getUserIdentifier\(\) should return non\-empty\-string but returns string\.$#'
+			identifier: return.type
+			count: 1
+			path: tests/Fixtures/Auth/User.php
+
+		-
+			message: '#^Class Omnibridge\\Symfony\\Tests\\Fixtures\\Auth\\Users implements generic interface Symfony\\Component\\Security\\Core\\User\\UserProviderInterface but does not specify its types\: TUser$#'
+			identifier: missingType.generics
+			count: 1
+			path: tests/Fixtures/Auth/Users.php
+
+		-
+			message: '#^Method Omnibridge\\Symfony\\Tests\\Fixtures\\Auth\\Users\:\:email\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: tests/Fixtures/Auth/Users.php
+
+		-
+			message: '#^Parameter \#1 \$array \(list\<string\>\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: tests/Fixtures/Auth/Users.php
+
+		-
+			message: '#^Call to an undefined method object\:\:begin\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Fixtures/AuthKernel.php
+
+		-
+			message: '#^Call to an undefined method object\:\:of\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Fixtures/AuthKernel.php
+
+		-
+			message: '#^Cannot access property \$kind on mixed\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Fixtures/AuthKernel.php
+
+		-
+			message: '#^Cannot call method getMessageKey\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Fixtures/AuthKernel.php
+
+		-
+			message: '#^Parameter \#1 \$content of class Symfony\\Component\\HttpFoundation\\Response constructor expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Fixtures/AuthKernel.php
+
+		-
+			message: '#^Parameter \#1 \$content of class Symfony\\Component\\HttpFoundation\\Response constructor expects string\|null, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Fixtures/AuthKernel.php
+
+		-
+			message: '#^Call to an undefined method object\:\:get\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/TwigTest.php
+
+		-
+			message: '#^Call to an undefined method object\:\:isTokenValid\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/TwigTest.php
+
+		-
+			message: '#^Call to an undefined method object\:\:push\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/TwigTest.php
+
+		-
+			message: '#^Call to an undefined method object\:\:setToken\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/TwigTest.php
+
+		-
+			message: '#^Cannot call method getExtension\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/TwigTest.php
+
+		-
+			message: '#^Cannot call method getFunctions\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/TwigTest.php
+
+		-
+			message: '#^Cannot call method hasExtension\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/TwigTest.php
+
+		-
+			message: '#^Method Omnibridge\\Symfony\\Tests\\TwigTest\:\:twig\(\) should return Twig\\Environment but returns object\.$#'
+			identifier: return.type
+			count: 1
+			path: tests/TwigTest.php
