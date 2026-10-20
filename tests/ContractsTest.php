@@ -155,6 +155,12 @@ final class ContractsTest extends KernelTestCase
         // Masked anew at each call (BREACH), the same secret: both valid for the intent, not for another.
         self::assertTrue($manager->isTokenValid(new CsrfToken('comment', Runtime::tokens()->csrf('comment'))));
         self::assertFalse($manager->isTokenValid(new CsrfToken('vote', $token)));
+        // The contract's check is the manager's: valid for its intent only, never empty nor missing.
+        self::assertTrue(Runtime::tokens()->isValid('comment', $token));
+        self::assertFalse(Runtime::tokens()->isValid('vote', $token));
+        self::assertFalse(Runtime::tokens()->isValid('comment', 'forged'));
+        self::assertFalse(Runtime::tokens()->isValid('comment', ''));
+        self::assertFalse(Runtime::tokens()->isValid('comment', null));
     }
 
     public function testWithoutSecurityTheContainerCompilesWithoutAccessSessionsAndTokens(): void
