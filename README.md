@@ -137,8 +137,14 @@ omniauth:
     trusted_device: ~                              # scheb/2fa's cookie and tokens
     totp: ~                                        # omniauth/totp
     passkey: { rp_id: '%env(RELYING_PARTY_ID)%' }  # omniauth/passkey
-    oauth: { providers: { google: { client_id: '...', client_secret: '...' } } }   # omniauth/oauth
+    oauth: { providers: { google: { client_id: '...', client_secret: '...' } } }   # omniauth/oauth + omniauth/google
 ```
+
+A provider's return address is, unless it sets one, the **path** of its check route: omniauth puts
+it on the host of each trip's request (the providers are built once per worker; an absolute
+address made here would stay on the first request's host). Each provider package's factory
+(`Omniauth\OAuth\Provider\ProviderFactory`, tag `omniauth.oauth_provider_factory`) makes its own
+kind; omniauth/google's is registered when it is installed.
 
 | Class | Role |
 |---|---|
@@ -165,7 +171,7 @@ container, the answers of Symfony's services), a kernel without SecurityBundle t
 compiles without Access, Sessions and Tokens, and `FileLinks`; `AuthTest`, a kernel
 signing in through omniauth alone (each method, the second factor, its page and
 nobody else's, refusals, CSRF, throttle, remember-me, trusted device, a simulated
-Google). `docker compose run --rm bare`: without omniauth installed, a kernel
+Google, the return address on the host of each request under one container). `docker compose run --rm bare`: without omniauth installed, a kernel
 compiles and has nothing of `Auth\`.
 
 ## Licence

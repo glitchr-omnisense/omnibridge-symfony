@@ -102,7 +102,8 @@ final class AuthKernel extends Kernel
         $services->set(RecordingSender::class)->public();
         $services->set(TotpSecrets::class);
         $services->set(InMemoryPasskeys::class)->args([service(Users::class)])->public();
-        $services->set('test.google', FakeProvider::class)->args(['google', 'http://localhost/connect/google/check'])->public();
+        // A return path: the host of each request completes it.
+        $services->set('test.google', FakeProvider::class)->args(['google', '/connect/google/check'])->public();
 
         if (!$this->omniauth) {
             return;
@@ -128,7 +129,11 @@ final class AuthKernel extends Kernel
             'trusted_device' => null,
             'totp' => null,
             'passkey' => null,
-            'oauth' => ['providers' => ['google' => ['service' => 'test.google']]],
+            'oauth' => ['providers' => [
+                'google' => ['service' => 'test.google'],
+                // Google by configuration (omniauth/google's GoogleFactory), its return address the check route's path.
+                'workspace' => ['type' => 'google', 'client_id' => 'workspace.apps.googleusercontent.com', 'client_secret' => 'secret'],
+            ]],
             'throttle' => ['pool' => 'omniauth.test_pool'],
             'login_route' => 'login',
         ]);

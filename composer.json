@@ -36,6 +36,7 @@
         "twig/extra-bundle": "^3.0"
     },
     "require-dev": {
+        "omniauth/google": "1.x-dev",
         "omniauth/oauth": "1.x-dev",
         "omniauth/passkey": "1.x-dev",
         "omniauth/totp": "1.x-dev",
@@ -46,7 +47,8 @@
         "symfony/translation": "^6.0|^7.0|^8.0"
     },
     "suggest": {
-        "omniauth/oauth": "Identity providers (Google first) through Omnibridge\\Symfony\\Auth\\ (omniauth.yaml: oauth)",
+        "omniauth/google": "Google sign-in through Omnibridge\\Symfony\\Auth\\ (omniauth.yaml: oauth.providers.google; its GoogleFactory is registered when it is installed)",
+        "omniauth/oauth": "Identity providers through Omnibridge\\Symfony\\Auth\\ (omniauth.yaml: oauth), each provider a package of its own (omniauth/google)",
         "omniauth/passkey": "Passkeys through Omnibridge\\Symfony\\Auth\\ (omniauth.yaml: passkey)",
         "omniauth/totp": "Authenticator applications through Omnibridge\\Symfony\\Auth\\ (omniauth.yaml: totp)",
         "omniscient/omniauth": "Omnibridge\\Symfony\\Auth\\: one authenticator over omniauth for every way of signing in (password, sign-in link, e-mailed code, backup codes, trusted devices), its second factor's token and page, its routes; config/packages/omniauth.yaml (nothing of Auth\\ without it)",

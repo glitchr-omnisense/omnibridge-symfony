@@ -20,10 +20,12 @@ use Omniauth\Contract\Throttle;
 use Omniauth\EmailCode\EmailCodeMethod;
 use Omniauth\EnrolledSecondFactors;
 use Omniauth\Factor;
+use Omniauth\Google\GoogleFactory;
 use Omniauth\Link\LinkMethod;
 use Omniauth\Method\Methods;
 use Omniauth\OAuth\NoSecondFactorLinking;
 use Omniauth\OAuth\OAuthMethod;
+use Omniauth\OAuth\Provider\ProviderFactory;
 use Omniauth\OAuth\Provider\Providers;
 use Omniauth\Omniauth;
 use Omniauth\Passkey\PasskeyMethod;
@@ -66,6 +68,7 @@ final class OmniauthExtension extends Extension
     public const SECOND_FACTOR = 'omniauth.second_factor';
     public const POLICY = 'omniauth.policy.default';
     public const PROVIDERS = 'omniauth.oauth.providers';
+    public const PROVIDER_FACTORY = 'omniauth.oauth_provider_factory';
 
     /** Registers this extension in a container being built, when omniauth is installed. */
     public static function register(ContainerBuilder $container): void
@@ -150,9 +153,14 @@ final class OmniauthExtension extends Extension
                     $services[$provider['service']] = new Reference($provider['service']);
                 }
             }
+            // Each provider package's factory (omniauth/google's when it is installed; any other by its tag).
+            $container->registerForAutoconfiguration(ProviderFactory::class)->addTag(self::PROVIDER_FACTORY);
+            if (class_exists(GoogleFactory::class)) {
+                $container->register('omniauth.oauth.factory.google', GoogleFactory::class)->setArguments([$clock])->addTag(self::PROVIDER_FACTORY);
+            }
             $container->register(self::PROVIDERS, Providers::class)
                 ->setFactory([OAuthProviders::class, 'create'])
-                ->setArguments([$providers, new Reference('router'), new ServiceLocatorArgument($services), $clock])
+                ->setArguments([$providers, new Reference('router'), new ServiceLocatorArgument($services), new TaggedIteratorArgument(self::PROVIDER_FACTORY)])
                 ->setPublic(true);
             $byEmail = $config['oauth']['link_by_email'];
             $linking = match (true) {

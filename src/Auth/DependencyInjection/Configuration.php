@@ -166,7 +166,7 @@ final class Configuration implements ConfigurationInterface
                         ->children()
                             ->scalarNode('client_id')->defaultValue('')->end()
                             ->scalarNode('client_secret')->defaultValue('')->end()
-                            ->scalarNode('redirect_uri')->defaultNull()->info('null: the absolute address of check_route')->end()
+                            ->scalarNode('redirect_uri')->defaultNull()->info('An absolute address, or a path each trip\'s host completes; null: the path of check_route')->end()
                             ->arrayNode('scopes')->scalarPrototype()->end()->end()
                             ->scalarNode('hosted_domain')->defaultNull()->end()
                             ->scalarNode('type')->defaultNull()->end()

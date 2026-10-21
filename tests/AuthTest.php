@@ -41,6 +41,10 @@ final class AuthTest extends WebTestCase
     {
         $this->client = static::createClient([], ['HTTP_HOST' => 'localhost', 'REMOTE_ADDR' => '127.0.0.1']);
         $this->client->disableReboot();
+        // The tries counted afresh: not those of the previous test, nor of a run a minute ago.
+        $pool = static::getContainer()->get('omniauth.test_pool');
+        \assert($pool instanceof \Psr\Cache\CacheItemPoolInterface);
+        $pool->clear();
     }
 
     private function users(): Users
@@ -373,6 +377,33 @@ final class AuthTest extends WebTestCase
         $this->client->request('GET', '/connect/google/check', ['state' => 'forged'] + $return);
         self::assertSame('signed-out', $this->state());
         self::assertCount($exchanges, $google->exchanges, 'no code exchanged');
+    }
+
+    /**
+     * Under a long-running worker the providers are built once: the return
+     * address must still be the host of each request (AU6 found it frozen on
+     * the first one), at the trip out and at the exchange.
+     */
+    public function testTheReturnAddressFollowsTheHostOfEachRequest(): void
+    {
+        $this->client->disableReboot();   // one container for every request, as a worker keeps it
+        $google = static::getContainer()->get('test.google');
+        \assert($google instanceof FakeProvider);
+        $user = $this->account();
+        foreach (['lesringostars.localhost', 'twin.localhost'] as $host) {
+            $this->client->getCookieJar()->clear();
+            $this->client->setServerParameters(['HTTP_HOST' => $host, 'HTTPS' => 'on', 'REMOTE_ADDR' => '127.0.0.1']);
+            $this->client->request('GET', '/connect/workspace');
+            parse_str((string) parse_url((string) $this->client->getResponse()->headers->get('Location'), \PHP_URL_QUERY), $query);
+            self::assertSame("https://$host/connect/workspace/check", $query['redirect_uri'] ?? $this->client->getResponse()->headers->get('Location'), 'Google by configuration');
+
+            $this->client->request('GET', '/connect/google');
+            $location = (string) $this->client->getResponse()->headers->get('Location');
+            parse_str((string) parse_url($location, \PHP_URL_QUERY), $query);
+            self::assertSame("https://$host/connect/google/check", $query['redirect_uri'] ?? $location);
+            $this->client->request('GET', '/connect/google/check', $google->consent($location, ['sub' => 'g-host', 'email' => $user->email, 'email_verified' => true]));
+            self::assertSame('signed-in', $this->state(), $host.': the exchange repeated the trip\'s address');
+        }
     }
 
     public function testAnUnservedProviderIsNoPage(): void
