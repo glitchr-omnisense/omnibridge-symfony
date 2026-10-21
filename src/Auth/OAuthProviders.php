@@ -6,6 +6,7 @@ use Omniauth\OAuth\Provider\Provider;
 use Omniauth\OAuth\Provider\ProviderFactory;
 use Omniauth\OAuth\Provider\Providers;
 use Psr\Container\ContainerInterface;
+use Symfony\Contracts\Service\ServiceProviderInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
@@ -24,11 +25,22 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 final class OAuthProviders
 {
     /**
-     * @param array<string, array<string, mixed>> $config    omniauth.yaml's oauth.providers
-     * @param iterable<ProviderFactory>           $factories the provider packages' (tag omniauth.oauth_provider_factory)
+     * @param array<string, array<string, mixed>>      $config    omniauth.yaml's oauth.providers
+     * @param iterable<ProviderFactory>|ContainerInterface $factories the provider packages' (tag omniauth.oauth_provider_factory):
+     *                                                            a service locator of them (the extension's: a tagged
+     *                                                            iterator inlined by a compiled container lost its
+     *                                                            factory and passed the factory's own argument), or
+     *                                                            the factories themselves
      */
-    public static function create(array $config, UrlGeneratorInterface $urls, ContainerInterface $services, iterable $factories = []): Providers
+    public static function create(array $config, UrlGeneratorInterface $urls, ContainerInterface $services, iterable|ContainerInterface $factories = []): Providers
     {
+        if ($factories instanceof ContainerInterface) {
+            $located = [];
+            foreach ($factories instanceof ServiceProviderInterface ? array_keys($factories->getProvidedServices()) : [] as $id) {
+                $located[] = $factories->get($id);
+            }
+            $factories = $located;
+        }
         $given = [];
         $settings = [];
         foreach ($config as $name => $entry) {
@@ -47,6 +59,13 @@ final class OAuthProviders
             $settings[$name] = array_filter($entry, static fn ($v) => null !== $v && [] !== $v);
         }
 
-        return new Providers(...$given, ...iterator_to_array(Providers::configured($settings, ...$factories), false));
+        $made = [];
+        foreach ($factories as $factory) {
+            if ($factory instanceof ProviderFactory) {
+                $made[] = $factory;
+            }
+        }
+
+        return new Providers(...$given, ...iterator_to_array(Providers::configured($settings, ...$made), false));
     }
 }
