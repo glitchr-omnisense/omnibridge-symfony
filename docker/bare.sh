@@ -1,11 +1,11 @@
 #!/bin/sh
-# The package without omniscient/omniauth and its methods (only suggested): a copy, the four removed,
-# the group without-omniauth run there.
+# The package without omniscient/omniauth and its methods, nor omniscient/omnimap and its providers
+# (only suggested): a copy, those removed, the group without-omniauth run there.
 set -e
 mkdir -p /tmp/bare
 cp -r /source/src /source/tests /source/config /source/composer.json /source/phpunit.xml.dist /tmp/bare/
 cd /tmp/bare
-composer remove --dev --no-update omniscient/omniauth omniauth/google omniauth/webauthn omniauth/otp
+composer remove --dev --no-update omniscient/omniauth omniauth/google omniauth/webauthn omniauth/otp omniscient/omnimap omnimap/google omnimap/openstreetmap
 composer update --no-progress -q
-php -r 'exit(class_exists("Omniauth\\Omniauth") ? 1 : 0);'
+php -r 'exit(class_exists("Omniauth\\Omniauth") || class_exists("Omnimap\\Registry") ? 1 : 0);'
 vendor/bin/phpunit --group without-omniauth

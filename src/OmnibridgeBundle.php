@@ -5,6 +5,7 @@ namespace Omnibridge\Symfony;
 use Omnibridge\Runtime;
 use Omnibridge\Symfony\Auth\DependencyInjection\OmniauthExtension;
 use Omnibridge\Symfony\DependencyInjection\ContractsPass;
+use Omnibridge\Symfony\Map\DependencyInjection\OmnimapExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
@@ -35,6 +36,8 @@ final class OmnibridgeBundle extends AbstractBundle
         $container->addCompilerPass(new ContractsPass());
         // omniauth's sign-in (config/packages/omniauth.yaml), where omniauth is installed.
         OmniauthExtension::register($container);
+        // omnimap's maps and their cache (config/packages/omnimap.yaml), where omnimap is installed.
+        OmnimapExtension::register($container);
     }
 
     public function boot(): void

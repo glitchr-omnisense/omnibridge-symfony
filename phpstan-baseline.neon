@@ -1183,6 +1183,78 @@ parameters:
 			path: tests/Fixtures/AuthKernel.php
 
 		-
+			message: '#^Cannot access offset ''user\-agent'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Fixtures/MapKernel.php
+
+		-
+			message: '#^Cannot access offset 0 on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: tests/Fixtures/MapKernel.php
+
+		-
+			message: '#^Static property Omnibridge\\Symfony\\Tests\\Fixtures\\MapKernel\:\:\$userAgents \(list\<string\>\) does not accept non\-empty\-list\<mixed\>\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: tests/Fixtures/MapKernel.php
+
+		-
+			message: '#^Call to an undefined method object\:\:clear\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/MapTest.php
+
+		-
+			message: '#^Call to an undefined method object\:\:generate\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/MapTest.php
+
+		-
+			message: '#^Call to an undefined method object\:\:hasExtension\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/MapTest.php
+
+		-
+			message: '#^Call to an undefined method object\:\:signature\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/MapTest.php
+
+		-
+			message: '#^Call to an undefined method object\:\:store\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/MapTest.php
+
+		-
+			message: '#^Cannot call method find\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/MapTest.php
+
+		-
+			message: '#^Cannot cast array\|string\|null to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: tests/MapTest.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 2
+			path: tests/MapTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of static method PHPUnit\\Framework\\Assert\:\:assertStringContainsString\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/MapTest.php
+
+		-
 			message: '#^Call to an undefined method object\:\:get\(\)\.$#'
 			identifier: method.notFound
 			count: 1

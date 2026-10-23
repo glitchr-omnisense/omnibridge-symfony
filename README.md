@@ -167,6 +167,40 @@ The stores (`Omniauth\Contract\Accounts`... the passkeys, the sender) are the
 application's, by their contracts' names or those `omniauth.yaml`'s `stores` names;
 omniauth's events go to Symfony's dispatcher (listen to `Omniauth\Event\SignedIn`...).
 
+## Maps: `Omnibridge\Symfony\Map\` (omnimap)
+
+Where omniscient/omnimap is installed (suggested), `config/packages/omnimap.yaml` wires
+it: its providers (omnimap/google, omnimap/openstreetmap, registered when installed)
+over the application's `http_client`, a PSR-16 view of a cache pool and a PSR-18 client
+for geocoder-php; the map cache over a storage service of the application's (any
+`Omnimap\Snapshot\Storage`); omnibridge/twig's `MapExtension` (`omnimap(view)`,
+`omnimap_export()`, `omnimap_suppress()`); the cache's routes and their controller.
+
+```yaml
+# config/routes/omnimap.yaml
+omnimap: { resource: ., type: omnimap }
+
+# config/packages/omnimap.yaml
+omnimap:
+    provider: openstreetmap            # the page's map: a key of providers
+    secret: '%env(MAP_SECRET)%'        # signs the pictures' names
+    providers:
+        openstreetmap: { user_agent: 'MySite/1.0 (+https://example.org)' }
+        google: { api_key: '%env(GOOGLE_MAPS_CLIENT_KEY)%', secret: '%env(GOOGLE_MAPS_SECRET)%' }
+    cache:
+        storage: App\Map\Storage       # an Omnimap\Snapshot\Storage service
+        public_directory: '%kernel.project_dir%/public'   # tiles served are written there too
+    routes:
+        tile: { path: '/omnimap/{signature}/{id}.webp', name: omnimap_tile }
+```
+
+| Service | What it is |
+|---|---|
+| `Omnimap\Registry`, `Omnimap\MapRendererInterface`, `Omnimap\GeocoderInterface` | the providers; the page's; the one `geocoder` names (the page's by default) |
+| `Omnimap\Snapshot\Snapshots`, `SnapshotStore` | the cache: pictures named by `secret`, kept in `cache.storage` (`directory`, `pattern`, `format`, `tilesize`), made by the server when the provider makes images (`make: auto`) |
+| `Omnimap\MapPrinter`, `Omnibridge\Twig\MapExtension` | the page's map (`cache_only`, `control`) and the buttons |
+| `SnapshotController`, `MapRouteLoader` | a tile (WebP when its path says so, fitted within `public_size`, written under `public_directory`), a picture's metadata, the capture (`image`, `tilesize`, `_token` of intent `omnimap-export`) and the deletion (intent `omnimap-suppress`, the public tiles deleted with it), for `control` (ROLE_ADMIN) |
+
 ## Tests
 
 ```
@@ -179,7 +213,11 @@ container, the answers of Symfony's services), a kernel without SecurityBundle t
 compiles without Access, Sessions and Tokens, and `FileLinks`; `AuthTest`, a kernel
 signing in through omniauth alone (each method, the second factor, its page and
 nobody else's, refusals, CSRF, throttle, remember-me, trusted device, a simulated
-Google, the return address on the host of each request under one container). `docker compose run --rm bare`: without omniauth installed, a kernel
+Google, the return address on the host of each request under one container);
+`MapTest`, a kernel drawing its map through omnimap (OpenStreetMap's tiles answered
+here: the picture made once, a tile served as WebP and written in the public folder,
+the metadata, an administrator's capture and deletion with the page's tokens, a
+visitor refused). `docker compose run --rm bare`: without omniauth installed, a kernel
 compiles and has nothing of `Auth\`.
 
 ## Licence
