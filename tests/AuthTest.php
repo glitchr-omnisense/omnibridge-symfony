@@ -2,18 +2,21 @@
 
 namespace Omnibridge\Symfony\Tests;
 
-use Omnibridge\Symfony\Auth\OmniauthAuthenticator;
-use Omnibridge\Symfony\Auth\PendingToken;
-use Omnibridge\Symfony\Tests\Fixtures\Auth\User;
-use Omnibridge\Symfony\Tests\Fixtures\Auth\Users;
-use Omnibridge\Symfony\Tests\Fixtures\AuthKernel;
 use Omniauth\Factor;
 use Omniauth\Link\LinkMethod;
 use Omniauth\OAuth\Testing\FakeProvider;
-use Omniauth\Passkey\PasskeyRecord;
-use Omniauth\Passkey\Testing\InMemoryPasskeys;
-use Omniauth\Passkey\Testing\SoftwareAuthenticator;
+use Omniauth\Otp\SealedTotpSecrets;
+use Omniauth\Otp\SodiumSecretBox;
 use Omniauth\Testing\RecordingSender;
+use Omniauth\WebAuthn\PasskeyRecord;
+use Omniauth\WebAuthn\Testing\InMemoryPasskeys;
+use Omniauth\WebAuthn\Testing\SoftwareAuthenticator;
+use Omnibridge\Symfony\Auth\OmniauthAuthenticator;
+use Omnibridge\Symfony\Auth\PendingToken;
+use Omnibridge\Symfony\Tests\Fixtures\Auth\TotpSecrets;
+use Omnibridge\Symfony\Tests\Fixtures\Auth\User;
+use Omnibridge\Symfony\Tests\Fixtures\Auth\Users;
+use Omnibridge\Symfony\Tests\Fixtures\AuthKernel;
 use OTPHP\TOTP;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -175,6 +178,29 @@ final class AuthTest extends WebTestCase
         $this->signIn($user->email, remember: true);
 
         self::assertNotNull($this->client->getCookieJar()->get('REMEMBERME'));
+    }
+
+    /**
+     * totp.secret_key: the store decorated by omniauth/otp's SealedTotpSecrets
+     * (whoever writes it - an enrolment page - seals), the account's secret
+     * kept sealed, the sign-in verified against the opened secret; a secret
+     * kept in clear before (the other tests' accounts) still signs in.
+     */
+    public function testTotpSecretsAreSealedAtRestWhenAKeyIsSet(): void
+    {
+        $store = static::getContainer()->get(TotpSecrets::class);
+        self::assertInstanceOf(SealedTotpSecrets::class, $store, 'the store decorated');
+        $user = $this->account();
+        $secret = TOTP::generate()->getSecret();
+        $store->enable($user, $secret);
+
+        self::assertTrue(SodiumSecretBox::isSealed((string) $user->totpSecret), 'kept sealed');
+        self::assertSame($secret, SodiumSecretBox::fromBase64(AuthKernel::TOTP_KEY)->open((string) $user->totpSecret), 'under the configured key');
+        self::assertSame($secret, $store->secret($user));
+
+        self::assertSame('/login/2fa', $this->signIn($user->email)->headers->get('Location'));
+        $this->secondFactor(TOTP::createFromSecret($secret)->now());
+        self::assertSame('signed-in', $this->state());
     }
 
     public function testAnAccountWithTotpIsAskedItsCodeAndOnlyItsPageOpens(): void

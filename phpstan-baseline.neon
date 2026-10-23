@@ -1021,7 +1021,7 @@ parameters:
 			path: tests/AuthTest.php
 
 		-
-			message: '#^Parameter \#1 \$options of method Omniauth\\Passkey\\Testing\\SoftwareAuthenticator\:\:get\(\) expects array\<string, mixed\>\|string, mixed given\.$#'
+			message: '#^Parameter \#1 \$options of method Omniauth\\WebAuthn\\Testing\\SoftwareAuthenticator\:\:get\(\) expects array\<string, mixed\>\|string, mixed given\.$#'
 			identifier: argument.type
 			count: 2
 			path: tests/AuthTest.php

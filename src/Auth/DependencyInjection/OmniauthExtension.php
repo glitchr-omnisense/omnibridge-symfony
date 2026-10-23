@@ -2,16 +2,6 @@
 
 namespace Omnibridge\Symfony\Auth\DependencyInjection;
 
-use Omnibridge\Contract\Tokens;
-use Omnibridge\Symfony\Auth\AuthRouteLoader;
-use Omnibridge\Symfony\Auth\CeremonyController;
-use Omnibridge\Symfony\Auth\Contexts;
-use Omnibridge\Symfony\Auth\OAuthProviders;
-use Omnibridge\Symfony\Auth\OmniauthAuthenticator;
-use Omnibridge\Symfony\Auth\PendingTrustResolver;
-use Omnibridge\Symfony\Auth\PendingVoter;
-use Omnibridge\Symfony\Auth\SecondFactorGate;
-use Omnibridge\Symfony\Auth\SessionState;
 use Omniauth\BackupCode\BackupCodeMethod;
 use Omniauth\CacheThrottle;
 use Omniauth\Contract\SecondFactorPolicy;
@@ -28,12 +18,25 @@ use Omniauth\OAuth\OAuthMethod;
 use Omniauth\OAuth\Provider\ProviderFactory;
 use Omniauth\OAuth\Provider\Providers;
 use Omniauth\Omniauth;
-use Omniauth\Passkey\PasskeyMethod;
-use Omniauth\Passkey\RelyingParty;
+use Omniauth\Otp\CacheUsedSteps;
+use Omniauth\Otp\Contract\SecretBox;
+use Omniauth\Otp\SealedTotpSecrets;
+use Omniauth\Otp\SodiumSecretBox;
+use Omniauth\Otp\TotpMethod;
 use Omniauth\Password\PasswordMethod;
-use Omniauth\Totp\CacheUsedSteps;
-use Omniauth\Totp\TotpMethod;
 use Omniauth\TrustedDevice\TrustedDevices;
+use Omniauth\WebAuthn\PasskeyMethod;
+use Omniauth\WebAuthn\RelyingParty;
+use Omnibridge\Contract\Tokens;
+use Omnibridge\Symfony\Auth\AuthRouteLoader;
+use Omnibridge\Symfony\Auth\CeremonyController;
+use Omnibridge\Symfony\Auth\Contexts;
+use Omnibridge\Symfony\Auth\OAuthProviders;
+use Omnibridge\Symfony\Auth\OmniauthAuthenticator;
+use Omnibridge\Symfony\Auth\PendingTrustResolver;
+use Omnibridge\Symfony\Auth\PendingVoter;
+use Omnibridge\Symfony\Auth\SecondFactorGate;
+use Omnibridge\Symfony\Auth\SessionState;
 use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
 use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -45,9 +48,12 @@ use Symfony\Component\DependencyInjection\Reference;
 /**
  * omniauth wired into a Symfony application (plan "omniauth", §3.1, step AU6),
  * from config/packages/omniauth.yaml: the conductor (Omniauth\Omniauth) with
- * the methods present - each key turns its method on; passkeys, TOTP and
- * identity providers need their package (omniauth/passkey, omniauth/totp,
- * omniauth/oauth) -, the second-factor rule (EnrolledSecondFactors, which an
+ * the methods present - each key turns its method on; passkeys and TOTP need
+ * their package (omniauth/webauthn, omniauth/otp), an identity provider its
+ * own (omniauth/google) -, the TOTP secrets sealed at rest when
+ * totp.secret_key is set (omniauth/otp's SodiumSecretBox decorating the
+ * TotpSecrets store, so whoever reads the store - the method, an enrolment
+ * page - reads through it), the second-factor rule (EnrolledSecondFactors, which an
  * application decorates: Omniauth\Contract\SecondFactorPolicy), the session
  * as its State, a PSR-6 pool as its Throttle, Symfony's dispatcher for its
  * events; and around it, the authenticator a firewall names
@@ -124,12 +130,27 @@ final class OmniauthExtension extends Extension
             $method('omniauth.method.trusted_device', TrustedDevices::class, [$store('accounts'), $store('trusted_version'), $config['secret'], $config['trusted_device']['lifetime'], $clock]);
         }
         if ($config['totp']['enabled']) {
-            self::needs(TotpMethod::class, 'omniauth/totp', 'totp');
+            self::needs(TotpMethod::class, 'omniauth/otp', 'totp');
             $totp = $config['totp'];
+            $secretKey = \is_array($totp) && \is_string($totp['secret_key'] ?? null) ? $totp['secret_key'] : '';
+            $secretsStore = \is_array($stores) && \is_string($stores['totp_secrets'] ?? null) ? $stores['totp_secrets'] : 'Omniauth\Contract\TotpSecrets';
+            if ('' !== $secretKey) {
+                // The store decorated: the box's text at rest, the base32 secret for its readers (QA5).
+                // Lazy, behind its interface: the key (an env var) is read at the first secret sealed or
+                // opened - a code verified, an enrolment -, not at every request that builds the conductor.
+                $container->register('omniauth.totp.box', SodiumSecretBox::class)
+                    ->setFactory([SodiumSecretBox::class, 'fromBase64'])
+                    ->setArguments([$secretKey])
+                    ->setLazy(true)
+                    ->addTag('proxy', ['interface' => SecretBox::class]);
+                $container->register('omniauth.totp.sealed_secrets', SealedTotpSecrets::class)
+                    ->setDecoratedService($secretsStore)
+                    ->setArguments([new Reference('.inner'), new Reference('omniauth.totp.box')]);
+            }
             $method('omniauth.method.totp', TotpMethod::class, [$store('accounts'), $store('totp_secrets'), new Definition(CacheUsedSteps::class, [$pool]), $totp['leeway'], $totp['period'], $totp['digits'], TotpMethod::ALGORITHM, $totp['issuer'], $totp['server_name'], $clock], true);
         }
         if ($config['passkey']['enabled']) {
-            self::needs(PasskeyMethod::class, 'omniauth/passkey', 'passkey');
+            self::needs(PasskeyMethod::class, 'omniauth/webauthn', 'passkey');
             $passkey = $config['passkey'];
             $method('omniauth.method.passkey', PasskeyMethod::class, [$store('accounts'), $store('passkeys'), new Definition(RelyingParty::class, [$passkey['rp_id'] ?: null, $passkey['rp_name'] ?: null, array_values($passkey['origins'])]), $passkey['timeout']]);
         }
@@ -139,7 +160,7 @@ final class OmniauthExtension extends Extension
 
         $providers = [];
         if ($config['oauth']['enabled']) {
-            self::needs(OAuthMethod::class, 'omniauth/oauth', 'oauth');
+            self::needs(OAuthMethod::class, 'omniscient/omniauth 1.x with Omniauth\\OAuth\\ (2026-10-23)', 'oauth');
             foreach ($config['oauth']['providers'] as $name => $provider) {
                 $provider['start_route'] ??= 'oauth_'.$name;
                 $provider['start_path'] ??= '/connect/'.$name;

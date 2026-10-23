@@ -2,16 +2,16 @@
 
 namespace Omnibridge\Symfony\Tests\Fixtures;
 
+use Omniauth\Factor;
+use Omniauth\OAuth\Testing\FakeProvider;
+use Omniauth\Omniauth;
+use Omniauth\Testing\RecordingSender;
+use Omniauth\WebAuthn\Testing\InMemoryPasskeys;
 use Omnibridge\Symfony\Auth\Contexts;
 use Omnibridge\Symfony\Auth\OmniauthAuthenticator;
 use Omnibridge\Symfony\OmnibridgeBundle;
 use Omnibridge\Symfony\Tests\Fixtures\Auth\TotpSecrets;
 use Omnibridge\Symfony\Tests\Fixtures\Auth\Users;
-use Omniauth\Factor;
-use Omniauth\OAuth\Testing\FakeProvider;
-use Omniauth\Omniauth;
-use Omniauth\Passkey\Testing\InMemoryPasskeys;
-use Omniauth\Testing\RecordingSender;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\SecurityBundle\SecurityBundle;
@@ -30,8 +30,9 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
  * SecurityBundle (one firewall, OmniauthAuthenticator its authenticator and
  * entry point, remember-me, sign-out), TwigBundle (the second factor's page)
  * and OmnibridgeBundle, every method of omniauth.yaml on, the accounts in
- * memory (Auth\Users), an identity provider simulated (omniauth/oauth's
- * FakeProvider), the e-mails recorded (RecordingSender). With $omniauth
+ * memory (Auth\Users), an identity provider simulated (omniauth's
+ * FakeProvider), the e-mails recorded (RecordingSender), the TOTP secrets
+ * sealed with a test key. With $omniauth
  * false, no omniauth.yaml: the same application without omniauth's sign-in.
  */
 final class AuthKernel extends Kernel
@@ -39,6 +40,8 @@ final class AuthKernel extends Kernel
     use MicroKernelTrait;
 
     public const SECRET = 'omnibridge-auth-test-kernel-secret-0123456789abcdef';
+    /** The test's own key for the TOTP secrets at rest (base64 of 32 bytes): a fixed test value, no real one. */
+    public const TOTP_KEY = 'b21uaWJyaWRnZS10ZXN0LXRvdHAta2V5LTMyLWJ5dGU=';
 
     public function __construct(string $environment = 'test', bool $debug = true, private readonly bool $omniauth = true)
     {
@@ -100,7 +103,7 @@ final class AuthKernel extends Kernel
         $services->set(Users::class)->public();
         $services->alias('Omniauth\Contract\Accounts', Users::class);
         $services->set(RecordingSender::class)->public();
-        $services->set(TotpSecrets::class);
+        $services->set(TotpSecrets::class)->public();
         $services->set(InMemoryPasskeys::class)->args([service(Users::class)])->public();
         // A return path: the host of each request completes it.
         $services->set('test.google', FakeProvider::class)->args(['google', '/connect/google/check'])->public();
@@ -127,7 +130,7 @@ final class AuthKernel extends Kernel
             'email_code' => null,
             'backup_codes' => null,
             'trusted_device' => null,
-            'totp' => null,
+            'totp' => ['secret_key' => self::TOTP_KEY],
             'passkey' => null,
             'oauth' => ['providers' => [
                 'google' => ['service' => 'test.google'],

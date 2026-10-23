@@ -10,7 +10,7 @@ use Symfony\Contracts\Service\ServiceProviderInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
- * omniauth/oauth's providers from omniauth.yaml: Providers::configured()
+ * omniauth's providers from omniauth.yaml: Providers::configured()
  * through the provider packages' factories (omniauth/google's GoogleFactory;
  * a provider without client id is not served), and a provider given as a
  * service ("service") as it is.

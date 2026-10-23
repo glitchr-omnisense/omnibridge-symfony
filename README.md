@@ -135,10 +135,18 @@ omniauth:
     email_code: ~
     backup_codes: ~
     trusted_device: ~                              # scheb/2fa's cookie and tokens
-    totp: ~                                        # omniauth/totp
-    passkey: { rp_id: '%env(RELYING_PARTY_ID)%' }  # omniauth/passkey
-    oauth: { providers: { google: { client_id: '...', client_secret: '...' } } }   # omniauth/oauth + omniauth/google
+    totp: { secret_key: '%env(OMNIAUTH_TOTP_KEY)%' }   # omniauth/otp; the secrets sealed at rest (sodium)
+    passkey: { rp_id: '%env(RELYING_PARTY_ID)%' }  # omniauth/webauthn
+    oauth: { providers: { google: { client_id: '...', client_secret: '...' } } }   # omniauth/google (the mechanics: omniauth's Omniauth\OAuth\)
 ```
+
+`totp.secret_key` (base64 of 32 bytes, from the vault or the environment, never in the
+repository; the same on every host of one database - the Laravel twin's `config/omniauth.php` reads
+the same variable) seals the TOTP secrets at rest: omniauth/otp's `SealedTotpSecrets` over a
+`SodiumSecretBox` decorates the `totp_secrets` store, so the method and any page that reads or writes
+the store (omnibase's enrolment and its QR code) go through it. Unset, the secrets are kept as the
+store has them. A secret kept in clear before is read as it is until the application rewrites its
+rows (omnibase sites: a migration).
 
 A provider's return address is, unless it sets one, the **path** of its check route: omniauth puts
 it on the host of each trip's request (the providers are built once per worker; an absolute
