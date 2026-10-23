@@ -18,7 +18,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  * The map cache over HTTP (MapRouteLoader's routes):
  *
  * - tile: a tile of a picture kept, as WebP when the route's path ends in
- *   .webp (fitted within public_size), public and cacheable (max_age); with
+ *   .webp (fitted within public_size; GD with WebP, else Imagick, else as kept), public and cacheable (max_age); with
  *   a public_directory, written there too at the route's own path, so the
  *   web server serves it without PHP the next time;
  * - metadata: the picture's metadata as JSON ({"status": "BAD"} when none);
@@ -54,8 +54,8 @@ final class SnapshotController
             throw new NotFoundHttpException('No such map tile.');
         }
         $type = 'image/'.('jpg' === $this->snapshots->store()->format() ? 'jpeg' : $this->snapshots->store()->format());
-        if (str_ends_with($this->tilePath, '.webp') && 'image/webp' !== $type) {
-            $bytes = self::webp($bytes, $this->publicSize);
+        if (str_ends_with($this->tilePath, '.webp') && 'image/webp' !== $type && null !== ($webp = self::webp($bytes, $this->publicSize))) {
+            $bytes = $webp;
             $type = 'image/webp';
         }
         if (null !== $this->publicDirectory) {
@@ -151,25 +151,49 @@ final class SnapshotController
         return str_replace(['{signature}', '{id}'], [$signature, (string) $id], $template);
     }
 
-    private static function webp(string $bytes, ?int $size): string
+    /**
+     * The tile as WebP, fitted within $size: with GD when it was built with
+     * WebP, with Imagick otherwise; null when neither can (the tile is then
+     * served as it is kept).
+     */
+    private static function webp(string $bytes, ?int $size): ?string
     {
-        $image = @imagecreatefromstring($bytes);
-        if (false === $image) {
-            return $bytes;
-        }
-        $width = imagesx($image);
-        $height = imagesy($image);
-        if (null !== $size && $size > 0 && max($width, $height) > $size) {
-            $ratio = $size / max($width, $height);
-            $scaled = imagescale($image, max(1, (int) round($width * $ratio)), max(1, (int) round($height * $ratio)), \IMG_BICUBIC);
-            $image = false === $scaled ? $image : $scaled;
-        }
-        imagepalettetotruecolor($image);
-        imagealphablending($image, false);
-        imagesavealpha($image, true);
-        ob_start();
-        imagewebp($image, null, 90);
+        if (\function_exists('imagewebp')) {
+            $image = @imagecreatefromstring($bytes);
+            if (false === $image) {
+                return null;
+            }
+            $width = imagesx($image);
+            $height = imagesy($image);
+            if (null !== $size && $size > 0 && max($width, $height) > $size) {
+                $ratio = $size / max($width, $height);
+                $scaled = imagescale($image, max(1, (int) round($width * $ratio)), max(1, (int) round($height * $ratio)), \IMG_BICUBIC);
+                $image = false === $scaled ? $image : $scaled;
+            }
+            imagepalettetotruecolor($image);
+            imagealphablending($image, false);
+            imagesavealpha($image, true);
+            ob_start();
+            imagewebp($image, null, 90);
 
-        return (string) ob_get_clean();
+            return (string) ob_get_clean();
+        }
+        if (class_exists(\Imagick::class) && [] !== \Imagick::queryFormats('WEBP')) {
+            try {
+                $image = new \Imagick();
+                $image->readImageBlob($bytes);
+                if (null !== $size && $size > 0 && max($image->getImageWidth(), $image->getImageHeight()) > $size) {
+                    $image->thumbnailImage($size, $size, true);
+                }
+                $image->setImageFormat('webp');
+                $image->setImageCompressionQuality(90);
+
+                return $image->getImageBlob();
+            } catch (\ImagickException) {
+                return null;
+            }
+        }
+
+        return null;
     }
 }
