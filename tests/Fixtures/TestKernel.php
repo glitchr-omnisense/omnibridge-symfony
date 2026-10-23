@@ -2,6 +2,8 @@
 
 namespace Omnibridge\Symfony\Tests\Fixtures;
 
+use League\Flysystem\Filesystem;
+use League\Flysystem\InMemory\InMemoryFilesystemAdapter;
 use Omnibridge\Symfony\OmnibridgeBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
@@ -10,6 +12,8 @@ use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
+
+use function Symfony\Component\DependencyInjection\Loader\Configurator\inline_service;
 
 /**
  * The smallest Symfony application binding the contracts: FrameworkBundle
@@ -53,6 +57,12 @@ final class TestKernel extends Kernel
 
     protected function configureContainer(ContainerConfigurator $container): void
     {
+        if (class_exists(InMemoryFilesystemAdapter::class)) {
+            // A storage as league/flysystem-bundle declares one: a Flysystem operator tagged by its name.
+            $container->services()->set('test.storage.uploads', Filesystem::class)
+                ->args([inline_service(InMemoryFilesystemAdapter::class)])
+                ->tag('flysystem.storage', ['storage' => 'memory.uploads']);
+        }
         $container->extension('framework', [
             'secret' => 'omnibridge-secret',
             'test' => true,

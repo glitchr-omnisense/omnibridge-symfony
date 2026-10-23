@@ -16,8 +16,14 @@
  * functions it then answers through the same services; a contract this
  * container lacks leaves its function to the bridge, or to nothing.
  *
- * Not bound here: Locales and Files (an application's languages and storages
- * are its own - omnibase binds its Localizer and Flysystem storages), the
+ * The storages, where omniscient/omnidrive is installed: Omnidrive\Drives over
+ * the services tagged flysystem.storage by their storage name - the storages of
+ * league/flysystem-bundle's configuration (or omnibase's local ones without
+ * it), each read and written as an Omnidrive\Drive.
+ *
+ * Not bound here: Locales and Files (an application's languages and how its
+ * files are linked are its own - omnibase binds its Localizer and its
+ * FlysystemFiles over these drives), the
  * clock and the event dispatcher (Symfony's, by their PSR names, when the
  * framework has them).
  */
@@ -36,9 +42,12 @@ use Omnibridge\Symfony\DependencyInjection\ContractsPass;
 use Omnibridge\Symfony\RouterUrls;
 use Omnibridge\Symfony\TranslatorTranslations;
 use Omnibridge\Twig\AccessExtension;
+use Omnidrive\Drives;
+use Omnidrive\Flysystem\OperatorDrives;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_locator;
 
 return static function (ContainerConfigurator $container): void {
     $services = $container->services();
@@ -72,6 +81,12 @@ return static function (ContainerConfigurator $container): void {
         ->args([service('security.csrf.token_manager')])
         ->tag(ContractsPass::ADAPTER);
     $services->alias(Tokens::class, CsrfTokens::class);
+
+    if (class_exists(OperatorDrives::class)) {
+        $services->set(OperatorDrives::class)
+            ->args([tagged_locator('flysystem.storage', 'storage')]);
+        $services->alias(Drives::class, OperatorDrives::class)->public();
+    }
 
     $services->set(AccessExtension::class)
         ->args([service(Access::class)->nullOnInvalid(), service(Tokens::class)->nullOnInvalid()])

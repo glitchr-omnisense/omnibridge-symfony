@@ -201,6 +201,21 @@ omnimap:
 | `Omnimap\MapPrinter`, `Omnibridge\Twig\MapExtension` | the page's map (`cache_only`, `control`) and the buttons |
 | `SnapshotController`, `MapRouteLoader` | a tile (WebP when its path says so, fitted within `public_size`, written under `public_directory`), a picture's metadata, the capture (`image`, `tilesize`, `_token` of intent `omnimap-export`) and the deletion (intent `omnimap-suppress`, the public tiles deleted with it), for `control` (ROLE_ADMIN) |
 
+
+## Storages: `Omnidrive\Drives` (omnidrive)
+
+Where omniscient/omnidrive is installed (suggested), `Omnidrive\Drives` is the application's
+storages as omnidrive's drives: an `Omnidrive\Flysystem\OperatorDrives` over the services tagged
+`flysystem.storage`, by their `storage` names - the storages of league/flysystem-bundle's
+configuration (or omnibase's local ones without the bundle). Nothing is configured a second time:
+`config/packages/flysystem.yaml` names them, the code reads and writes them through `Drive`.
+
+```php
+public function __construct(private readonly Drives $drives) {}
+
+$this->drives->get('local.uploads')->write('avatars/1.png', $bytes);
+```
+
 ## Tests
 
 ```

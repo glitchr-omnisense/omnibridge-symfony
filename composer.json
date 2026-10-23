@@ -36,12 +36,14 @@
         "twig/extra-bundle": "^3.0"
     },
     "require-dev": {
+        "league/flysystem-memory": "^3.0",
         "omniauth/google": "1.x-dev",
         "omniauth/otp": "1.x-dev",
         "omniauth/webauthn": "1.x-dev",
         "omnimap/google": "^1.0@dev",
         "omnimap/openstreetmap": "^1.0@dev",
         "omniscient/omniauth": "1.x-dev",
+        "omniscient/omnidrive": "^1.0@dev",
         "omniscient/omnimap": "^1.0@dev",
         "phpunit/phpunit": "^11.5|^12.0",
         "symfony/browser-kit": "^6.0|^7.0|^8.0",
@@ -55,6 +57,7 @@
         "omniauth/webauthn": "Passkeys through Omnibridge\\Symfony\\Auth\\ (omniauth.yaml: passkey), formerly omniauth/passkey",
         "omniscient/omniauth": "Omnibridge\\Symfony\\Auth\\: one authenticator over omniauth for every way of signing in (password, sign-in link, e-mailed code, backup codes, trusted devices, identity providers - omniauth's Omniauth\\OAuth\\, each provider a package of its own), its second factor's token and page, its routes; config/packages/omniauth.yaml (nothing of Auth\\ without it)",
         "omniscient/omnimap": "Omnibridge\\Symfony\\Map\\: maps through omnimap (config/packages/omnimap.yaml) - its providers over the application's HTTP client and cache pool, the map cache over a storage service of the application's, the cache's routes (type \"omnimap\") and controller, omnibridge/twig's MapExtension (omnimap(), omnimap_export(), omnimap_suppress()); omnimap/google and omnimap/openstreetmap registered when installed",
+        "omniscient/omnidrive": "Omnidrive\\Drives: the storages of league/flysystem-bundle's configuration (the services tagged flysystem.storage) as omnidrive's drives, by their names",
         "symfony/asset": "RouterUrls::asset() through the application's asset packages (assets.packages); without it, the path as it is"
     },
     "autoload": {
