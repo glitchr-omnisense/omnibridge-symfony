@@ -15,7 +15,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *             google: { api_key: '...', server_key: '...', secret: '...', legacy_signature: true }
  *             openstreetmap: { user_agent: 'MySite/1.0 (+https://example.org)' }
  *         cache:
- *             storage: App\Map\Storage       # a service implementing Omnimap\Snapshot\Storage
+ *             drive: local.uploads           # an omnidrive drive (Omnidrive\Drives); or storage: a service implementing Omnimap\Snapshot\Storage
  *         routes:
  *             tile: { path: '/omnimap/{signature}/{id}.webp' }
  *
@@ -46,8 +46,13 @@ final class Configuration implements ConfigurationInterface
                 ->scalarNode('control')->defaultValue('ROLE_ADMIN')->info('Who may capture and delete pictures, and sees the live map while there is none.')->end()
                 ->arrayNode('cache')
                     ->addDefaultsIfNotSet()
+                    ->validate()
+                        ->ifTrue(static fn (array $cache) => null === $cache['drive'] && null === $cache['storage'])
+                        ->thenInvalid('omnimap.cache needs a drive (an omnidrive drive\'s name) or a storage (a service implementing Omnimap\Snapshot\Storage).')
+                    ->end()
                     ->children()
-                        ->scalarNode('storage')->isRequired()->cannotBeEmpty()->info('A service implementing Omnimap\Snapshot\Storage.')->end()
+                        ->scalarNode('drive')->defaultNull()->info('The omnidrive drive the cache is kept on (Omnidrive\Drives: a storage\'s name, "local.uploads"); or storage.')->end()
+                        ->scalarNode('storage')->defaultNull()->info('A service implementing Omnimap\Snapshot\Storage, when the cache is on no omnidrive drive.')->end()
                         ->scalarNode('directory')->defaultValue('omnimap')->end()
                         ->scalarNode('pattern')->defaultValue('{signature}/image-{id}')->end()
                         ->enumNode('format')->values(['png', 'jpeg', 'jpg', 'webp'])->defaultValue('png')->end()

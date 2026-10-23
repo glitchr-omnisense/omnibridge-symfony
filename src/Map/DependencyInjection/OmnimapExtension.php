@@ -17,6 +17,9 @@ use Omnimap\Model\Size;
 use Omnimap\OpenStreetMap\OpenStreetMapFactory;
 use Omnimap\Registry;
 use Omnimap\Signer;
+use Omnidrive\Drive;
+use Omnidrive\Drives;
+use Omnimap\Snapshot\DriveStorage;
 use Omnimap\Snapshot\Snapshots;
 use Omnimap\Snapshot\SnapshotStore;
 use Omnimap\StaticMapInterface;
@@ -34,11 +37,12 @@ use Symfony\Component\HttpClient\Psr18Client;
  * config/packages/omnimap.yaml (Configuration): the providers installed
  * (omnimap/google, omnimap/openstreetmap) over the application's HTTP
  * client, a PSR-16 view of its cache pool and, for geocoder-php, a PSR-18
- * client; the Registry; the map cache (SnapshotStore over the storage
- * service the application names, Snapshots, the server's own pictures when
- * the provider makes images); MapPrinter and omnibridge/twig's MapExtension
- * (omnimap(), omnimap_export(), omnimap_suppress()); the cache's routes
- * (type "omnimap") and their controller.
+ * client; the Registry; the map cache (SnapshotStore on an omnidrive drive -
+ * cache.drive, of the application's Omnidrive\Drives - or on a Storage
+ * service, Snapshots, the server's own pictures when the provider makes
+ * images); MapPrinter and omnibridge/twig's MapExtension (omnimap(),
+ * omnimap_export(), omnimap_suppress()); the cache's routes (type "omnimap")
+ * and their controller.
  *
  * Services by their class: Omnimap\Registry, Omnimap\Snapshot\Snapshots,
  * Omnimap\MapPrinter, Omnimap\MapRendererInterface (the page's provider),
@@ -69,7 +73,7 @@ final class OmnimapExtension extends Extension
         if ([] === array_filter($configs)) {
             return;
         }
-        /** @var array{provider: string, geocoder: ?string, secret: string, providers: array<string, array<string, mixed>|null>, cache_only: bool, control: string, cache: array{storage: string, directory: string, pattern: string, format: string, tilesize: int, make: string|bool, size: string, scale: int, pool: string, max_age: int, public_directory: ?string, public_size: ?int}, html: array<string, string>, routes: array<string, array{path: string, name: string}>} $config */
+        /** @var array{provider: string, geocoder: ?string, secret: string, providers: array<string, array<string, mixed>|null>, cache_only: bool, control: string, cache: array{drive: ?string, storage: ?string, directory: string, pattern: string, format: string, tilesize: int, make: string|bool, size: string, scale: int, pool: string, max_age: int, public_directory: ?string, public_size: ?int}, html: array<string, string>, routes: array<string, array{path: string, name: string}>} $config */
         $config = $this->processConfiguration(new Configuration(), $configs);
 
         $container->register('omnimap.cache', Psr16Cache::class)->setArguments([new Reference($config['cache']['pool'])]);
@@ -106,8 +110,11 @@ final class OmnimapExtension extends Extension
         if (false !== $make) {
             $static = (new Definition(StaticMapInterface::class))->setFactory([self::class, 'staticMap'])->setArguments([new Reference(Registry::class), $provider, true === $make]);
         }
+        $storage = null !== $cache['storage'] ? new Reference($cache['storage']) : new Definition(DriveStorage::class, [
+            (new Definition(Drive::class))->setFactory([new Reference(Drives::class), 'get'])->setArguments([$cache['drive']]),
+        ]);
         $container->register(SnapshotStore::class, SnapshotStore::class)
-            ->setArguments([new Reference($cache['storage']), $cache['directory'], $cache['pattern'], $cache['format']]);
+            ->setArguments([$storage, $cache['directory'], $cache['pattern'], $cache['format']]);
         $container->register(Snapshots::class, Snapshots::class)
             ->setArguments([
                 new Reference(MapRendererInterface::class),

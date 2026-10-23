@@ -6,8 +6,9 @@ use Omnibridge\Symfony\OmnibridgeBundle;
 use Omnimap\Model\LatLng;
 use Omnimap\Model\MapView;
 use Omnimap\Model\Marker;
-use Omnimap\Snapshot\DirectoryStorage;
 use Omnimap\Testing\PlainTiles;
+use League\Flysystem\Filesystem;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Bundle\SecurityBundle\SecurityBundle;
@@ -20,9 +21,12 @@ use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 use Twig\Environment;
 
+use function Symfony\Component\DependencyInjection\Loader\Configurator\inline_service;
+
 /**
  * omnimap under Symfony: OpenStreetMap as the page's provider, its tiles
- * answered here (PlainTiles: no network), the cache in var/omnimap-test,
+ * answered here (PlainTiles: no network), the cache on the omnidrive drive
+ * local.uploads (a local Flysystem storage in var/omnimap-test),
  * tiles written under var/omnimap-public, the routes at lesringostars'
  * addresses and names (ux-google's), an administrator in memory, and a page
  * printing the map and its buttons.
@@ -101,7 +105,7 @@ final class MapKernel extends Kernel
             'secret' => 'c2VjcmV0',
             'providers' => ['openstreetmap' => ['user_agent' => 'omnibridge-tests/1.0 (+https://github.com/glitchr-studio/omnibridge-symfony)']],
             'cache' => [
-                'storage' => 'test.map_storage',
+                'drive' => 'local.uploads',
                 'directory' => 'google',
                 'size' => '600x400',
                 'pool' => 'cache.app',
@@ -117,7 +121,10 @@ final class MapKernel extends Kernel
             ],
         ]);
         $services = $container->services();
-        $services->set('test.map_storage', DirectoryStorage::class)->args(['%kernel.project_dir%/var/omnimap-test']);
+        // The uploads as league/flysystem-bundle declares a storage (a Flysystem operator tagged by its name): omnidrive's drive "local.uploads".
+        $services->set('test.storage.uploads', Filesystem::class)
+            ->args([inline_service(LocalFilesystemAdapter::class)->args(['%kernel.project_dir%/var/omnimap-test'])])
+            ->tag('flysystem.storage', ['storage' => 'local.uploads']);
         $services->set('http_client', MockHttpClient::class)->factory([self::class, 'tiles'])->public();
     }
 

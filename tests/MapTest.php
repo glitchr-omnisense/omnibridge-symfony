@@ -52,6 +52,9 @@ final class MapTest extends WebTestCase
         self::assertSame(['openstreetmap'], $container->get(Registry::class)->names());
         self::assertInstanceOf(Snapshots::class, $container->get(Snapshots::class));
         self::assertTrue($container->get(Snapshots::class)->canMake(), 'OpenStreetMap makes its pictures: auto');
+        $drives = $container->get(\Omnidrive\Drives::class);
+        self::assertInstanceOf(\Omnidrive\Drives::class, $drives);
+        self::assertTrue($drives->has('local.uploads'), 'the cache\'s drive');
         self::assertInstanceOf(MapPrinter::class, $container->get(MapPrinter::class));
         self::assertTrue($container->get('twig')->hasExtension(MapExtension::class));
         $router = $container->get('router');
@@ -64,6 +67,7 @@ final class MapTest extends WebTestCase
         $page = (string) $this->client->request('GET', '/map')->html();
         self::assertResponseIsSuccessful();
         $signature = (string) static::getContainer()->get(Snapshots::class)->signature(MapKernel::view());
+        self::assertFileExists(\dirname(__DIR__)."/var/omnimap-test/google/$signature/metadata.txt", 'kept on the drive, in the host\'s storage');
 
         self::assertStringContainsString('<div class="google-tilemap" id="myMap_html2canvas" data-omnimap="snapshot" data-src="/google/%7Bsignature%7D/%7Bid%7D.webp" data-signature="'.$signature.'" data-tilesize="512" data-xtiles="2" data-ytiles="1" data-missing="" width="600" height="400">', $page);
         self::assertStringContainsString('OpenStreetMap</a> contributors</div>', $page, 'the attribution');

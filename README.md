@@ -188,7 +188,7 @@ omnimap:
         openstreetmap: { user_agent: 'MySite/1.0 (+https://example.org)' }
         google: { api_key: '%env(GOOGLE_MAPS_CLIENT_KEY)%', secret: '%env(GOOGLE_MAPS_SECRET)%' }
     cache:
-        storage: App\Map\Storage       # an Omnimap\Snapshot\Storage service
+        drive: local.uploads           # an omnidrive drive (Omnidrive\Drives); or storage: an Omnimap\Snapshot\Storage service
         public_directory: '%kernel.project_dir%/public'   # tiles served are written there too
     routes:
         tile: { path: '/omnimap/{signature}/{id}.webp', name: omnimap_tile }
@@ -197,7 +197,7 @@ omnimap:
 | Service | What it is |
 |---|---|
 | `Omnimap\Registry`, `Omnimap\MapRendererInterface`, `Omnimap\GeocoderInterface` | the providers; the page's; the one `geocoder` names (the page's by default) |
-| `Omnimap\Snapshot\Snapshots`, `SnapshotStore` | the cache: pictures named by `secret`, kept in `cache.storage` (`directory`, `pattern`, `format`, `tilesize`), made by the server when the provider makes images (`make: auto`) |
+| `Omnimap\Snapshot\Snapshots`, `SnapshotStore` | the cache: pictures named by `secret`, kept on `cache.drive` (an omnidrive drive) or `cache.storage` (`directory`, `pattern`, `format`, `tilesize`), made by the server when the provider makes images (`make: auto`) |
 | `Omnimap\MapPrinter`, `Omnibridge\Twig\MapExtension` | the page's map (`cache_only`, `control`) and the buttons |
 | `SnapshotController`, `MapRouteLoader` | a tile (WebP when its path says so, fitted within `public_size`, written under `public_directory`), a picture's metadata, the capture (`image`, `tilesize`, `_token` of intent `omnimap-export`) and the deletion (intent `omnimap-suppress`, the public tiles deleted with it), for `control` (ROLE_ADMIN) |
 
