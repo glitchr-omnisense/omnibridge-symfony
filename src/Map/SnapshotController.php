@@ -152,9 +152,11 @@ final class SnapshotController
     }
 
     /**
-     * The tile as WebP, fitted within $size: with GD when it was built with
-     * WebP, with Imagick otherwise; null when neither can (the tile is then
-     * served as it is kept).
+     * The tile as WebP, fitted within $size, at quality 75 - Imagick's own
+     * default, which omnibase's WebpFilter (glitchr/ux-google's tiles on
+     * lesringostars) left in place: with GD when it was built with WebP, with
+     * Imagick otherwise; null when neither can (the tile is then served as it
+     * is kept).
      */
     private static function webp(string $bytes, ?int $size): ?string
     {
@@ -174,7 +176,7 @@ final class SnapshotController
             imagealphablending($image, false);
             imagesavealpha($image, true);
             ob_start();
-            imagewebp($image, null, 90);
+            imagewebp($image, null, 75);
 
             return (string) ob_get_clean();
         }
@@ -186,7 +188,7 @@ final class SnapshotController
                     $image->thumbnailImage($size, $size, true);
                 }
                 $image->setImageFormat('webp');
-                $image->setImageCompressionQuality(90);
+                $image->setImageCompressionQuality(75);
 
                 return $image->getImageBlob();
             } catch (\ImagickException) {
