@@ -21,6 +21,9 @@
  * league/flysystem-bundle's configuration (or omnibase's local ones without
  * it), each read and written as an Omnidrive\Drive.
  *
+ * omnibridge/static's build, where it is installed: the console command
+ * omnibridge:static:build (Static\BuildCommand), over this kernel and router.
+ *
  * Not bound here: Locales and Files (an application's languages and how its
  * files are linked are its own - omnibase binds its Localizer and its
  * FlysystemFiles over these drives), the
@@ -39,7 +42,9 @@ use Omnibridge\Symfony\Contract\KernelEnvironment;
 use Omnibridge\Symfony\Contract\SecurityAccess;
 use Omnibridge\Symfony\Contract\SecuritySessions;
 use Omnibridge\Symfony\DependencyInjection\ContractsPass;
+use Omnibridge\Static\Console\Cli;
 use Omnibridge\Symfony\RouterUrls;
+use Omnibridge\Symfony\Static\BuildCommand;
 use Omnibridge\Symfony\TranslatorTranslations;
 use Omnibridge\Twig\AccessExtension;
 use Omnidrive\Drives;
@@ -86,6 +91,13 @@ return static function (ContainerConfigurator $container): void {
         $services->set(OperatorDrives::class)
             ->args([tagged_locator('flysystem.storage', 'storage')]);
         $services->alias(Drives::class, OperatorDrives::class)->public();
+    }
+
+    // omnibridge/static's build as a console command, where it is installed (bin/console omnibridge:static:build).
+    if (class_exists(Cli::class)) {
+        $services->set(BuildCommand::class)
+            ->args([service('kernel'), service('router')])
+            ->tag('console.command');
     }
 
     $services->set(AccessExtension::class)

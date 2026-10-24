@@ -216,6 +216,22 @@ public function __construct(private readonly Drives $drives) {}
 $this->drives->get('local.uploads')->write('avatars/1.png', $bytes);
 ```
 
+## Static export: `Omnibridge\Symfony\Static\` (omnibridge/static)
+
+Where omnibridge/static is installed, `config/services.php` registers the
+console command `omnibridge:static:build`: omnibridge/static's own command
+line (`Console\Cli`), handed this kernel's renderer (each page a visitor's GET
+through `$kernel->handle()`, at `--render-origin`, by default the router's
+default URI), the router's routes, the container and `public/`.
+
+```sh
+bin/console omnibridge:static:build static.php --out=var/static [--verify] [--strict]
+```
+
+Run on lesringostars (2026-10-24, the working copy loaded by hand, neither
+package installed there yet): the same report as the plain command line, but
+for the dev 404 page (Symfony's exception page, its trace).
+
 ## Tests
 
 ```
