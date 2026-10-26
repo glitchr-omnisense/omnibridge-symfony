@@ -9,7 +9,7 @@ use Omnibridge\Contract\Environment;
  * debug and secret - the container's kernel.environment, kernel.debug and
  * kernel.secret.
  *
- * Moved from omniscient/omnibase's Base\Bridge\Symfony\KernelEnvironment
+ * Moved from omnisense/omnibase's Base\Bridge\Symfony\KernelEnvironment
  * (plan "omnibase agnostique", A1); the former name is an alias of this class.
  */
 final class KernelEnvironment implements Environment

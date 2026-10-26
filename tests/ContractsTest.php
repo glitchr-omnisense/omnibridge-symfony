@@ -27,7 +27,7 @@ use Symfony\Component\Security\Core\User\InMemoryUser;
 use Symfony\Component\Security\Csrf\CsrfToken;
 
 /**
- * Each contract of omniscient/omnibridge answered by Symfony, in a kernel of
+ * Each contract of omnisense/omnibridge answered by Symfony, in a kernel of
  * FrameworkBundle, SecurityBundle and OmnibridgeBundle: one object through
  * Omnibridge\Runtime and through the container, and the answers of Symfony's
  * own services - the router's addresses, the translator's messages, the

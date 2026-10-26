@@ -33,7 +33,7 @@ use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpClient\Psr18Client;
 
 /**
- * omniscient/omnimap wired into a Symfony application, from
+ * omnisense/omnimap wired into a Symfony application, from
  * config/packages/omnimap.yaml (Configuration): the providers installed
  * (omnimap/google, omnimap/openstreetmap) over the application's HTTP
  * client, a PSR-16 view of its cache pool and, for geocoder-php, a PSR-18

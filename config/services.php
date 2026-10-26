@@ -1,7 +1,7 @@
 <?php
 
 /*
- * The host's contracts (omniscient/omnibridge) bound to Symfony's services,
+ * The host's contracts (omnisense/omnibridge) bound to Symfony's services,
  * each under its interface's name - an application rebinds one by aliasing
  * that name again. Imported by OmnibridgeBundle and by omnibase's BaseBundle
  * (config/services/core.php, which gives RouterUrls and SecuritySessions
@@ -16,7 +16,7 @@
  * functions it then answers through the same services; a contract this
  * container lacks leaves its function to the bridge, or to nothing.
  *
- * The storages, where omniscient/omnidrive is installed: Omnidrive\Drives over
+ * The storages, where omnisense/omnidrive is installed: Omnidrive\Drives over
  * the services tagged flysystem.storage by their storage name - the storages of
  * league/flysystem-bundle's configuration (or omnibase's local ones without
  * it), each read and written as an Omnidrive\Drive.

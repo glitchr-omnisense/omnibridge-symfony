@@ -1,16 +1,16 @@
 # omnibridge/symfony
 
-The Symfony host of [omniscient/omnibridge](https://github.com/glitchr-studio/omnibridge)'s
-contracts, and the Symfony side of omniscient/omnibase: the adapters of the host's
+The Symfony host of [omnisense/omnibridge](https://github.com/glitchr-omnisense/omnibridge)'s
+contracts, and the Symfony side of omnisense/omnibase: the adapters of the host's
 contracts over Symfony's own services (router, translator, security, CSRF, kernel),
 their container wiring, and the framework packages the core no longer requires.
-The mirror of [omnibridge/laravel](https://github.com/glitchr-studio/omnibridge-laravel)
+The mirror of [omnibridge/laravel](https://github.com/glitchr-omnisense/omnibridge-laravel)
 for Laravel.
 
 A Symfony site requires it beside the core:
 
 ```
-composer require omniscient/omnibase omnibridge/symfony
+composer require omnisense/omnibase omnibridge/symfony
 ```
 
 omnibase's `BaseBundle` refuses to start without it. A Laravel site does not
@@ -71,7 +71,7 @@ Media, Pictures, Texts, the parameters, the mailer) and seeds the registry itsel
 
 The rule: an adapter moved when it adapts a contract to Symfony's own services and
 nothing of omnibase; it stayed when it reads omnibase's own services or models.
-This package does not require omniscient/omnibase, so nothing is circular: the
+This package does not require omnisense/omnibase, so nothing is circular: the
 core's Symfony bundle stands on this package, never the reverse.
 
 Moved (`Base\Bridge\Symfony\X` is now an alias of the class here, declared by the
@@ -110,7 +110,7 @@ new classes.
 
 ## Signing in: `Omnibridge\Symfony\Auth\` (omniauth)
 
-Where [omniscient/omniauth](https://github.com/glitchr-studio/omniauth) is installed
+Where [omnisense/omniauth](https://github.com/glitchr-omnisense/omniauth) is installed
 (it is only suggested), `OmnibridgeBundle` registers omniauth's extension
 (`Auth\DependencyInjection\OmniauthExtension`; an omnibase site's `BaseBundle` calls
 `OmniauthExtension::register()` too). With no `config/packages/omniauth.yaml`, nothing
@@ -169,7 +169,7 @@ omniauth's events go to Symfony's dispatcher (listen to `Omniauth\Event\SignedIn
 
 ## Maps: `Omnibridge\Symfony\Map\` (omnimap)
 
-Where omniscient/omnimap is installed (suggested), `config/packages/omnimap.yaml` wires
+Where omnisense/omnimap is installed (suggested), `config/packages/omnimap.yaml` wires
 it: its providers (omnimap/google, omnimap/openstreetmap, registered when installed)
 over the application's `http_client`, a PSR-16 view of a cache pool and a PSR-18 client
 for geocoder-php; the map cache over a storage service of the application's (any
@@ -204,7 +204,7 @@ omnimap:
 
 ## Storages: `Omnidrive\Drives` (omnidrive)
 
-Where omniscient/omnidrive is installed (suggested), `Omnidrive\Drives` is the application's
+Where omnisense/omnidrive is installed (suggested), `Omnidrive\Drives` is the application's
 storages as omnidrive's drives: an `Omnidrive\Flysystem\OperatorDrives` over the services tagged
 `flysystem.storage`, by their `storage` names - the storages of league/flysystem-bundle's
 configuration (or omnibase's local ones without the bundle). Nothing is configured a second time:

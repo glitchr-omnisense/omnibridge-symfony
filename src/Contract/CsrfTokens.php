@@ -11,7 +11,7 @@ use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
  * an intent - what Twig's `csrf_token()` prints -, and its check, the one
  * AbstractController::isCsrfTokenValid() makes.
  *
- * Moved from omniscient/omnibase's Base\Bridge\Symfony\CsrfTokens (plan
+ * Moved from omnisense/omnibase's Base\Bridge\Symfony\CsrfTokens (plan
  * "omnibase agnostique", A1); the former name is an alias of this class.
  */
 final class CsrfTokens implements Tokens

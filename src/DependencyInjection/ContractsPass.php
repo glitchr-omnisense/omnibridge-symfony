@@ -38,7 +38,7 @@ use Symfony\Component\DependencyInjection\ServiceLocator;
  * container without them still compiles. A locator holds closures: nothing is
  * constructed before a contract is asked.
  *
- * Moved from omniscient/omnibase's Base\DependencyInjection\Compiler\Pass\ContractsPass
+ * Moved from omnisense/omnibase's Base\DependencyInjection\Compiler\Pass\ContractsPass
  * (plan "omnibase agnostique", A1), which now runs this one with omnibase's
  * own contracts added.
  */
@@ -49,7 +49,7 @@ class ContractsPass implements CompilerPassInterface
     /** The tag of this package's adapters: removed when a service they need is missing. */
     public const ADAPTER = 'omnibridge.adapter';
 
-    /** @var list<class-string> the host's contracts (omniscient/omnibridge), PSR-20's clock and PSR-14's dispatcher */
+    /** @var list<class-string> the host's contracts (omnisense/omnibridge), PSR-20's clock and PSR-14's dispatcher */
     public const CONTRACTS = [
         Urls::class,
         Routes::class,

@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\Group;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
- * omniscient/omniauth is only suggested (plan "omniauth", QA8): without it -
+ * omnisense/omniauth is only suggested (plan "omniauth", QA8): without it -
  * `docker compose run --rm bare`, the suite of this group in an install
  * without the omniauth packages -, or without omniauth.yaml, a kernel of
  * OmnibridgeBundle compiles and has nothing of Auth\: no authenticator, no

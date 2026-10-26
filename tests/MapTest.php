@@ -73,7 +73,7 @@ final class MapTest extends WebTestCase
         self::assertStringContainsString('OpenStreetMap</a> contributors</div>', $page, 'the attribution');
         self::assertStringNotContainsString('data-omnimap-export', $page, 'no button for a visitor');
         self::assertGreaterThan(0, MapKernel::$requests);
-        self::assertSame(['User-Agent: omnibridge-tests/1.0 (+https://github.com/glitchr-studio/omnibridge-symfony)'], array_values(array_unique(MapKernel::$userAgents)));
+        self::assertSame(['User-Agent: omnibridge-tests/1.0 (+https://github.com/glitchr-omnisense/omnibridge-symfony)'], array_values(array_unique(MapKernel::$userAgents)));
 
         $requests = MapKernel::$requests;
         $this->client->request('GET', '/map');

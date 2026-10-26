@@ -11,7 +11,7 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
  * (the role hierarchy, the application's voters) and token storage - the
  * answers of Twig's is_granted() and app.user.
  *
- * Moved from omniscient/omnibase's Base\Bridge\Symfony\SecurityAccess (plan
+ * Moved from omnisense/omnibase's Base\Bridge\Symfony\SecurityAccess (plan
  * "omnibase agnostique", A1); the former name is an alias of this class.
  */
 final class SecurityAccess implements Access

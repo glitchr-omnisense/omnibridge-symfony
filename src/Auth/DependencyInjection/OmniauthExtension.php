@@ -160,7 +160,7 @@ final class OmniauthExtension extends Extension
 
         $providers = [];
         if ($config['oauth']['enabled']) {
-            self::needs(OAuthMethod::class, 'omniscient/omniauth 1.x with Omniauth\\OAuth\\ (2026-10-23)', 'oauth');
+            self::needs(OAuthMethod::class, 'omnisense/omniauth 1.x with Omniauth\\OAuth\\ (2026-10-23)', 'oauth');
             foreach ($config['oauth']['providers'] as $name => $provider) {
                 $provider['start_route'] ??= 'oauth_'.$name;
                 $provider['start_path'] ??= '/connect/'.$name;

@@ -11,7 +11,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
  * cookie cleared on the path and, when the application says which, on its
  * domain ($domain, asked at sign-out: omnibase gives its router's domain).
  *
- * Moved from omniscient/omnibase's Base\Bridge\Symfony\SecuritySessions
+ * Moved from omnisense/omnibase's Base\Bridge\Symfony\SecuritySessions
  * (plan "omnibase agnostique", A1), which took omnibase's router for that
  * domain; the former name is an alias of this class.
  */

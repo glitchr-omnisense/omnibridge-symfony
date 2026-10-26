@@ -1,7 +1,7 @@
 # The test suite: docker compose run --rm test
 # Kernels of FrameworkBundle, SecurityBundle, TwigBundle and OmnibridgeBundle: each contract bound,
 # and omniauth's sign-in through Omnibridge\Symfony\Auth\ (tests/AuthTest).
-# docker compose run --rm bare: the same package without omniscient/omniauth and its methods
+# docker compose run --rm bare: the same package without omnisense/omniauth and its methods
 # (only suggested), where a kernel compiles and has nothing of Auth\ (group without-omniauth).
 services:
   test:

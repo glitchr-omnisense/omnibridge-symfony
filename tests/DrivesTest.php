@@ -24,7 +24,7 @@ final class DrivesTest extends KernelTestCase
     public function testTheTaggedStoragesAreTheDrivesByTheirNames(): void
     {
         if (!interface_exists(Drives::class)) {
-            self::markTestSkipped('omniscient/omnidrive is not installed.');
+            self::markTestSkipped('omnisense/omnidrive is not installed.');
         }
         $container = self::bootKernel()->getContainer();
 

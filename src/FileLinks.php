@@ -28,7 +28,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
  * A format that maps already (it has "&...>") or a site with no APP_PATH is
  * left as it is. With no format at all, VS Code's.
  *
- * Moved from omniscient/omnibase's Base\Bridge\Symfony\FileLinks (plan
+ * Moved from omnisense/omnibase's Base\Bridge\Symfony\FileLinks (plan
  * "omnibase agnostique", A1), where it replaced omnibase's own formatter and
  * error renderer in 4.0; the former name is an alias of this class.
  */

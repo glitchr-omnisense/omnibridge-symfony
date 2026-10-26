@@ -11,7 +11,7 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 
 /**
- * The host's contracts (omniscient/omnibridge) answered by Symfony, for a
+ * The host's contracts (omnisense/omnibridge) answered by Symfony, for a
  * Symfony application that runs no omnibase: the adapters of
  * config/services.php bound under each contract's name, the locator of
  * ContractsPass, handed to Omnibridge\Runtime at boot - the counterpart of

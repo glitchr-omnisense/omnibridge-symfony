@@ -12,7 +12,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * asset packages - what Twig's path(), url() and asset() answer, the same
  * strings.
  *
- * Moved from omniscient/omnibase's Base\Bridge\Symfony\RouterUrls (plan
+ * Moved from omnisense/omnibase's Base\Bridge\Symfony\RouterUrls (plan
  * "omnibase agnostique", A1); the former name is an alias of this class.
  */
 final class RouterUrls implements Urls

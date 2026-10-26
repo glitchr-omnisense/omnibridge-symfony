@@ -15,7 +15,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * the catalogue of the locale, its fallbacks), else the catalogue of a
  * TranslatorBagInterface, "@domain.key" read as the key of that domain.
  *
- * Moved from omniscient/omnibase's Base\Bridge\Symfony\TranslatorTranslations
+ * Moved from omnisense/omnibase's Base\Bridge\Symfony\TranslatorTranslations
  * (plan "omnibase agnostique", A1); the former name is an alias of this class.
  */
 final class TranslatorTranslations implements Translations
