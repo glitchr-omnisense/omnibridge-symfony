@@ -146,7 +146,7 @@ omnimap:
 | Id | Class | What it is |
 |---|---|---|
 | `Omnimap\Registry` (public) | | the providers: the factories tagged `omnimap.provider_factory`, the `providers` options by name |
-| `Omnimap\Google\GoogleFactory`, `Omnimap\OpenStreetMap\OpenStreetMapFactory` | | registered when their package is installed, over `http_client`, `omnimap.psr18` (or null), `omnimap.cache`; tag `omnimap.provider_factory` |
+| `Omnimap\Google\GoogleFactory`, `Omnimap\OpenStreetMap\OpenStreetMapFactory`, `Omnimap\MapLibre\MapLibreFactory` | | registered when their package is installed (`OmnimapExtension::FACTORIES`), Google's and OpenStreetMap's over `http_client`, `omnimap.psr18` (or null), `omnimap.cache`, MapLibre's over `http_client`; tag `omnimap.provider_factory` |
 | `Omnimap\MapRendererInterface` | | `Registry::renderer(provider)` |
 | `Omnimap\GeocoderInterface` | | `Registry::geocoder(geocoder ?? provider)` |
 | `omnimap.cache` | `Symfony\Component\Cache\Psr16Cache` | over `cache.pool` |
@@ -159,15 +159,12 @@ omnimap:
 | `Omnibridge\Symfony\Map\SnapshotController` (public) | | tag `controller.service_arguments` |
 | `Omnibridge\Symfony\Map\MapRouteLoader` | | tag `routing.loader`, type `omnimap` |
 
-> [!WARNING]
-> Known defect: only `GoogleFactory` and `OpenStreetMapFactory` are registered, where every installed
-> omnimap provider is expected to be wired: `provider: maplibre` (omnimap/maplibre) is "No maplibre
-> factory" unless the application tags its own service `omnimap.provider_factory`.
+A provider of another package is wired by its factory, tagged as the registry collects them:
 
 ```yaml
 # config/services.yaml - another provider's factory
 services:
-    Omnimap\MapLibre\MapLibreFactory:
+    App\Map\AcmeFactory:
         arguments: ['@http_client']
         tags: [omnimap.provider_factory]
 ```

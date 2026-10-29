@@ -49,7 +49,8 @@ final class MapTest extends WebTestCase
         $container = static::getContainer();
 
         self::assertInstanceOf(Registry::class, $container->get(Registry::class));
-        self::assertSame(['openstreetmap'], $container->get(Registry::class)->names());
+        self::assertSame(['openstreetmap', 'vector'], $container->get(Registry::class)->names());
+        self::assertInstanceOf(\Omnimap\MapLibre\MapLibreProvider::class, $container->get(Registry::class)->renderer('vector'), 'omnimap/maplibre installed: its factory registered');
         self::assertInstanceOf(Snapshots::class, $container->get(Snapshots::class));
         self::assertTrue($container->get(Snapshots::class)->canMake(), 'OpenStreetMap makes its pictures: auto');
         $drives = $container->get(\Omnidrive\Drives::class);

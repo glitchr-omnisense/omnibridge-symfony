@@ -9,12 +9,10 @@ use Omnibridge\Symfony\Map\MapRouteLoader;
 use Omnibridge\Symfony\Map\SnapshotController;
 use Omnibridge\Twig\MapExtension;
 use Omnimap\GeocoderInterface;
-use Omnimap\Google\GoogleFactory;
 use Omnimap\MapHtml;
 use Omnimap\MapPrinter;
 use Omnimap\MapRendererInterface;
 use Omnimap\Model\Size;
-use Omnimap\OpenStreetMap\OpenStreetMapFactory;
 use Omnimap\Registry;
 use Omnimap\Signer;
 use Omnidrive\Drive;
@@ -35,7 +33,8 @@ use Symfony\Component\HttpClient\Psr18Client;
 /**
  * omnisense/omnimap wired into a Symfony application, from
  * config/packages/omnimap.yaml (Configuration): the providers installed
- * (omnimap/google, omnimap/openstreetmap) over the application's HTTP
+ * (omnimap/google, omnimap/openstreetmap, omnimap/maplibre; any other by
+ * the tag omnimap.provider_factory) over the application's HTTP
  * client, a PSR-16 view of its cache pool and, for geocoder-php, a PSR-18
  * client; the Registry; the map cache (SnapshotStore on an omnidrive drive -
  * cache.drive, of the application's Omnidrive\Drives - or on a Storage
@@ -54,6 +53,19 @@ use Symfony\Component\HttpClient\Psr18Client;
 final class OmnimapExtension extends Extension
 {
     public const FACTORY = 'omnimap.provider_factory';
+
+    /**
+     * The omnimap/* providers' factories registered when installed, with how many of
+     * (HTTP client, PSR-18 client, PSR-16 cache) each takes. Another provider's factory is the
+     * application's service tagged FACTORY.
+     *
+     * @var array<class-string, int>
+     */
+    public const FACTORIES = [
+        'Omnimap\Google\GoogleFactory' => 3,
+        'Omnimap\OpenStreetMap\OpenStreetMapFactory' => 3,
+        'Omnimap\MapLibre\MapLibreFactory' => 1,
+    ];
 
     /** Registers this extension in a container being built, when omnimap is installed. */
     public static function register(ContainerBuilder $container): void
@@ -83,9 +95,11 @@ final class OmnimapExtension extends Extension
             $psr18 = new Reference('omnimap.psr18');
         }
         $http = new Reference('http_client');
-        foreach ([GoogleFactory::class, OpenStreetMapFactory::class] as $factory) {
+        foreach (self::FACTORIES as $factory => $arguments) {
             if (class_exists($factory)) {
-                $container->register($factory, $factory)->setArguments([$http, $psr18, new Reference('omnimap.cache')])->addTag(self::FACTORY);
+                $container->register($factory, $factory)
+                    ->setArguments(\array_slice([$http, $psr18, new Reference('omnimap.cache')], 0, $arguments))
+                    ->addTag(self::FACTORY);
             }
         }
 

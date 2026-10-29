@@ -103,7 +103,7 @@ final class MapKernel extends Kernel
         $container->extension('omnimap', [
             'provider' => 'openstreetmap',
             'secret' => 'c2VjcmV0',
-            'providers' => ['openstreetmap' => ['user_agent' => 'omnibridge-tests/1.0 (+https://github.com/glitchr-omnisense/omnibridge-symfony)']],
+            'providers' => ['openstreetmap' => ['user_agent' => 'omnibridge-tests/1.0 (+https://github.com/glitchr-omnisense/omnibridge-symfony)'], 'vector' => ['factory' => 'maplibre']],
             'cache' => [
                 'drive' => 'local.uploads',
                 'directory' => 'google',

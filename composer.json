@@ -42,6 +42,7 @@
         "omniauth/webauthn": "1.x-dev",
         "omnibridge/static": "1.x-dev",
         "omnimap/google": "^1.0@dev",
+        "omnimap/maplibre": "^1.0@dev",
         "omnimap/openstreetmap": "^1.0@dev",
         "omnisense/omniauth": "1.x-dev",
         "omnisense/omnidrive": "^1.0@dev",
@@ -57,7 +58,7 @@
         "omniauth/otp": "Authenticator applications through Omnibridge\\Symfony\\Auth\\ (omniauth.yaml: totp; totp.secret_key seals the secrets at rest), formerly omniauth/totp",
         "omniauth/webauthn": "Passkeys through Omnibridge\\Symfony\\Auth\\ (omniauth.yaml: passkey), formerly omniauth/passkey",
         "omnisense/omniauth": "Omnibridge\\Symfony\\Auth\\: one authenticator over omniauth for every way of signing in (password, sign-in link, e-mailed code, backup codes, trusted devices, identity providers - omniauth's Omniauth\\OAuth\\, each provider a package of its own), its second factor's token and page, its routes; config/packages/omniauth.yaml (nothing of Auth\\ without it)",
-        "omnisense/omnimap": "Omnibridge\\Symfony\\Map\\: maps through omnimap (config/packages/omnimap.yaml) - its providers over the application's HTTP client and cache pool, the map cache over a storage service of the application's, the cache's routes (type \"omnimap\") and controller, omnibridge/twig's MapExtension (omnimap(), omnimap_export(), omnimap_suppress()); omnimap/google and omnimap/openstreetmap registered when installed",
+        "omnisense/omnimap": "Omnibridge\\Symfony\\Map\\: maps through omnimap (config/packages/omnimap.yaml) - its providers over the application's HTTP client and cache pool, the map cache over a storage service of the application's, the cache's routes (type \"omnimap\") and controller, omnibridge/twig's MapExtension (omnimap(), omnimap_export(), omnimap_suppress()); omnimap/google, omnimap/openstreetmap and omnimap/maplibre registered when installed",
         "omnibridge/static": "Static\\BuildCommand: bin/console omnibridge:static:build, omnibridge/static's export of the site a static.php declares, rendered by this kernel",
         "omnisense/omnidrive": "Omnidrive\\Drives: the storages of league/flysystem-bundle's configuration (the services tagged flysystem.storage) as omnidrive's drives, by their names",
         "symfony/asset": "RouterUrls::asset() through the application's asset packages (assets.packages); without it, the path as it is"

@@ -36,7 +36,8 @@ package's vendor) was loaded from omnibridge/laravel's vendor, the same version 
 - A real identity provider: Google is simulated (`FakeProvider`) and configured by
   `GoogleFactory` in the tests; no sign-in against Google's servers in this package.
 - A real passkey authenticator: the tests use omniauth/webauthn's in-memory passkeys.
-- omnimap providers other than OpenStreetMap through this wiring (Google is registered, not
-  exercised; MapLibre is not registered, see [Maps](omnimap.md#the-services)).
+- omnimap providers other than OpenStreetMap through this wiring: Google is registered, not
+  exercised; MapLibre is registered and resolved as a renderer (`MapTest::testTheServices`), its
+  page not drawn.
 - `FileLinks::formatter()` as a decoration in an application: tested by `FileLinksTest` and run here,
   registered by no configuration of this package or omnibase.
