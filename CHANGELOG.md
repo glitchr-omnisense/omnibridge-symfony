@@ -7,6 +7,9 @@
 - omnimap: `OmnimapExtension` registers omnimap/maplibre's `MapLibreFactory` when it is installed,
   beside Google's and OpenStreetMap's (`OmnimapExtension::FACTORIES`): `provider: maplibre` was
   "No maplibre factory" unless the application tagged its own service.
+- README: the moved classes' former names are said removed at omnibase 4's final pass (they were
+  said to be aliases still), and `FileLinks::formatter()` registered by no configuration (an
+  application decorates `debug.file_link_formatter` itself); `FileLinks`' docblock likewise.
 
 ### Removed
 

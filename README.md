@@ -74,9 +74,10 @@ nothing of omnibase; it stayed when it reads omnibase's own services or models.
 This package does not require omnisense/omnibase, so nothing is circular: the
 core's Symfony bundle stands on this package, never the reverse.
 
-Moved (`Base\Bridge\Symfony\X` is now an alias of the class here, declared by the
-core's `src/Resources/Aliases.php` where this package is installed; the former
-service ids are aliases of the new ones):
+Moved (the former names were aliases of the classes here, declared by the core's
+`src/Resources/Aliases.php`, and the former service ids aliases of the new ones,
+until omnibase 4's final pass removed them - omnibase commit 02682623: name the
+classes of the "Now" column):
 
 | Former name | Now | Why |
 |---|---|---|
@@ -105,8 +106,10 @@ Stayed in the core, `Base\` (omnibase's domain under Symfony, D3):
 | `Base\BaseBundle`, its extension, configuration and compiler passes | omnibase's bundle |
 | forms, fields, controllers, subscribers | Symfony by nature, omnibase's (D3) |
 
-The former names are removed at omnibase 4's final pass, once the sites name the
-new classes.
+`FileLinks::export()` is called by omnibase's `BaseBundle`; nothing here calls it
+or registers `FileLinks::formatter()`: without omnibase, an application calls
+`export()` early or decorates `debug.file_link_formatter` with `formatter()`
+itself ([FileLinks](docs/contracts.md#filelinks)).
 
 ## Signing in: `Omnibridge\Symfony\Auth\` (omniauth)
 

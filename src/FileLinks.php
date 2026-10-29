@@ -16,10 +16,11 @@ use Symfony\Component\HttpFoundation\RequestStack;
  * format, "vscode://file/%f:%l&/srv/app/>/Users/me/site/" (framework.ide,
  * SYMFONY_IDE). Two uses:
  *
- * - formatter(), the factory of a decoration of debug.file_link_formatter:
- *   Symfony's FileLinkFormatter on the mapped format - the error pages
- *   (error_handler.error_renderer.html, which receives it) and the profiler
- *   read it;
+ * - formatter(), the factory of a decoration of debug.file_link_formatter
+ *   that an application registers itself (no configuration here or in
+ *   omnibase does): Symfony's FileLinkFormatter on the mapped format - the
+ *   error pages (error_handler.error_renderer.html, which receives it) and
+ *   the profiler read it;
  * - export(), called when a bundle is constructed (omnibase's BaseBundle),
  *   before the container is built: SYMFONY_IDE for the renderer Symfony's
  *   ErrorHandler builds itself, for an error that happens before the kernel
@@ -30,7 +31,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
  *
  * Moved from omnisense/omnibase's Base\Bridge\Symfony\FileLinks (plan
  * "omnibase agnostique", A1), where it replaced omnibase's own formatter and
- * error renderer in 4.0; the former name is an alias of this class.
+ * error renderer in 4.0; the former name's alias was removed at omnibase 4's
+ * final pass.
  */
 final class FileLinks
 {

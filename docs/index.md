@@ -97,10 +97,6 @@ The former names were aliases of the new classes (declared by omnibase's `src/Re
 their service ids aliases of the new ones) until omnibase 4's final pass, which removed them
 (omnibase commit 02682623): name the classes of the "Now" column.
 
-> [!NOTE]
-> The README still says the moved classes' former names "are now an alias of the class here" and
-> are "removed at omnibase 4's final pass": that pass has happened, the aliases are gone.
-
 Stayed in the core, `Base\` (omnibase's domain under Symfony, D3):
 
 | Class | Why |
