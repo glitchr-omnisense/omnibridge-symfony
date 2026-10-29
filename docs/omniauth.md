@@ -178,9 +178,6 @@ omniauth:
                 scopes:               []
                 hosted_domain:        null
                 type:                 null
-                class:                null
-                options:              []
-                fields:               []
 
                 # A service that is the provider (omniauth's Provider), in place of the settings above
                 service:              null
@@ -263,17 +260,11 @@ omniauth/otp: composer require omniauth/otp.` (the same for `passkey`, `oauth`).
 | `scopes` | `[]` | handed to the factory |
 | `hosted_domain` | null | handed to the factory (Google's `hd`) |
 | `type` | null | which factory makes it (`google`); the factory's own default otherwise |
-| `class`, `options`, `fields` | null, `[]`, `[]` | accepted and handed to the factories, read by none of the installed ones |
 | `service` | null | a service that is the provider (omniauth's `Provider`), in place of the settings above; another class is an `InvalidArgumentException` when the providers are built |
 | `start_path`, `start_route` | `/connect/<name>`, `oauth_<name>` | the trip out |
 | `check_path`, `check_route` | `/connect/<name>/check`, `oauth_<name>_check` | the return |
 
 Other keys are kept (`ignoreExtraKeys(false)`) and handed to the factory.
-
-> [!WARNING]
-> Known defect: `class`, `options` and `fields` are accepted and passed on, but no factory reads
-> them (omniauth/google's `GoogleFactory` reads `client_id`, `client_secret`, `redirect_uri`,
-> `scopes`, `hosted_domain`, `type`), where they are meant to configure a provider.
 
 ### `second_factor`
 
