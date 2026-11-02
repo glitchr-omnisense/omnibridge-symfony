@@ -120,6 +120,10 @@ class FormFactory extends SymfonyFormFactory implements FormFactoryInterface
         // Validate expected outgoing entity
         $formBuilder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) {
             $form = $event->getForm();
+            // A form already refused makes no record: its values may be ones the entity's setters do not take.
+            if (\count($form->getErrors(true)) > 0) {
+                return;
+            }
             $validationEntity = $form->getConfig()->getOption("validation_entity");
             $validationGroups = $form->getConfig()->getOption("validation_groups");
             if (!$validationGroups) {
