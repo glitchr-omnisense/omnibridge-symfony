@@ -4,7 +4,7 @@ namespace Omnibridge\Symfony\Omnibase;
 
 use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
 use Omnibridge\Doctrine\Omnibase\DoctrineLocator;
-use Base\Routing\AdvancedRouterInterface;
+use Omnibridge\Symfony\Omnibase\Routing\AdvancedRouterInterface;
 use Base\Service\BaseService;
 use Base\Service\Locator;
 use Doctrine\ORM\EntityManagerInterface;

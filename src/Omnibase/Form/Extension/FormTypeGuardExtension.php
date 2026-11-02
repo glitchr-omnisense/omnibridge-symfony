@@ -3,7 +3,7 @@
 namespace Omnibridge\Symfony\Omnibase\Form\Extension;
 
 use Base\Enum\SpamScore;
-use Base\Routing\AdvancedRouterInterface;
+use Omnibridge\Symfony\Omnibase\Routing\AdvancedRouterInterface;
 use Base\Service\FormGuard;
 use Base\Service\Model\SpamProtectionInterface;
 use Base\Service\SpamCheckerInterface;

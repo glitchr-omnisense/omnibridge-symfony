@@ -2,7 +2,7 @@
 
 namespace Omnibridge\Symfony\Omnibase\Cache\Warmer;
 
-use Base\Cache\Abstract\AbstractLocalCacheWarmer;
+use Omnibridge\Symfony\Omnibase\Cache\Abstract\AbstractLocalCacheWarmer;
 use Base\Service\ParameterBagInterface;
 use Base\Twig\Renderer\Adapter\WebpackTagRenderer;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;

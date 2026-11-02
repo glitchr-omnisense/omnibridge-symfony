@@ -16,7 +16,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
-use Base\Routing\AdvancedRouterInterface;
+use Omnibridge\Symfony\Omnibase\Routing\AdvancedRouterInterface;
 
 #[AsCommand(name: 'cache:clear', aliases: [], description: '')]
 class CacheClearCommand extends Command

@@ -7,7 +7,7 @@ use Base\Enum\UserRole;
 use Base\Form\Common\FormModelInterface;
 use Omnibridge\Symfony\Omnibase\Form\FormFactory;
 use Omnibridge\Symfony\Omnibase\Form\FormProxyInterface;
-use Base\Routing\AdvancedRouterInterface;
+use Omnibridge\Symfony\Omnibase\Routing\AdvancedRouterInterface;
 use Base\Service\ParameterBagInterface;
 use Base\Service\VersionManager;
 use Symfony\Component\Form\AbstractTypeExtension;

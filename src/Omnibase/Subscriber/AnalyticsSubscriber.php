@@ -6,7 +6,7 @@ use App\Entity\User;
 use Base\Entity\User as BaseUser;
 
 use Base\Repository\Users;
-use Base\Routing\AdvancedRouterInterface;
+use Omnibridge\Symfony\Omnibase\Routing\AdvancedRouterInterface;
 use Base\Service\TranslatorInterface;
 use Google\Service\GaService;
 use Symfony\Component\HttpKernel\KernelEvents;

@@ -7,7 +7,7 @@ use Base\Demo\DemoAccountRegistry;
 use Base\Demo\DemoGuard;
 use Base\Demo\DemoMode;
 use Base\Exception\DemoRefusedException;
-use Base\Subscriber\SecondLevelCacheConsoleSubscriber;
+use Omnibridge\Symfony\Omnibase\Subscriber\SecondLevelCacheConsoleSubscriber;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;

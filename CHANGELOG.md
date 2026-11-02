@@ -15,6 +15,12 @@
 
 ### Added
 
+- **omnibase's kernel subscribers, router, warmers, collectors and responses, moved from the core** (step F5c, item 3,
+  slice 3): `Omnibase\Subscriber\*` (21 more), `Omnibase\Routing\{AdvancedRouter, AdvancedRouterInterface,
+  Generator\AdvancedUrlGenerator, Matcher\AdvancedUrlMatcher, Loader\RouteTranslationsResourceLoader}`,
+  `Omnibase\Cache\{Warmer\*, Clearer\CodeCachesClearer, Abstract\AbstractLocalCacheWarmer}`,
+  `Omnibase\Inspector\*`, `Omnibase\Response\{PdfResponse, XmlResponse}`, as they were; the classes moved before name
+  them by their new names. Former names aliased by the core.
 - **omnibase's console, moved from the core** (omnisense/omnibase's plan "omnibase agnostic", step F5c, item 3, slice 2):
   `Omnibase\Console\{Application, Command, Console}` and the 30 commands `Omnibase\Console\Command\*` (cache, demo, Doctrine,
   icons, mail, notifier, time machine, translation, trash, uploader, user), as they were in the core; former names aliased by the

@@ -6,7 +6,7 @@ use Base\Database\Attribute\Uploader;
 use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
 use Omnibridge\Symfony\Omnibase\Form\FormFactory;
 use Omnibridge\Symfony\Omnibase\Form\FormFactoryInterface;
-use Base\Routing\AdvancedRouterInterface;
+use Omnibridge\Symfony\Omnibase\Routing\AdvancedRouterInterface;
 use Base\Service\FileService;
 use Base\Service\FileServiceInterface;
 use Base\Service\MediaService;
