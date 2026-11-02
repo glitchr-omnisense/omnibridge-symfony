@@ -2,7 +2,7 @@
 
 namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
-use Base\Routing\AdvancedRouterInterface;
+use Omnibridge\Symfony\Omnibase\Routing\AdvancedRouterInterface;
 use Base\Service\LocalizerInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\ChoiceList\ChoiceList;

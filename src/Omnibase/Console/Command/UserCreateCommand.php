@@ -8,7 +8,7 @@ use Base\Notifier\NotifierInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Base\Entity\User\Token;
 use Base\Enum\UserRole;
-use Base\Subscriber\PasswordChangeSubscriber;
+use Omnibridge\Symfony\Omnibase\Subscriber\PasswordChangeSubscriber;
 use Omnibridge\Persistence\UnitOfWork;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;

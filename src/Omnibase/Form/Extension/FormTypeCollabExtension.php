@@ -3,7 +3,7 @@
 namespace Omnibridge\Symfony\Omnibase\Form\Extension;
 
 use Base\Entity\User;
-use Base\Routing\AdvancedRouterInterface;
+use Omnibridge\Symfony\Omnibase\Routing\AdvancedRouterInterface;
 use Base\Service\Collab\CollabRoomResolver;
 use Base\Service\Collab\CollabTicketFactory;
 use Symfony\Component\Form\AbstractTypeExtension;

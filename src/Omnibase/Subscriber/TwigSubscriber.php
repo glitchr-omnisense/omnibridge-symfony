@@ -3,7 +3,7 @@
 namespace Omnibridge\Symfony\Omnibase\Subscriber;
 
 use App\Enum\UserRole;
-use Base\Routing\AdvancedRouterInterface;
+use Omnibridge\Symfony\Omnibase\Routing\AdvancedRouterInterface;
 use Base\Service\ParameterBagInterface;
 use Base\Twig\Renderer\Adapter\WebpackTagRenderer;
 use Base\Twig\Renderer\Adapter\HtmlTagRenderer;
