@@ -9,7 +9,6 @@ use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 use Base\Service\ParameterBagInterface;
-use Twig\Environment;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
@@ -19,15 +18,12 @@ use Symfony\Component\Form\FormEvents;
  */
 final class ColorType extends AbstractType
 {
-    /** @var Environment */
-    protected Environment $twig;
 
     /** @var ParameterBagInterface */
     protected ParameterBagInterface $parameterBag;
 
-    public function __construct(Environment $twig, ParameterBagInterface $parameterBag)
+    public function __construct(ParameterBagInterface $parameterBag)
     {
-        $this->twig = $twig;
         $this->parameterBag = $parameterBag;
     }
 

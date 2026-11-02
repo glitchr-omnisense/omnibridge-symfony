@@ -38,8 +38,10 @@ use Omnibridge\Contract\Tokens;
 use Omnibridge\Contract\Translations;
 use Omnibridge\Contract\Urls;
 use Omnibridge\Contract\Requests;
+use Omnibridge\Contract\Roles;
 use Omnibridge\Contract\Validation;
 use Omnibridge\Symfony\Contract\CsrfTokens;
+use Omnibridge\Symfony\Contract\HierarchyRoles;
 use Omnibridge\Symfony\Contract\KernelEnvironment;
 use Omnibridge\Symfony\Contract\SecurityAccess;
 use Omnibridge\Symfony\Contract\SecuritySessions;
@@ -90,6 +92,11 @@ return static function (ContainerConfigurator $container): void {
         ->args([service('request_stack')])
         ->tag(ContractsPass::ADAPTER);
     $services->alias(Requests::class, StackRequests::class);
+
+    $services->set(HierarchyRoles::class)
+        ->args([service('security.role_hierarchy')])
+        ->tag(ContractsPass::ADAPTER);
+    $services->alias(Roles::class, HierarchyRoles::class);
 
     $services->set(CsrfTokens::class)
         ->args([service('security.csrf.token_manager')])

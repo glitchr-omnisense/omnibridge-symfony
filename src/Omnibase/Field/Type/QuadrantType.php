@@ -5,7 +5,6 @@ namespace Omnibridge\Symfony\Omnibase\Field\Type;
 use Base\Enum\Quadrant\Quadrant;
 use Base\Enum\Quadrant\Quadrant8;
 
-use Twig\Environment;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\DataMapperInterface;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
@@ -20,16 +19,6 @@ class QuadrantType extends AbstractType implements DataMapperInterface
     public function getBlockPrefix(): string
     {
         return 'quadrant';
-    }
-
-    /**
-     * @var Environment
-     */
-    protected Environment $twig;
-
-    public function __construct(Environment $twig)
-    {
-        $this->twig = $twig;
     }
 
     public function configureOptions(OptionsResolver $resolver): void

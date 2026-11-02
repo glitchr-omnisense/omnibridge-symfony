@@ -4,7 +4,6 @@ namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
 use Base\Service\LocalizerInterface;
 use Base\Service\ParameterBagInterface;
-use Twig\Environment;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\OptionsResolver\Options;
@@ -22,14 +21,10 @@ class DateTimePickerType extends AbstractType
     /** @var LocalizerInterface */
     protected LocalizerInterface $localizer;
 
-    /** @var Environment */
-    protected Environment $twig;
-
-    public function __construct(ParameterBagInterface $parameterBag, Environment $twig, LocalizerInterface $localizer)
+    public function __construct(ParameterBagInterface $parameterBag, LocalizerInterface $localizer)
     {
         $this->parameterBag = $parameterBag;
         $this->localizer = $localizer;
-        $this->twig = $twig;
     }
     
     public function getParent(): ?string

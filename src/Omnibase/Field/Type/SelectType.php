@@ -16,7 +16,6 @@ use Base\Service\ObfuscatorInterface;
 use Base\Service\ParameterBagInterface;
 use Base\Service\Translator;
 use Base\Service\TranslatorInterface;
-use Twig\Environment;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\InverseSideMapping;
@@ -56,9 +55,6 @@ class SelectType extends AbstractType implements DataMapperInterface
 {
     /** @var ClassMetadataManipulator */
     protected ClassMetadataManipulator $classMetadataManipulator;
-
-    /** @var Environment */
-    protected Environment $twig;
 
     /** @var FormFactory */
     protected FormFactory $formFactory;
@@ -104,7 +100,6 @@ class SelectType extends AbstractType implements DataMapperInterface
         CsrfTokenManagerInterface $csrfTokenManager,
         Localizer                 $localizer,
         AdminUrlGeneratorInterface         $adminUrlGenerator,
-        Environment               $twig,
         AuthorizationChecker      $authorizationChecker,
         ObfuscatorInterface       $obfuscator,
         ParameterBagInterface     $parameterBag,
@@ -114,7 +109,6 @@ class SelectType extends AbstractType implements DataMapperInterface
     {
         $this->classMetadataManipulator = $classMetadataManipulator;
         $this->csrfTokenManager = $csrfTokenManager;
-        $this->twig = $twig;
         $this->translator = $translator;
         $this->repositories = $repositories;
         $this->obfuscator = $obfuscator;

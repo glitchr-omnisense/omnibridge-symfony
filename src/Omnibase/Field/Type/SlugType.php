@@ -4,7 +4,6 @@ namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
 use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
 use Base\Service\Model\AutovalidateInterface;
-use Twig\Environment;
 use Doctrine\Common\Collections\Collection;
 use Exception;
 use Symfony\Component\Form\AbstractType;
@@ -17,18 +16,12 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 final class SlugType extends AbstractType implements AutovalidateInterface
 {
     /**
-     * @var Environment
-     */
-    protected $twig;
-
-    /**
      * @var ClassMetadataManipulator
      */
     protected $classMetadataManipulator;
 
-    public function __construct(Environment $twig, ClassMetadataManipulator $classMetadataManipulator)
+    public function __construct(ClassMetadataManipulator $classMetadataManipulator)
     {
-        $this->twig = $twig;
         $this->classMetadataManipulator = $classMetadataManipulator;
     }
 

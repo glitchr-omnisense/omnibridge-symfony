@@ -4,6 +4,9 @@
 
 ### Changed
 
+- **The field types** (`Omnibase\Field\Type\*`, 17 of them) are no longer given Twig's `Environment`, which they did not read;
+  `FileType` takes omnibase's `Base\View\AssetPaths` (optional) in its place, for `ImageType`'s thumbnail. A subclass that
+  passes the constructor's arguments itself drops that one (or passes the asset paths to `FileType`).
 - **`Omnibase\Form\Type\SecurityLoginTokenType`** is a `DefinitionType`: omnibase's `AccountForms::signInLink()` (its model, its guard, its
   field), its `email` option the address shown, `allow_login_token` in its view as before.
 - **`SymfonyValidation`** takes the translator (service `translator`, optional): the messages of omnisense/omnibridge's
@@ -12,6 +15,11 @@
 
 ### Added
 
+- **`Contract\HierarchyRoles`**: omnisense/omnibridge's `Contract\Roles` over `security.role_hierarchy`, service
+  `Omnibridge\Contract\Roles`, in the contracts' locator.
+- **omnibase's parameter bags, moved from the core** (step F5c, item 3): `Omnibase\Service\{HotParameterBag, ParameterBag}`
+  (`HotParameterBag` implements Symfony's `ParameterBagInterface` itself) and `Omnibase\Subscriber\HotParameterBagSubscriber`,
+  which calls the core's `HotParameters::warm()` and lets a missing database pass. Former names aliased by the core.
 - **`Contract\StackRequests`**: omnisense/omnibridge's `Contract\Requests` over the request stack (the current request; the main
   request's session and flash bag), service `Omnibridge\Contract\Requests`, in the contracts' locator.
 - **omnibase's Symfony host code, moved from the core** (omnisense/omnibase's plan "omnibase agnostic", step F5c), by the F5b rule
