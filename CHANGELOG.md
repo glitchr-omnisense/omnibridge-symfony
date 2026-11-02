@@ -15,6 +15,11 @@
 
 ### Added
 
+- **omnibase's Bridge\Symfony, moved from the core** (step F5c, item 3, slice 5): the 20 adapters (`Omnibase\{LocalizerLocales,
+  MediaPictures, NotificationMessages, RouterRoutes, ServiceMedia, WysiwygTexts, FlysystemFiles, PasskeyRecords, PasskeyUsers,
+  SecurityUser, SecurityUserLoader, SecurityUserProvider, TwoFactorUser, ScreenResponder, SymfonyScreenContext, AccountScreens,
+  ActionArguments, ActionResults, AuthListeners, SettingBagWarmer}`), as they were; `ScreenResponder::legacy()` finds the core's
+  templates beside its BaseBundle. Former names aliased by the core.
 - **omnibase's Symfony Security classes, moved from the core** (step F5c, item 3, slice 4): `Omnibase\Security\{AccessTokenHandler,
   LoginFormAuthenticator, RescueFormAuthenticator, UserProvider, OAuthUserProvider, UserChecker, SignInGuard}`,
   `Omnibase\Security\Session\*`, `Omnibase\Security\Voter\*`, as they were. Former names aliased by the core.
