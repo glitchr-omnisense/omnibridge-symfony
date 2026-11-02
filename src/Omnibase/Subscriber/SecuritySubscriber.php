@@ -9,7 +9,7 @@ use App\Repository\UserRepository;
 use Base\Service\LocalizerInterface;
 use Base\Service\ReferrerInterface;
 use App\Entity\User;
-use Base\Security\LoginFormAuthenticator;
+use Omnibridge\Symfony\Omnibase\Security\LoginFormAuthenticator;
 
 use DateTime;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -17,7 +17,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Base\Entity\User\Notification;
 use Base\Enum\UserRole;
 use Omnibridge\Symfony\Omnibase\Routing\AdvancedRouterInterface;
-use Base\Security\RescueFormAuthenticator;
+use Omnibridge\Symfony\Omnibase\Security\RescueFormAuthenticator;
 use Base\Service\Localizer;
 use Base\Service\MaintenanceProviderInterface;
 use Base\Service\LauncherInterface;
