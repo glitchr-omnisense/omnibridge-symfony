@@ -15,6 +15,10 @@
 
 ### Added
 
+- **omnibase's console, moved from the core** (omnisense/omnibase's plan "omnibase agnostic", step F5c, item 3, slice 2):
+  `Omnibase\Console\{Application, Command, Console}` and the 30 commands `Omnibase\Console\Command\*` (cache, demo, Doctrine,
+  icons, mail, notifier, time machine, translation, trash, uploader, user), as they were in the core; former names aliased by the
+  core.
 - **`Contract\HierarchyRoles`**: omnisense/omnibridge's `Contract\Roles` over `security.role_hierarchy`, service
   `Omnibridge\Contract\Roles`, in the contracts' locator.
 - **omnibase's parameter bags, moved from the core** (step F5c, item 3): `Omnibase\Service\{HotParameterBag, ParameterBag}`
