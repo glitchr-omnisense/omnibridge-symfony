@@ -14,7 +14,7 @@ use Base\Service\MediaServiceInterface;
 use Base\Service\ObfuscatorInterface;
 use Base\Service\ParameterBagInterface;
 use Base\Service\TranslatorInterface;
-use Twig\Environment;
+use Base\View\AssetPaths;
 use Base\Validator\Constraints\File;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Form\AbstractType;
@@ -55,10 +55,8 @@ class FileType extends AbstractType implements DataMapperInterface
      */
     protected ParameterBagInterface $parameterBag;
 
-    /**
-     * @var Environment
-     */
-    protected Environment $twig;
+    /** The page's asset paths (omnibase's Twig environment answers them under Twig), for a thumbnail's link. */
+    protected ?AssetPaths $assets;
 
     /**
      * @var CsrfTokenManagerInterface
@@ -85,14 +83,13 @@ class FileType extends AbstractType implements DataMapperInterface
      */
     protected MediaServiceInterface $mediaService;
 
-
     /** * @var string */
     protected string $cacheDir;
 
     public function __construct(
         ParameterBagInterface     $parameterBag,
         TranslatorInterface       $translator,
-        Environment               $twig,
+        ?AssetPaths               $assets,
         ClassMetadataManipulator  $classMetadataManipulator,
         CsrfTokenManagerInterface $csrfTokenManager,
         FormFactory               $formFactory,
@@ -107,7 +104,7 @@ class FileType extends AbstractType implements DataMapperInterface
         $this->router = $router;
         $this->parameterBag = $parameterBag;
         $this->translator = $translator;
-        $this->twig = $twig;
+        $this->assets = $assets;
         $this->csrfTokenManager = $csrfTokenManager;
         $this->formFactory = $formFactory;
         $this->obfuscator = $obfuscator;

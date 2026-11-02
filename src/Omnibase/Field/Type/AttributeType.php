@@ -12,7 +12,6 @@ use Base\Entity\Layout\Attribute\Common\AbstractRule;
 use Base\Entity\Layout\Attribute\Common\AbstractAction;
 use Base\Entity\Layout\Attribute\Common\AbstractScope;
 
-
 use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\FormEvent;
 use Doctrine\ORM\PersistentCollection;
@@ -37,7 +36,6 @@ use Base\Entity\Layout\Attribute\Adapter\Common\AbstractActionAdapter;
 use Base\Entity\Layout\Attribute\Adapter\Common\AbstractRuleAdapter;
 use Base\Entity\Layout\Attribute\Adapter\Common\AbstractScopeAdapter;
 
-use Twig\Environment;
 use Doctrine\ORM\Mapping\InverseSideMapping;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Traversable;
@@ -55,11 +53,6 @@ class AttributeType extends AbstractType implements DataMapperInterface
     protected ?FormFactory $formFactory = null;
 
     /**
-     * @var Environment|null
-     */
-    protected ?Environment $twig = null;
-
-    /**
      * @var PropertyAccessorInterface|null
      */
     protected ?PropertyAccessorInterface $propertyAccessor = null;
@@ -69,9 +62,8 @@ class AttributeType extends AbstractType implements DataMapperInterface
         return 'attribute';
     }
 
-    public function __construct(FormFactory $formFactory, ClassMetadataManipulator $classMetadataManipulator, Environment $twig)
+    public function __construct(FormFactory $formFactory, ClassMetadataManipulator $classMetadataManipulator)
     {
-        $this->twig = $twig;
         $this->formFactory = $formFactory;
         $this->classMetadataManipulator = $classMetadataManipulator;
 

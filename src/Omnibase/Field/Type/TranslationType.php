@@ -7,7 +7,6 @@ use Base\Database\Entity\Extension\TranslatableInterface;
 use Base\Database\Entity\Extension\TranslationInterface;
 
 use Base\Service\LocalizerInterface;
-use Twig\Environment;
 use Closure;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -36,12 +35,6 @@ class TranslationType extends AbstractType implements DataMapperInterface
      */
     protected $localizer = null;
 
-    /**
-     * @var Environment
-     */
-    protected $twig;
-
-
     protected $fallbackLocales = [];
 
     /**
@@ -49,11 +42,10 @@ class TranslationType extends AbstractType implements DataMapperInterface
      */
     protected $classMetadataManipulator = null;
 
-    public function __construct(ClassMetadataManipulator $classMetadataManipulator, LocalizerInterface $localizer, Environment $twig)
+    public function __construct(ClassMetadataManipulator $classMetadataManipulator, LocalizerInterface $localizer)
     {
         $this->classMetadataManipulator = $classMetadataManipulator;
         $this->localizer = $localizer;
-        $this->twig = $twig;
     }
 
     public function getBlockPrefix(): string

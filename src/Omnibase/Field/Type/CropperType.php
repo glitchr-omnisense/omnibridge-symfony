@@ -6,7 +6,6 @@ use Base\Entity\Layout\ImageCrop;
 use Base\Enum\Quadrant\Quadrant8;
 use Omnibridge\Symfony\Omnibase\Form\FormFactory;
 use Base\Service\ParameterBagInterface;
-use Twig\Environment;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\Form\AbstractType;
@@ -40,11 +39,6 @@ class CropperType extends AbstractType implements DataMapperInterface
     protected ParameterBagInterface $parameterBag;
 
     /**
-     * @var Environment
-     */
-    protected Environment $twig;
-
-    /**
      * @var PropertyAccessorInterface
      */
     protected PropertyAccessorInterface $propertyAccessor;
@@ -54,12 +48,11 @@ class CropperType extends AbstractType implements DataMapperInterface
         return 'cropper';
     }
 
-    public function __construct(FormFactory $formFactory, EntityManagerInterface $entityManager, ParameterBagInterface $parameterBag, Environment $twig)
+    public function __construct(FormFactory $formFactory, EntityManagerInterface $entityManager, ParameterBagInterface $parameterBag)
     {
         $this->formFactory = $formFactory;
         $this->entityManager = $entityManager;
         $this->parameterBag = $parameterBag;
-        $this->twig = $twig;
 
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
     }

@@ -10,7 +10,6 @@ use Base\Service\Model\Wysiwyg\MediaEnhancerInterface;
 use Base\Service\ObfuscatorInterface;
 use Base\Service\ParameterBagInterface;
 use Base\Service\TranslatorInterface;
-use Twig\Environment;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -25,8 +24,6 @@ use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 class EditorType extends AbstractType
 {
-    /** @var Environment */
-    protected Environment $twig;
 
     /** @var ParameterBagInterface */
     protected ParameterBagInterface $parameterBag;
@@ -42,10 +39,9 @@ class EditorType extends AbstractType
     protected TokenStorageInterface $tokenStorage;
     protected ?CollabTicketFactory $ticketFactory;
 
-    public function __construct(ParameterBagInterface $parameterBag, TranslatorInterface $translator, Environment $twig, AdvancedRouterInterface $router, CsrfTokenManagerInterface $csrfTokenManager, ObfuscatorInterface $obfuscator, MediaEnhancerInterface $mediaEnhancer, CollabRoomResolver $roomResolver, TokenStorageInterface $tokenStorage, ?CollabTicketFactory $ticketFactory = null)
+    public function __construct(ParameterBagInterface $parameterBag, TranslatorInterface $translator, AdvancedRouterInterface $router, CsrfTokenManagerInterface $csrfTokenManager, ObfuscatorInterface $obfuscator, MediaEnhancerInterface $mediaEnhancer, CollabRoomResolver $roomResolver, TokenStorageInterface $tokenStorage, ?CollabTicketFactory $ticketFactory = null)
     {
         $this->parameterBag = $parameterBag;
-        $this->twig = $twig;
         $this->router = $router;
         $this->csrfTokenManager = $csrfTokenManager;
         $this->obfuscator = $obfuscator;

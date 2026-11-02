@@ -8,7 +8,6 @@ use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Base\Service\ObfuscatorInterface;
-use Base\View\AssetPaths;
 
 class ImageType extends FileType
 {
@@ -59,8 +58,8 @@ class ImageType extends FileType
             $view->vars["mime_types"] = "image/*";
         }
 
-        // The thumbnail's path as the page links it: omnibase's Twig environment answers it (Base\View\AssetPaths).
-        $view->vars["thumbnail"] = $this->twig instanceof AssetPaths ? $this->twig->getAsset($options["thumbnail"]) : $options["thumbnail"];
+        // The thumbnail's path as the page links it (Base\View\AssetPaths: omnibase's Twig environment answers it under Twig).
+        $view->vars["thumbnail"] = null !== $this->assets ? $this->assets->getAsset($options["thumbnail"]) : $options["thumbnail"];
         $view->vars["modal"] = json_encode($options["modal"]);
 
         $view->vars["cropper"] = null;

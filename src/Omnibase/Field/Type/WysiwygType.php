@@ -4,7 +4,6 @@ namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
 use Base\Service\ParameterBagInterface;
 use Base\Service\TranslatorInterface;
-use Twig\Environment;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -14,19 +13,15 @@ use Symfony\Component\Form\FormView;
 
 class WysiwygType extends AbstractType
 {
-    /** @var Environment */
-    protected $twig;
-
     /** @var ParameterBagInterface */
     protected $parameterBag;
 
     /** @var TranslatorInterface */
     protected $translator;
 
-    public function __construct(ParameterBagInterface $parameterBag, TranslatorInterface $translator, Environment $twig)
+    public function __construct(ParameterBagInterface $parameterBag, TranslatorInterface $translator)
     {
         $this->parameterBag = $parameterBag;
-        $this->twig = $twig;
         $this->translator = $translator;
     }
 

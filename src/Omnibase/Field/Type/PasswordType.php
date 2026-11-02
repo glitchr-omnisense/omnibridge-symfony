@@ -4,7 +4,6 @@ namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
 use Base\Service\Model\AutovalidateInterface;
 
-use Twig\Environment;
 use Base\Validator\Constraints\Password;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\DataMapperInterface;
@@ -25,15 +24,9 @@ class PasswordType extends AbstractType implements AutovalidateInterface, DataMa
      */
     protected TranslatorInterface $translator;
 
-    /**
-     * @var Environment
-     */
-    protected Environment $twig;
-
-    public function __construct(TranslatorInterface $translator, Environment $twig)
+    public function __construct(TranslatorInterface $translator)
     {
         $this->translator = $translator;
-        $this->twig = $twig;
     }
 
     public function getBlockPrefix(): string

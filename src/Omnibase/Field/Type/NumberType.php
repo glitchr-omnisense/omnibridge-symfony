@@ -4,7 +4,6 @@ namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
 use Omnibridge\Symfony\Omnibase\Form\Transformer\ScaleNumberTransformer;
 use Omnibridge\Symfony\Omnibase\Form\Transformer\StrippedNumberToLocalizedStringTransformer;
-use Twig\Environment;
 use Symfony\Component\Form\Extension\Core\DataTransformer\StringToFloatTransformer;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
@@ -13,16 +12,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class NumberType extends \Symfony\Component\Form\Extension\Core\Type\NumberType
 {
-    /**
-     * @var Environment
-     */
-    protected Environment $twig;
-
-    public function __construct(Environment $twig)
-    {
-        $this->twig = $twig;
-    }
-
     public function getBlockPrefix(): string
     {
         return 'number2';

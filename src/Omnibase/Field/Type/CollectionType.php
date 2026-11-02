@@ -3,7 +3,6 @@
 namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
 use Base\Service\TranslatorInterface;
-use Twig\Environment;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Base\Routing\AdminUrlGeneratorInterface;
@@ -35,11 +34,6 @@ class CollectionType extends AbstractType
     private array $renderedIndices = [];
 
     /**
-     * @var Environment
-     */
-    protected Environment $twig;
-
-    /**
      * @var TranslatorInterface
      */
     protected TranslatorInterface $translator;
@@ -54,9 +48,8 @@ class CollectionType extends AbstractType
      */
     protected AdminUrlGeneratorInterface $adminUrlGenerator;
 
-    public function __construct(Environment $twig, TranslatorInterface $translator, AuthorizationChecker $authorizationChecker, AdminUrlGeneratorInterface $adminUrlGenerator, private readonly ?\Symfony\Component\HttpFoundation\RequestStack $requestStack = null)
+    public function __construct(TranslatorInterface $translator, AuthorizationChecker $authorizationChecker, AdminUrlGeneratorInterface $adminUrlGenerator, private readonly ?\Symfony\Component\HttpFoundation\RequestStack $requestStack = null)
     {
-        $this->twig = $twig;
         $this->translator = $translator;
 
         $this->authorizationChecker = $authorizationChecker;

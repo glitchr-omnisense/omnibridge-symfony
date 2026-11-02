@@ -4,7 +4,6 @@ namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
 use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
 use Base\Service\TranslatorInterface;
-use Twig\Environment;
 use Base\Routing\AdminUrlGeneratorInterface;
 use Exception;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
@@ -33,9 +32,9 @@ class ArrayType extends CollectionType
      * it as its 5th argument where it expected the manipulator, and every
      * form using ArrayType 500'd (caught by the groups/new render test).
      */
-    public function __construct(Environment $twig, TranslatorInterface $translator, AuthorizationChecker $authorizationChecker, AdminUrlGeneratorInterface $adminUrlGenerator, ?\Symfony\Component\HttpFoundation\RequestStack $requestStack = null, ?ClassMetadataManipulator $classMetadataManipulator = null)
+    public function __construct(TranslatorInterface $translator, AuthorizationChecker $authorizationChecker, AdminUrlGeneratorInterface $adminUrlGenerator, ?\Symfony\Component\HttpFoundation\RequestStack $requestStack = null, ?ClassMetadataManipulator $classMetadataManipulator = null)
     {
-        parent::__construct($twig, $translator, $authorizationChecker, $adminUrlGenerator, $requestStack);
+        parent::__construct($translator, $authorizationChecker, $adminUrlGenerator, $requestStack);
         $this->classMetadataManipulator = $classMetadataManipulator;
     }
 
