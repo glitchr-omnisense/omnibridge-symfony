@@ -41,6 +41,7 @@ final class SymfonyConstraints
             $constraint instanceof Neutral\NotBlank => new Assert\NotBlank(message: $constraint->message, allowNull: $constraint->allowNull, groups: $groups),
             $constraint instanceof Neutral\Length => new Assert\Length(min: $constraint->min, max: $constraint->max, minMessage: $constraint->minMessage, maxMessage: $constraint->maxMessage, groups: $groups),
             $constraint instanceof Neutral\Email => new Assert\Email(message: $constraint->message, mode: Assert\Email::VALIDATION_MODE_HTML5, groups: $groups),
+            $constraint instanceof Neutral\Count => new Assert\Count(min: $constraint->min, max: $constraint->max, minMessage: $constraint->minMessage, maxMessage: $constraint->maxMessage, groups: $groups),
             $constraint instanceof Neutral\Regex => new Assert\Regex(pattern: $constraint->pattern, match: $constraint->match, message: $constraint->message, groups: $groups),
             $constraint instanceof Neutral\Choice => new Assert\Choice(choices: $constraint->choices, multiple: $constraint->multiple, min: $constraint->min, max: $constraint->max, message: $constraint->message, multipleMessage: $constraint->multipleMessage, minMessage: $constraint->minMessage, maxMessage: $constraint->maxMessage, groups: $groups),
             $constraint instanceof Neutral\Range => self::range($constraint),

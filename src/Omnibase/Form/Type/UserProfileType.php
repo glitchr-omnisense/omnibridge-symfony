@@ -2,33 +2,20 @@
 
 namespace Omnibridge\Symfony\Omnibase\Form\Type;
 
-use Omnibridge\Symfony\Omnibase\Field\Type\AvatarType;
-use Omnibridge\Symfony\Omnibase\Field\Type\PasswordType;
-use Base\Form\Model\UserProfileModel;
-use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\EmailType;
-use Symfony\Component\Form\FormBuilderInterface;
+use Base\Form\Definition\AccountForms;
+use Base\Form\Definition\FormDefinition;
+use Omnibridge\Symfony\Omnibase\Form\DefinitionType;
 use Symfony\Component\Form\Util\StringUtil;
 
-class UserProfileType extends AbstractType
+class UserProfileType extends DefinitionType
 {
     public function getBlockPrefix(): string
     {
         return "_base_" . StringUtil::fqcnToBlockPrefix(static::class) ?: '';
     }
 
-    public function configureOptions(OptionsResolver $resolver): void
+    protected function definition(array $options): FormDefinition
     {
-        $resolver->setDefaults([
-            'data_class' => UserProfileModel::class
-        ]);
-    }
-
-    public function buildForm(FormBuilderInterface $builder, array $options): void
-    {
-        $builder->add('avatar', AvatarType::class, ["required" => false, "cropper" => []]);
-        $builder->add('email', EmailType::class, ["required" => false]);
-        $builder->add('plainPassword', PasswordType::class, ["required" => false]);
+        return AccountForms::profile();
     }
 }

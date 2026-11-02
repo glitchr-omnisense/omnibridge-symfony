@@ -89,8 +89,9 @@ return static function (ContainerConfigurator $container): void {
         ->tag(ContractsPass::ADAPTER);
     $services->alias(Tokens::class, CsrfTokens::class);
 
+    // Unique's lookup, omnibase's over its repositories when it is here.
     $services->set(SymfonyValidation::class)
-        ->args([service('validator')])
+        ->args([service('validator'), service('Base\Form\Definition\UniqueLookup')->nullOnInvalid()])
         ->tag(ContractsPass::ADAPTER);
     $services->alias(Validation::class, SymfonyValidation::class);
 

@@ -66,6 +66,7 @@ final class SymfonyKinds
         'attribute' => 'Base\Field\Type\AttributeType',
         'array' => 'Base\Field\Type\ArrayType',
         'collection' => 'Base\Field\Type\CollectionType',
+        'repeated' => 'Symfony\Component\Form\Extension\Core\Type\RepeatedType',
         'translation' => 'Base\Field\Type\TranslationType',
         'discriminator' => 'Symfony\Component\Form\Extension\Core\Type\HiddenType',
 
