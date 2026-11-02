@@ -7,7 +7,7 @@ use App\Entity\User;
 use Base\Entity\User as BaseUser;
 
 use Base\Entity\User\Notification;
-use Base\Security\RescueFormAuthenticator;
+use Omnibridge\Symfony\Omnibase\Security\RescueFormAuthenticator;
 use Base\BaseBundle;
 use Omnibridge\Symfony\Omnibase\Console\Command;
 use Omnibridge\Symfony\Omnibase\Console\Command\CacheClearCommand;
