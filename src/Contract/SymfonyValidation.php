@@ -7,21 +7,46 @@ use Omnibridge\Contract\Violation;
 use Omnibridge\Validation\Constraint as Neutral;
 use Omnibridge\Validation\Validator as PlainValidator;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Validation by symfony/validator: an object against what its class declares - Symfony's
  * attributes as ever, omnisense/omnibridge's kept constraints as attributes too - plus the
  * constraints given, Symfony's or the kept ones (SymfonyConstraints). Neutral\Unique goes to
- * omnibridge's validator with the application's $exists lookup, which Symfony's has no notion of.
+ * omnibridge's validator with the application's $exists lookup, which Symfony's has no notion of;
+ * its message said by the translator, when one is given (the validators domain), as Symfony's own.
  */
 final class SymfonyValidation implements Validation
 {
     /** @var (\Closure(string, array<string, mixed>, object|null): bool)|null */
     private readonly ?\Closure $exists;
 
-    public function __construct(private readonly ValidatorInterface $validator, ?callable $exists = null)
+    public function __construct(private readonly ValidatorInterface $validator, ?callable $exists = null, private readonly ?TranslatorInterface $translator = null)
     {
         $this->exists = null !== $exists ? $exists(...) : null;
+    }
+
+    /**
+     * A message of omnibridge's validator in the page's language: its template translated alone (an
+     * ICU message of omnibase's catalogues keeps its "{value}"), then {{ value }} replaced, and {value}
+     * by the value as omnibase's own validators give it, unquoted.
+     *
+     * @param array<string, mixed> $parameters
+     */
+    private function translate(string $template, array $parameters): string
+    {
+        $count = $parameters['%count%'] ?? null;
+        unset($parameters['%count%']);
+        $forms = explode('|', null !== $this->translator ? $this->translator->trans($template, [], 'validators') : $template);
+        $replacements = array_map(strval(...), $parameters);
+        foreach ($parameters as $name => $value) {
+            if (preg_match('/^\{\{ ?(\w+) ?\}\}$/', (string) $name, $m)) {
+                $value = (string) $value;
+                $replacements['{'.$m[1].'}'] ??= \strlen($value) >= 2 && '"' === $value[0] && '"' === $value[-1] ? substr($value, 1, -1) : $value;
+            }
+        }
+
+        return strtr(1 === $count || 1 === \count($forms) ? $forms[0] : $forms[1], $replacements);
     }
 
     public function validate(mixed $value, array $constraints = [], ?array $groups = null): array
@@ -38,7 +63,7 @@ final class SymfonyValidation implements Validation
             }
         }
 
-        $plain = new PlainValidator($this->exists);
+        $plain = new PlainValidator($this->exists, null !== $this->translator ? $this->translate(...) : null);
         if ($record) {
             array_push($violations, ...$this->declared($value, $groups), ...$plain->uniques($value, $groups));
         }

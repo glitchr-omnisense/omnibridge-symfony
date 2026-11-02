@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **`SymfonyValidation`** takes the translator (service `translator`, optional): the messages of omnisense/omnibridge's
+  validator (a neutral `Unique`) are said in the page's language, the `validators` domain, `{{ value }}` replaced, and an ICU
+  catalogue's `{value}` by the value unquoted, as omnibase's own validators give it ("\"Alice\" est déjà utilisé.").
+
 ### Added
 
 - **`Contract\StackRequests`**: omnisense/omnibridge's `Contract\Requests` over the request stack (the current request; the main

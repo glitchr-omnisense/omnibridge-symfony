@@ -57,6 +57,18 @@ final class ValidationTest extends TestCase
         ], self::messages($this->validation(static fn (string $class, array $criteria): bool => ['login' => 'ringo'] === $criteria)->validate($record)));
     }
 
+    public function testAUniquesMessageIsSaidByTheTranslatorItsValueTheIcuArgumentToo(): void
+    {
+        $translator = new \Symfony\Component\Translation\Translator('fr');
+        $translator->addLoader('array', new \Symfony\Component\Translation\Loader\ArrayLoader());
+        // omnibase's catalogue is ICU's: without its arguments the message keeps its "{value}".
+        $translator->addResource('array', ['unique_entity' => '"{value}" est déjà utilisé.'], 'fr', 'validators');
+        $validation = new SymfonyValidation(Validation::createValidator(), static fn (): bool => true, $translator);
+
+        self::assertSame(['login: "Alice" est déjà utilisé.'], self::messages($validation->validate(['login' => 'Alice'], [new Neutral\Unique(['login'], Member::class, message: 'unique_entity')])));
+        self::assertSame(['login: This value is already used.'], self::messages($this->validation(static fn (): bool => true)->validate(['login' => 'Alice'], [new Neutral\Unique(['login'], Member::class)])), 'without a translator, as before');
+    }
+
     public function testConstraintsTranslateToSymfonysAndSymfonysPassAsTheyAre(): void
     {
         $own = new Assert\Url();
