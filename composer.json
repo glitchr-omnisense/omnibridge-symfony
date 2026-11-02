@@ -33,6 +33,7 @@
         "symfony/security-http": "^6.0|^7.0|^8.0",
         "symfony/twig-bridge": "^6.0|^7.0|^8.0",
         "symfony/twig-bundle": "^6.0|^7.0|^8.0",
+        "symfony/validator": "^6.0|^7.0|^8.0",
         "twig/extra-bundle": "^3.0"
     },
     "require-dev": {
@@ -54,6 +55,7 @@
         "symfony/translation": "^6.0|^7.0|^8.0"
     },
     "suggest": {
+        "omnisense/omnibase": "Omnibridge\\Symfony\\Omnibase\\: omnibase's Symfony form layer, moved from the core (its former Base\\ names kept by the core until 6.0): the form types, extensions, FormFactory, FormProxy, FormProcessor",
         "omniauth/google": "Google sign-in through Omnibridge\\Symfony\\Auth\\ (omniauth.yaml: oauth.providers.google; its GoogleFactory is registered when it is installed)",
         "omniauth/otp": "Authenticator applications through Omnibridge\\Symfony\\Auth\\ (omniauth.yaml: totp; totp.secret_key seals the secrets at rest), formerly omniauth/totp",
         "omniauth/webauthn": "Passkeys through Omnibridge\\Symfony\\Auth\\ (omniauth.yaml: passkey), formerly omniauth/passkey",

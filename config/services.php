@@ -37,12 +37,14 @@ use Omnibridge\Contract\Sessions;
 use Omnibridge\Contract\Tokens;
 use Omnibridge\Contract\Translations;
 use Omnibridge\Contract\Urls;
+use Omnibridge\Contract\Validation;
 use Omnibridge\Symfony\Contract\CsrfTokens;
 use Omnibridge\Symfony\Contract\KernelEnvironment;
 use Omnibridge\Symfony\Contract\SecurityAccess;
 use Omnibridge\Symfony\Contract\SecuritySessions;
 use Omnibridge\Symfony\DependencyInjection\ContractsPass;
 use Omnibridge\Static\Console\Cli;
+use Omnibridge\Symfony\Contract\SymfonyValidation;
 use Omnibridge\Symfony\RouterUrls;
 use Omnibridge\Symfony\Static\BuildCommand;
 use Omnibridge\Symfony\TranslatorTranslations;
@@ -86,6 +88,11 @@ return static function (ContainerConfigurator $container): void {
         ->args([service('security.csrf.token_manager')])
         ->tag(ContractsPass::ADAPTER);
     $services->alias(Tokens::class, CsrfTokens::class);
+
+    $services->set(SymfonyValidation::class)
+        ->args([service('validator')])
+        ->tag(ContractsPass::ADAPTER);
+    $services->alias(Validation::class, SymfonyValidation::class);
 
     if (class_exists(OperatorDrives::class)) {
         $services->set(OperatorDrives::class)

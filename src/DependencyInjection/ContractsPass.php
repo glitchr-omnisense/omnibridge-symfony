@@ -11,6 +11,7 @@ use Omnibridge\Contract\Sessions;
 use Omnibridge\Contract\Tokens;
 use Omnibridge\Contract\Translations;
 use Omnibridge\Contract\Urls;
+use Omnibridge\Contract\Validation;
 use Psr\Clock\ClockInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
@@ -60,6 +61,7 @@ class ContractsPass implements CompilerPassInterface
         Locales::class,
         Files::class,
         Tokens::class,
+        Validation::class,
         ClockInterface::class,
         EventDispatcherInterface::class,
     ];
