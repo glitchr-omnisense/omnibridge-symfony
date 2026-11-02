@@ -4,6 +4,8 @@
 
 ### Changed
 
+- **`Omnibase\Form\Type\SecurityLoginTokenType`** is a `DefinitionType`: omnibase's `AccountForms::signInLink()` (its model, its guard, its
+  field), its `email` option the address shown, `allow_login_token` in its view as before.
 - **`SymfonyValidation`** takes the translator (service `translator`, optional): the messages of omnisense/omnibridge's
   validator (a neutral `Unique`) are said in the page's language, the `validators` domain, `{{ value }}` replaced, and an ICU
   catalogue's `{value}` by the value unquoted, as omnibase's own validators give it ("\"Marki\" est déjà utilisé.").
