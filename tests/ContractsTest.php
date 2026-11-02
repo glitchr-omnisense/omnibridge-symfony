@@ -4,6 +4,7 @@ namespace Omnibridge\Symfony\Tests;
 
 use Omnibridge\Contract\Access;
 use Omnibridge\Contract\Environment;
+use Omnibridge\Contract\Requests;
 use Omnibridge\Contract\Sessions;
 use Omnibridge\Contract\Tokens;
 use Omnibridge\Contract\Translations;
@@ -13,6 +14,7 @@ use Omnibridge\Symfony\Contract\CsrfTokens;
 use Omnibridge\Symfony\Contract\KernelEnvironment;
 use Omnibridge\Symfony\Contract\SecurityAccess;
 use Omnibridge\Symfony\Contract\SecuritySessions;
+use Omnibridge\Symfony\Contract\StackRequests;
 use Omnibridge\Symfony\DependencyInjection\ContractsPass;
 use Omnibridge\Symfony\RouterUrls;
 use Omnibridge\Symfony\Tests\Fixtures\TestKernel;
@@ -43,6 +45,7 @@ final class ContractsTest extends KernelTestCase
         Environment::class => KernelEnvironment::class,
         Access::class => SecurityAccess::class,
         Sessions::class => SecuritySessions::class,
+        Requests::class => StackRequests::class,
         Tokens::class => CsrfTokens::class,
     ];
 
@@ -123,6 +126,42 @@ final class ContractsTest extends KernelTestCase
         self::assertSame($ada, $access->getUser());
         self::assertTrue(@Runtime::sessions()->signOut($ada));
         self::assertNull($tokens->getToken());
+    }
+
+    public function testRequestsAreTheStacksRequestAndTheMainRequestsSession(): void
+    {
+        $requests = Runtime::requests();
+        self::assertFalse($requests->has());
+        self::assertNull($requests->ip());
+        $requests->flash('success', 'nothing to keep it');
+        self::assertSame([], $requests->flashes());
+
+        $main = Request::create('https://site.example/page?x=1', 'GET', [], [], [], ['REMOTE_ADDR' => '203.0.113.7', 'HTTP_REFERER' => 'https://site.example/']);
+        $main->setSession(new Session(new MockArraySessionStorage()));
+        $main->attributes->set('_route', 'page');
+        $stack = static::getContainer()->get('request_stack');
+        $stack->push($main);
+        $stack->push(Request::create('https://site.example/fragment', 'GET', [], [], [], ['REMOTE_ADDR' => '203.0.113.7']));
+        try {
+            self::assertTrue($requests->has());
+            self::assertSame('203.0.113.7', $requests->ip());
+            self::assertSame('https://site.example/fragment', $requests->uri(), 'the current request');
+            self::assertSame('https://site.example', $requests->host());
+            self::assertNull($requests->route(), 'the sub-request has no route of its own');
+            self::assertSame($stack->getCurrentRequest(), $requests->request());
+
+            $requests->remember('_target_path', '/back');
+            self::assertSame('/back', $main->getSession()->get('_target_path'), 'the main request\'s session');
+            $requests->remember('_target_path', null);
+            self::assertFalse($main->getSession()->has('_target_path'));
+
+            $requests->flash('success', 'Bienvenue.');
+            self::assertSame(['success' => ['Bienvenue.']], $requests->flashes());
+            self::assertSame(['success' => ['Bienvenue.']], $main->getSession()->getFlashBag()->peekAll());
+        } finally {
+            $stack->pop();
+            $stack->pop();
+        }
     }
 
     public function testTheRememberMeDomainIsAskedAtSignOut(): void

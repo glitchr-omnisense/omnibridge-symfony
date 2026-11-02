@@ -6,6 +6,7 @@ use Omnibridge\Contract\Access;
 use Omnibridge\Contract\Environment;
 use Omnibridge\Contract\Files;
 use Omnibridge\Contract\Locales;
+use Omnibridge\Contract\Requests;
 use Omnibridge\Contract\Routes;
 use Omnibridge\Contract\Sessions;
 use Omnibridge\Contract\Tokens;
@@ -58,6 +59,7 @@ class ContractsPass implements CompilerPassInterface
         Translations::class,
         Access::class,
         Sessions::class,
+        Requests::class,
         Locales::class,
         Files::class,
         Tokens::class,

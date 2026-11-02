@@ -37,11 +37,13 @@ use Omnibridge\Contract\Sessions;
 use Omnibridge\Contract\Tokens;
 use Omnibridge\Contract\Translations;
 use Omnibridge\Contract\Urls;
+use Omnibridge\Contract\Requests;
 use Omnibridge\Contract\Validation;
 use Omnibridge\Symfony\Contract\CsrfTokens;
 use Omnibridge\Symfony\Contract\KernelEnvironment;
 use Omnibridge\Symfony\Contract\SecurityAccess;
 use Omnibridge\Symfony\Contract\SecuritySessions;
+use Omnibridge\Symfony\Contract\StackRequests;
 use Omnibridge\Symfony\DependencyInjection\ContractsPass;
 use Omnibridge\Static\Console\Cli;
 use Omnibridge\Symfony\Contract\SymfonyValidation;
@@ -83,6 +85,11 @@ return static function (ContainerConfigurator $container): void {
         ->args([service('security.token_storage')])
         ->tag(ContractsPass::ADAPTER);
     $services->alias(Sessions::class, SecuritySessions::class);
+
+    $services->set(StackRequests::class)
+        ->args([service('request_stack')])
+        ->tag(ContractsPass::ADAPTER);
+    $services->alias(Requests::class, StackRequests::class);
 
     $services->set(CsrfTokens::class)
         ->args([service('security.csrf.token_manager')])

@@ -4,6 +4,13 @@
 
 ### Added
 
+- **`Contract\StackRequests`**: omnisense/omnibridge's `Contract\Requests` over the request stack (the current request; the main
+  request's session and flash bag), service `Omnibridge\Contract\Requests`, in the contracts' locator.
+- **omnibase's Symfony host code, moved from the core** (omnisense/omnibase's plan "omnibase agnostic", step F5c), by the F5b rule
+  (`Base\Bridge\Symfony\X` and `Base\X` are `Omnibridge\Symfony\Omnibase\X`), their former names aliased by the core
+  (former-names.symfony.php): `FrameworkLocator` (the framework's services BaseTrait's deprecated accessors hand out), the kernel
+  subscribers `Subscriber\{TwigSubscriber, TemplatedEmailSubjectSubscriber, AnalyticsSubscriber}`, `Cache\Warmer\WebpackCacheWarmer`.
+
 - **`Omnibase\Form\DefinitionType`**: a form type that is a neutral `FormDefinition`, its class what Symfony asks for (its name, its block prefix,
   `FormProxy::createProcessor()`), its fields described once for every host. `DefinitionForms::populate()`: fields, actions and their options,
   rewrites (PRE_SUBMIT), a `validation_entity`'s refusals moved under the fields the definition names; `formOptions()` carries `guard`,
