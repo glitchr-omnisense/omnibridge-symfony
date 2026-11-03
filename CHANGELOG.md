@@ -4,6 +4,14 @@
 
 ### Changed
 
+- `Omnibase\Field\Type\WysiwygType` and `EditorType` on omnisense/omnibase's neutral `Base\Field\Behaviour\Wysiwyg` and
+  `Editor` (plan "omnibase agnostic", step F5d, slice 6): their defaults are the behaviours' options, their vars the
+  behaviours' - the widget's id, Quill's settings, Editor.js's (the collaboration's room from the root form's data when
+  `collab_autosave` or `collab_live` asks for it), the value with its pictures' addresses, the five addresses of the editor's
+  routes through omnibase's `Base\Field\Editor\EditorJs` -, and EditorType's PRE_SUBMIT reads a document without a block as no
+  text through the behaviour. The same omnibridge/laravel's renderer uses; the markup is unchanged. Their constructors keep
+  their arguments (omnibase's service definitions).
+
 - `Omnibase\Field\Type\AssociationFileType` on omnisense/omnibase's neutral `Base\Field\Behaviour\AssociationFile` (plan
   "omnibase agnostic", step F5d, slice 5): its defaults are its `DEFAULTS`, its upload field's name and options its `child()` and
   `childOptions()`, the related records' files its `files()`, `entityId` its `entries()`, and what is sent made into the related

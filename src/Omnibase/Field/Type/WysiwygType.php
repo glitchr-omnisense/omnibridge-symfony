@@ -2,6 +2,7 @@
 
 namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
+use Base\Field\Behaviour\Wysiwyg;
 use Base\Service\ParameterBagInterface;
 use Base\Service\TranslatorInterface;
 use Symfony\Component\Form\AbstractType;
@@ -35,41 +36,10 @@ class WysiwygType extends AbstractType
         return 'wysiwyg';
     }
 
+    /** The neutral behaviour's options (Base\Field\Behaviour\Wysiwyg): Quill's theme, toolbar, placeholder, height. */
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([
-            'empty_data' => null,
-            "webpack_entry" => "form.wysiwyg",
-
-            'theme' => "snow",
-            'placeholder' => $this->translator->trans("@fields.wysiwyg.placeholder"),
-            'height' => "250px",
-            'modules' => [
-                "syntax" => true,
-                "toolbar" => [
-                    [
-                        ["header" => [1, 2, false]]
-                    ],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [
-                        ['color' => []],
-                        ['background' => []],
-                        ['script' => 'sub'],
-                        ['script' => 'super']
-                    ],
-
-                    ['image', 'link', 'blockquote', 'code-block'],
-
-                    [
-                        ['list' => 'ordered'],
-                        ['list' => 'bullet'],
-                        ['align' => []],
-                    ],
-
-                    ['clean']
-                ]
-            ]
-        ]);
+        $resolver->setDefaults((new Wysiwyg())->options([]));
     }
 
     /**
@@ -86,20 +56,9 @@ class WysiwygType extends AbstractType
         return $parent->vars["attr"]["id"] ?? null;
     }
 
+    /** The widget's id and Quill's settings, as the neutral behaviour gives them to every host. */
     public function buildView(FormView $view, FormInterface $form, array $options): void
     {
-        $view->vars["id"] = str_replace("-", "_", $view->vars["id"]);
-
-        // Wysiwyg options
-        $theme = $options["theme"];
-        $modules = $options["modules"] ?? [];
-
-        $wysiwygOpts = [];
-        $wysiwygOpts["theme"] = $theme;
-        $wysiwygOpts["modules"] = $modules;
-        $wysiwygOpts["placeholder"] = $options["placeholder"];
-        $wysiwygOpts["height"] = $options["height"];
-
-        $view->vars["wysiwyg"] = json_encode($wysiwygOpts);
+        $view->vars = array_replace($view->vars, (new Wysiwyg())->vars($options, $view->vars['value'] ?? null, $view->vars['id']));
     }
 }
