@@ -4,6 +4,13 @@
 
 ### Changed
 
+- `Omnibase\Field\Type\AssociationType`, `CollectionType`, `ArrayType` and `AttributeType` on omnisense/omnibase's neutral
+  `Base\Field\Behaviour\{Association, Collection, Attribute}` (plan "omnibase agnostic", step F5d, slice 7): their defaults
+  are the helpers' (`Association::DEFAULTS`, `Collection::DEFAULTS`/`ARRAY_DEFAULTS`, `Attribute::DEFAULTS`, the entries' types
+  given here as Symfony types), AssociationType's normalizers (`required`, `allow_add`, `allow_delete`) and the options of its
+  `_collection` ask `Association`, ArrayType's length (a pattern's `{n}`) asks `Collection::length()`, AttributeType's classes,
+  the options of its select of adapters and its parts' names ask `Attribute`. The same omnibridge/laravel's renderer and
+  omnibase's neutral binder use; the markup is unchanged (the back office's controls and pages compared before and after).
 - `Omnibase\Field\Type\WysiwygType` and `EditorType` on omnisense/omnibase's neutral `Base\Field\Behaviour\Wysiwyg` and
   `Editor` (plan "omnibase agnostic", step F5d, slice 6): their defaults are the behaviours' options, their vars the
   behaviours' - the widget's id, Quill's settings, Editor.js's (the collaboration's room from the root form's data when

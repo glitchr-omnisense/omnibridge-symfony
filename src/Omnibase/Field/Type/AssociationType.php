@@ -4,6 +4,7 @@ namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
 use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
 use Base\Database\Entity\EntityHydrator;
+use Base\Field\Behaviour\Association;
 use Omnibridge\Symfony\Omnibase\Form\FormFactory;
 use Base\Service\Model\Autocomplete;
 use Base\Service\TranslatorInterface;
@@ -87,23 +88,8 @@ class AssociationType extends AbstractType implements DataMapperInterface
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([
-            'class' => null,
-            'form_type' => null,
-            // Read by the back office (Base\Admin\Form\FieldFormBuilder), not here: whether an
-            // AssociationField is this embedded form (true), a picker (false), or what its
-            // association says (null). This type, used by name, always embeds.
-            'embed' => null,
-            'autoload' => true,
-            'href' => null,
-            'html' => false,
-
-            'entry_collapsed' => true,
-            // Forwarded to the inner CollectionType (see its own comment): caps
-            // how many entries are built, and only takes effect when the
-            // collection cannot delete.
-            'max_entries' => null,
-            'entry_offset' => 0,
+        // omnisense/omnibase's Association: the defaults and what the normalizers make of them, the same on every host.
+        $resolver->setDefaults(array_replace(Association::DEFAULTS, [
             'entry_label' => function ($i, $label) {
                 if ($i === "__prototype__") {
                     return false;
@@ -119,68 +105,14 @@ class AssociationType extends AbstractType implements DataMapperInterface
                 }
                 return $_label;
             },
+        ]));
 
-            'entry_required' => true,
-
-            'fields' => [],
-            'keep_indexes' => true,
-            'length' => 0,
-            'excluded_fields' => [],
-
-            'recursive' => null,
-            "multiple" => false,
-            'group' => true,
-            'row_group' => true,
-
-            'allow_add' => true,
-            'allow_delete' => true,
-            'allow_entity' => true,
-            'allow_null' => null
-        ]);
-
-        $resolver->setNormalizer('required', function (Options $options, $value) {
-            // A to-MANY association is a collection, and "no entries" is a
-            // legitimate value for one. Returning entry_required (default true)
-            // unconditionally put a browser-level `required` on every such
-            // field, so the create form could not be submitted until the
-            // operator picked something: Comments/Followers/Replies on a
-            // comment, Children on a calendar and a guestbook, Subscribers on
-            // a newsletter, Tags on a gallery, Permissions on a group,
-            // Hyperlinks on a user - none of which are mandatory. It also
-            // overrode an explicit ->setRequired(false), which is why the
-            // Article fields had to be fought individually.
-            //
-            // A genuinely mandatory collection belongs in validation (a Count
-            // constraint), which reports WHY it is refusing; an HTML required
-            // attribute on a multi-select just blocks submit with no
-            // explanation. entry_required still governs the single-valued
-            // case, where it means "this one related record is mandatory".
-            if ($options["multiple"]) {
-                return false;
-            }
-
-            return $options["entry_required"];
-        });
-
-        $resolver->setNormalizer('data_class', function (Options $options, $value) {
-            if ($options["multiple"]) {
-                return null;
-            }
-            return $value ?? null;
-        });
-
-        $resolver->setNormalizer('allow_add', function (Options $options, $value) {
-            if ($options["group"]) {
-                return $value ?? null;
-            }
-            return false;
-        });
-        $resolver->setNormalizer('allow_delete', function (Options $options, $value) {
-            if ($options["group"]) {
-                return $value ?? null;
-            }
-            return false;
-        });
+        // A to-many association is never required (no entries is a legitimate value for one: a Count constraint
+        // says why it refuses); entry_required governs the single-valued case. See Association::options().
+        $resolver->setNormalizer('required', fn (Options $options, $value) => Association::options(['multiple' => $options['multiple'], 'entry_required' => $options['entry_required']])['required']);
+        $resolver->setNormalizer('data_class', fn (Options $options, $value) => $options["multiple"] ? null : ($value ?? null));
+        $resolver->setNormalizer('allow_add', fn (Options $options, $value) => Association::options(['group' => $options['group'], 'allow_add' => $value])['allow_add']);
+        $resolver->setNormalizer('allow_delete', fn (Options $options, $value) => Association::options(['group' => $options['group'], 'allow_delete' => $value])['allow_delete']);
     }
 
     public function finishView(FormView $view, FormInterface $form, array $options): void
@@ -217,40 +149,10 @@ class AssociationType extends AbstractType implements DataMapperInterface
                     $data = [$data];
                 }
 
-                $collectionOptions = [
-                    "data_class" => null,
-                    // `?? false`: with no label to inherit, Symfony humanises the
-                    // child's own name and the inner group renders "Collection" -
-                    // a second, wrong label under the field's real one ("Comments").
-                    // The parent already labels the field, so an unlabelled parent
-                    // means "don't label me twice", not "make one up".
-                    "label" => $options["label"] ?? false,
-                    "html" => $options["html"],
-                    'by_reference' => false,
-                    'allow_object' => true,
-                    'length' => $length,
-                    "group" => $options["group"],
-                    "row_group" => $options["row_group"],
-                    'entry_collapsed' => $options["entry_collapsed"],
-                    'max_entries' => $options["max_entries"],
-                    'entry_offset' => $options["entry_offset"],
-                    'entry_type' => AssociationType::class,
-                    'entry_label' => $options["entry_label"],
-                    'entry_options' => array_merge($options, [
-                        'href' => $options["href"] ?? null,
-                        'allow_entity' => $options["allow_entity"],
-                        'data_class' => $dataClass,
-                        'multiple' => false,
-                        'keep_indexes' => $options["keep_indexes"],
-                    ]),
-                ];
-
-                if ($options["allow_add"] !== null) {
-                    $collectionOptions['allow_add'] = $options["group"] ? $options["allow_add"] : false;
-                }
-                if ($options["allow_delete"] !== null) {
-                    $collectionOptions['allow_delete'] = $options["group"] ? $options["allow_delete"] : false;
-                }
+                // What omnibase's Association gives the collection of several records' forms, its entries this type.
+                $collectionOptions = Association::collection($options + ['class' => $dataClass]);
+                $collectionOptions['entry_type'] = AssociationType::class;
+                $collectionOptions['entry_label'] = $options["entry_label"];
 
                 $form->add("_collection", CollectionType::class, $collectionOptions);
             } else {
