@@ -52,7 +52,7 @@ final class DefinitionForms
     public static function populate(FormBuilderInterface $builder, FormDefinition $definition): void
     {
         foreach ($definition->getFields() as $name => $field) {
-            $builder->add($name, $field->getFormType(), self::fieldOptions($field));
+            $builder->add($name, self::formType($field), self::fieldOptions($field));
         }
         foreach ($definition->getActions() as $name => $action) {
             $builder->add($name, \Base\Field\Kinds::type($action['kind']), array_filter(['label' => $action['label'], 'attr' => $action['attr']], static fn (mixed $value): bool => null !== $value && [] !== $value) + $action['options']);
@@ -67,6 +67,21 @@ final class DefinitionForms
         if ([] !== $fields = $definition->getEntityErrorFields()) {
             $builder->addEventListener(FormEvents::POST_SUBMIT, static fn (FormEvent $event) => self::moveEntityErrors($event->getForm(), $fields), -128);
         }
+    }
+
+    /**
+     * A field's Symfony form type: its kind's (SymfonyKinds), or the one it
+     * names. A kind Symfony declares unsupported, or has no type for, is
+     * refused aloud: Symfony would guess a text input in its place.
+     */
+    private static function formType(FieldDescriptor $field): string
+    {
+        $declaration = \Base\Field\Kinds::declaration((string) $field->getKind(), 'symfony');
+        if (!$field->hasExplicitFormType() && \Omnibridge\Form\Coverage::isUnsupported($declaration)) {
+            throw \Omnibridge\Form\UnsupportedKind::of((string) $field->getKind(), 'Symfony', \Omnibridge\Form\Coverage::reason($declaration));
+        }
+
+        return $field->getFormType() ?? throw \Omnibridge\Form\UnsupportedKind::of((string) $field->getKind(), 'Symfony');
     }
 
     /**
@@ -159,7 +174,8 @@ final class DefinitionForms
         if ([] !== $field->getTranslationParameters()) {
             $options['label_translation_parameters'] = $field->getTranslationParameters();
         }
-        if (true === $field->isVirtual() || \in_array($field->getKind(), Kind::UNMAPPED_KINDS, true)) {
+        // A button has no data and no `mapped` option: a submit or a button given as a field crashed here.
+        if ((true === $field->isVirtual() || \in_array($field->getKind(), Kind::UNMAPPED_KINDS, true)) && !\in_array($field->getKind(), [Kind::SUBMIT, Kind::BUTTON], true)) {
             $options['mapped'] = false;
         }
         if ([] !== $field->getHtmlAttributes()) {

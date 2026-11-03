@@ -113,6 +113,11 @@ Stayed in the core, `Base\` (omnibase's domain under Symfony, D3):
 | `Base\BaseBundle`, its extension, configuration and compiler passes | omnibase's bundle |
 | forms, fields, controllers, subscribers | Symfony by nature, omnibase's (D3) |
 
+Since omnibase's step F5d, the field types that held a rich kind's logic read it from omnibase's neutral
+behaviours (`Base\Field\Behaviour\*`: the date picker, the slug, the switch, the colours, the number, select2's
+settings), the objects omnibridge/laravel's renderer reads too; `Omnibase\Form\SymfonyKinds::COVERAGE` declares what
+Symfony draws of every kind, and `Omnibase\Form\Conformance\SymfonyHost` runs omnibase's field conformance suite on it.
+
 ## The framework packages
 
 composer.json requires what omnibase's Symfony side needs, so that the core does not: PHP 8.2 or

@@ -3,6 +3,7 @@
 namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
 use Base\Service\LocalizerInterface;
+use Base\Field\Behaviour\DateTimePicker;
 use Base\Service\ParameterBagInterface;
 
 use Symfony\Component\Form\AbstractType;
@@ -37,47 +38,23 @@ class DateTimePickerType extends AbstractType
         return 'datetimepicker';
     }
 
+    /**
+     * The neutral behaviour's options (omnisense/omnibase's
+     * Base\Field\Behaviour\DateTimePicker, the one every host reads): ICU
+     * format yyyy-MM-dd HH:mm, flatpickr's settings in `datetimepicker`, merged
+     * over the defaults key by key (a date-only picker keeps the page's
+     * language).
+     */
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([
-
-            // PHP Datetime format:
-            // This format is replacing the shitty HTML5_FORMAT :-)
-            "format" => "yyyy-MM-dd HH:mm",
-            "html5" => false,
-            "widget" => "single_text",
-            "required" => false,
-            "webpack_entry" => "form.datetime",
-
-            "debug" => false,
-            "datetimepicker" => [
-                "enableTime" => true,
-                "locale" => $this->localizer->getLocaleLang(),
-                "dateFormat" => "Y-m-d H:i", // Format must match... between format option and dateFormat (JS Format)
-            ]
-        ]);
-
-        // Merge whatever the caller passed OVER the defaults instead of
-        // replacing them. A caller that wants a date-only picker naturally
-        // writes ["enableTime" => false, "dateFormat" => "Y-m-d"], and with a
-        // plain default that silently dropped `locale` - leaving flatpickr in
-        // English on a French form. Only the keys actually given are
-        // overridden now, so a partial option stays partial.
-        $resolver->setNormalizer("datetimepicker", function (Options $options, $value) {
-            return array_merge([
-                "enableTime" => true,
-                "locale" => $this->localizer->getLocaleLang(),
-                "dateFormat" => "Y-m-d H:i",
-            ], is_array($value) ? $value : []);
-        });
+        $defaults = (new DateTimePicker())->options([]);
+        $defaults['datetimepicker'] = DateTimePicker::picker([], $this->localizer->getLocaleLang());
+        $resolver->setDefaults($defaults);
+        $resolver->setNormalizer("datetimepicker", fn (Options $options, $value) => DateTimePicker::picker($value, $this->localizer->getLocaleLang()));
     }
 
     public function buildView(FormView $view, FormInterface $form, array $options): void
     {
-        //
-        // Datetime picker Options
-        $dateTimePickerOpts = $options["datetimepicker"];
-
-        $view->vars["datetimepicker"] = json_encode($dateTimePickerOpts);
+        $view->vars = array_replace($view->vars, (new DateTimePicker())->vars($options, $view->vars["value"] ?? null, $view->vars["id"]));
     }
 }

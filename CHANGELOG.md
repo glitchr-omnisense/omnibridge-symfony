@@ -4,6 +4,18 @@
 
 ### Added
 
+- **The field types on omnibase's neutral behaviours** (omnisense/omnibase's plan "omnibase agnostic", step F5d, slice 1):
+  `Omnibase\Field\Type\{DateTimePickerType, SlugType, BooleanType, ColorType, ColorPickerType, NumberType}` take their options,
+  defaults and view vars, and the colours their values, from `Base\Field\Behaviour\*`; `SelectType` its select2 settings from
+  `Select::select2()` - the objects omnibridge/laravel's renderer reads. The markup is the same. `Omnibase\Form\SymfonyKinds::COVERAGE`:
+  every kind implemented but `html` (markup given whole, a renderer's), which `DefinitionForms` refuses aloud
+  (`Omnibridge\Form\UnsupportedKind`), as a kind with no type: Symfony guessed a text input. `Omnibase\Form\Conformance\SymfonyHost`,
+  for omnibase's field conformance suite (omnibase's harness: `tests/Field/SymfonyConformanceTest`).
+
+### Fixed
+
+- `DefinitionForms`: a submit or a button given as a field (not an action) crashed on the `mapped` option buttons do not have.
+
 - **`Omnibase\Service\SymfonyBaseService`** (omnisense/omnibase's plan "omnibase agnostic", step F5c, item 3): the Symfony half of
   omnibase's BaseService, which is framework-neutral since. The container hands it out as `base.service` and
   `Base\Service\BaseService` (lazy, the same 23 arguments): the kernel and its container, the console (`exec()`), the form
