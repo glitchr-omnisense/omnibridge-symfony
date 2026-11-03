@@ -4,6 +4,11 @@
 
 ### Changed
 
+- `Omnibase\Field\Type\TranslationType` asks omnisense/omnibase's `Base\Field\Behaviour\Translation` what it decided itself
+  (plan "omnibase agnostic", step F5d, slice 3): the required languages among the offered ones, the languages drawn (a
+  single-language field's, the record's one language with the default's fields), which part is required, each language's
+  fields (`locale_options`), a callable `required` checked and called - the same object the hosts without Symfony's forms ask.
+  The forms and the back office's markup are unchanged. Requires omnisense/omnibase with `Translation`.
 - `Omnibase\Field\Type\SelectType` makes its remote search's payload with omnisense/omnibase's `Base\Field\Search\RemoteSearch::data()`
   (plan "omnibase agnostic", step F5d, slice 2), the neutral search its ux_autocomplete routes answer with, which omnibridge/laravel's
   FormView asks as well. The payload and the markup are unchanged.

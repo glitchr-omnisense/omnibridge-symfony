@@ -6,14 +6,12 @@ use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
 use Base\Database\Entity\Extension\TranslatableInterface;
 use Base\Database\Entity\Extension\TranslationInterface;
 
+use Base\Field\Behaviour\Translation;
 use Base\Service\LocalizerInterface;
-use Closure;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\PersistentCollection;
 use Exception;
-use InvalidArgumentException;
-use ReflectionFunction;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\DataMapperInterface;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -26,7 +24,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 use Traversable;
 use UnexpectedValueException;
-use function count;
 
 class TranslationType extends AbstractType implements DataMapperInterface
 {
@@ -89,9 +86,7 @@ class TranslationType extends AbstractType implements DataMapperInterface
             'multiple' => false
         ]);
 
-        $resolver->setNormalizer('required_locales', function (Options $options, $requiredLocales) {
-            return array_intersect($requiredLocales, $options['available_locales']);
-        });
+        $resolver->setNormalizer('required_locales', fn (Options $options, $requiredLocales) => Translation::requiredLocales($requiredLocales, $options['available_locales']));
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -103,69 +98,36 @@ class TranslationType extends AbstractType implements DataMapperInterface
             $data = $event->getData();
 
             $options = $form->getConfig()->getOptions();
-            $locales = ($options["single_locale"] ? [$options["default_locale"]] : $options['available_locales']);
-            $dataLocale = $data instanceof Collection ? $data->getKeys() : [$options["locale"]];
+            // The languages drawn, which part is required, a callable `required` called: omnibase's neutral Translation,
+            // which the hosts without Symfony's forms ask too.
+            ['locales' => $locales, 'default' => $defaultLocale] = Translation::locales($options, $data instanceof Collection ? array_map('strval', $data->getKeys()) : [$options["locale"]]);
 
             $translationClass = $this->getTranslationClass($form);
             $translationFields = $this->getTranslationFields($translationClass, $options);
 
-            foreach ($locales as $locale) {
-                if (!isset($translationFields[$locale])) {
+            foreach ($locales as $locale => $fieldsLocale) {
+                if (!isset($translationFields[$fieldsLocale])) {
                     continue;
                 }
 
                 $entityOptions = [
                     'class' => $translationClass,
                     'autoload' => $options["autoload"],
-                    'fields' => $translationFields[$locale],
+                    'fields' => $translationFields[$fieldsLocale],
                     'excluded_fields' => $options['excluded_fields'],
                     'keep_indexes' => false
                 ];
 
-                $defaultLocale = $options["default_locale"];
-                if ($options["single_locale"] && count($dataLocale) == 1) {
-                    $defaultLocale = $locale = $dataLocale[0];
-                }
-
                 $options["locale"] = $locale;
 
-                if ($locale == $defaultLocale || in_array($locale, $options['required_locales'], true)) {
-                    $entityOptions["entry_required"] = true;
-                } elseif (!empty($options['required_locales'])) { // /!\ Telling required locales explicitely makes all subfields optionals
-                    $entityOptions["entry_required"] = in_array($locale, $options['required_locales'], true);
+                if (null !== $entryRequired = Translation::entryRequired($locale, $defaultLocale, $options)) {
+                    $entityOptions["entry_required"] = $entryRequired;
                 }
 
-                // Special case for required option (allowing to turn translation requirements depending on some options..)
                 foreach ($entityOptions["fields"] as &$translationField) {
-                    if (array_key_exists("required", $translationField) && $translationField["required"] instanceof Closure) {
-                        $reflFn = new ReflectionFunction($translationField["required"]);
-
-                        if ($reflFn->getNumberOfParameters() != 3) {
-                            throw new InvalidArgumentException("required-callable method is expecting 3 arguments: \"\$value\", \"\$locale\", \"\$options\"");
-                        }
-
-                        $parameterRequired = $reflFn->getParameters()[0];
-                        if ($parameterRequired->getType() != "bool") {
-                            throw new InvalidArgumentException("\$value parameter in \"required\" closure must be a boolean");
-                        }
-
-                        $parameterLocale = $reflFn->getParameters()[1];
-                        if ($parameterLocale->getType() != "string") {
-                            throw new InvalidArgumentException("\$locale parameter in \"required\" closure must be a string");
-                        }
-
-                        $parameterOptions = $reflFn->getParameters()[2];
-                        if ($parameterOptions->getType() != "array") {
-                            throw new InvalidArgumentException("\$options parameter in \"required\" closure must be an array");
-                        }
-
-                        if ($reflFn->getReturnType() != "bool") {
-                            throw new InvalidArgumentException("Return type of \"required\" closure must be a boolean");
-                        }
-
-                        $translationField["required"] = $translationField["required"]($entityOptions["entry_required"] ?? false, $locale, $options);
-                    }
+                    $translationField = Translation::required($translationField, $entityOptions["entry_required"] ?? false, $locale, $options);
                 }
+                unset($translationField);
 
                 $entityOptions["allow_null"] = true;
 
@@ -267,29 +229,8 @@ class TranslationType extends AbstractType implements DataMapperInterface
             $fields = array_filter($fields, fn($k) => array_key_exists($k, $options["fields"]), ARRAY_FILTER_USE_KEY);
         }
 
-        // Compute fields including locale information
-        $translationFields = [];
-        foreach ($fields as $fieldName => $fieldConfig) {
-            // Simplest case: General options for all locales
-            if (!isset($fieldConfig['locale_options'])) {
-                foreach ($options['available_locales'] as $locale) {
-                    $translationFields[$locale][$fieldName] = $fieldConfig;
-                }
-
-                continue;
-            }
-
-            // Custom options by locale
-            $localesFieldOptions = $fieldConfig['locale_options'];
-            unset($fieldConfig['locale_options']);
-
-            foreach ($options['available_locales'] as $locale) {
-                $localeFieldOptions = $localesFieldOptions[$locale] ?? [];
-                if (!isset($localeFieldOptions['display']) || (true === $localeFieldOptions['display'])) {
-                    $translationFields[$locale][$fieldName] = $localeFieldOptions + $fieldConfig;
-                }
-            }
-        }
+        // Each language's fields (omnibase's neutral Translation::perLocale())
+        $translationFields = Translation::perLocale($fields, $options['available_locales']);
 
         return $translationFields;
     }
