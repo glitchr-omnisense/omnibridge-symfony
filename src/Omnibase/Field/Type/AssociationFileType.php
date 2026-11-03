@@ -2,7 +2,7 @@
 
 namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
-use Base\Database\Attribute\Uploader;
+use Base\Field\Behaviour\AssociationFile;
 use Base\Contract\Runtime;
 use Base\Admin\Controller\AbstractCrudController;
 use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
@@ -91,24 +91,8 @@ class AssociationFileType extends AbstractType implements DataMapperInterface
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([
-            'class' => null,
-            'form_type' => FileType::class,
-
-            'entity_file' => null,
-            'entity_data' => [],
-
-            "multiple" => null,
-            'allow_delete' => false,
-            "allow_delete[confirmation]" => true,
-
-            'href' => null,
-
-            'max_size' => null,
-            'max_files' => null,
-            'mime_types' => null,
-            'sortable' => null
-        ]);
+        // The type's defaults are the neutral behaviour's (Base\Field\Behaviour\AssociationFile), its upload named by its class here.
+        $resolver->setDefaults(array_replace(AssociationFile::DEFAULTS, ['form_type' => FileType::class]));
 
         $resolver->setNormalizer('data_class', function (Options $options, $value) {
             if ($options["multiple"]) {
@@ -118,6 +102,8 @@ class AssociationFileType extends AbstractType implements DataMapperInterface
         });
 
         $resolver->setNormalizer('form_type', function (Options $options, $value) {
+            // A variant's name (file, image, avatar), as a neutral definition names it: its type.
+            $value = [\Base\Field\Behaviour\Upload::IMAGE => ImageType::class, \Base\Field\Behaviour\Upload::AVATAR => AvatarType::class, \Base\Field\Behaviour\Upload::FILE => FileType::class][$value] ?? $value;
             if (is_instanceof($value, FileType::class)) {
                 return $value;
             }
@@ -174,16 +160,8 @@ class AssociationFileType extends AbstractType implements DataMapperInterface
 
         $view->vars["required"] = $options["required"] ?? (!$isNullable && !$this->classMetadataManipulator->isToManySide($dataClass, $form->getName()));
 
-        $data = $form->getData();
-        $view->vars["entityId"] = json_encode(array_transforms(function ($k, $e) use ($options, $form): array {
-            $path = PropertyAccess::createPropertyAccessor()->getValue($e, $options["entity_file"]);
-            if ($path instanceof Collection) {
-                $path = $path->toArray();
-            }
-
-            $path = is_array($path) ? begin($path) ?? null : $path;
-            return $path === null ? [] : [basename($path), $e->getId()];
-        }, ($data instanceof Collection) ? $data->toArray() : []));
+        // Each stored file's name by its record's id (the neutral behaviour's, the same omnibridge/laravel draws).
+        $view->vars["entityId"] = AssociationFile::entries($form->getData(), $options);
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -197,36 +175,15 @@ class AssociationFileType extends AbstractType implements DataMapperInterface
             $options["multiple"] = $this->formFactory->guessMultiple($event, $options);
             $options["sortable"] = $this->formFactory->guessSortable($event, $options);
 
-            $fieldName = explode(".", $options["entity_file"] ?? "");
-            $baseName = first($fieldName);
-            $fieldName = implode(".", $fieldName);
+            $baseName = AssociationFile::child($options);
 
             $parentForm = $form->getParent();
             $dataClass = $parentForm ? $this->formFactory->guessClass($parentForm, $parentForm->getConfig()->getOptions()) : null;
             $isNullable = $dataClass ? $this->classMetadataManipulator->getMapping($dataClass, $form->getName())["nullable"] ?? false : false;
 
-            $form->add($baseName, $options["form_type"], [
-                'class' => $options["class"],
-                'allow_delete' => $options["allow_delete"],
-                'required' => !$isNullable,
-                'multiple' => $options["multiple"] ?? false,
-                'href' => $options["href"] ?? null,
-                'max_size' => $options["max_size"],
-                'max_files' => $options["max_files"],
-                'mime_types' => $options["mime_types"],
-                'sortable' => $options["sortable"]
-            ]);
-
-            if ($options["multiple"]) {
-                $data ??= new ArrayCollection();
-            }
-
-            $files = array_filter(array_map(function ($e) use ($fieldName) {
-                $public = Uploader::getPublic($e, $fieldName);
-                return is_array($public) ? begin($public) ?? null : $public;
-            }, $options["multiple"] ? $data->toArray() : [$data]));
-
-            $form->get($baseName)->setData($files);
+            // The upload field's options and the related records' files: the neutral behaviour's.
+            $form->add($baseName, $options["form_type"], AssociationFile::childOptions($options, !$isNullable));
+            $form->get($baseName)->setData(AssociationFile::files($data, $options));
         });
     }
 
@@ -264,59 +221,11 @@ class AssociationFileType extends AbstractType implements DataMapperInterface
             throw new Exception("Entity \"" . $options['data_class'] . "\" not found.");
         }
 
-        $newData = new ArrayCollection();
-
-        $fieldName = explode(".", $options["entity_file"] ?? "");
-        $baseName = first($fieldName);
-        $fieldName = implode(".", $fieldName);
-
-        $form = iterator_to_array($forms)[$baseName] ?? null;
+        $form = iterator_to_array($forms)[AssociationFile::child($options)] ?? null;
         if ($form) {
-            $viewDataFileIndexes = [];
-            if ($viewData instanceof Collection) {
-                $viewDataFileIndexes = $viewData->map(function ($e) use ($fieldName) {
-                    $value = $this->propertyAccessor->getValue($e, $fieldName);
-                    return basename(is_array($value) ? first($value) : $value);
-                })->toArray();
-            }
-
-            if ($options["multiple"]) {
-                foreach ($form->getData() ?? [] as $file) {
-                    $entity = null;
-                    if ($file instanceof File) {
-                        $entity = $this->entityHydrator->hydrate($options["data_class"], [], ["uuid", "translations"], EntityHydrator::CONSTRUCT);
-                    } elseif (($pos = array_search($file, $viewDataFileIndexes)) !== false) {
-                        $entity = $viewData[$pos];
-                    }
-
-                    if ($entity !== null) {
-                        if ($options["entity_data"] ?? false) {
-                            if (is_callable($options["entity_data"])) {
-                                $entity = $options["entity_data"]($entity, $parentEntity, $file) ?? $entity;
-                            } else {
-                                $entity = $this->entityHydrator->hydrate($entity, array_merge($options["entity_data"] ?? [], [$fieldName => $file]), [], EntityHydrator::CONSTRUCT);
-                            }
-                        } elseif ($entity->getId() === null) {
-                            $this->propertyAccessor->setValue($entity, $fieldName, $file);
-                        }
-
-                        $newData[] = $entity;
-                    }
-                }
-            } elseif (($file = $form->getData())) {
-                $entity = $viewData;
-                if (!$entity) {
-                    $entity = $this->entityHydrator->hydrate($options["data_class"], [], ["uuid", "translations"], EntityHydrator::CONSTRUCT);
-                }
-
-                if (is_callable($options["entity_data"])) {
-                    $entity = $options["entity_data"]($entity, $parentEntity, $file);
-                } else {
-                    $entity = $this->entityHydrator->hydrate($entity, array_merge($options["entity_data"] ?? [], [$fieldName => $file]), [], EntityHydrator::CONSTRUCT);
-                }
-
-                $newData[] = $entity;
-            }
+            // What was sent made into the related records: the neutral behaviour's (records()); written here into this host's collection.
+            $records = AssociationFile::records($form->getData(), $viewData, array_replace($options, ['class' => $options['data_class']]), $parentEntity, $this->entityHydrator);
+            $newData = new ArrayCollection(AssociationFile::list($records));
 
             if ($options["multiple"]) {
                 if ($viewData instanceof PersistentCollection) {
