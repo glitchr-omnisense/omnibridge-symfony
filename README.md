@@ -13,8 +13,13 @@ A Symfony site requires it beside the core:
 composer require omnisense/omnibase omnibridge/symfony
 ```
 
-omnibase's `BaseBundle` refuses to start without it. A Laravel site does not
-require it: it requires omnibridge/laravel instead.
+Since omnibase 5.0 (plan "omnibase agnostic", step F6) the bundle itself is here:
+`Omnibridge\Symfony\Omnibase\BaseBundle` (registered in `config/bundles.php` in place of
+`Base\BaseBundle`), its extension and configuration (`base:`), its compiler passes, the Symfony
+controllers, whose routes an application imports with `type: omnibase`, and the service
+configuration (`config/omnibase/`). With omnibase 4.x, omnibase's own `Base\BaseBundle` runs and
+none of these is loaded: this 1.x serves both. A Laravel site does not require it: it requires
+omnibridge/laravel instead.
 
 ## The contracts
 
