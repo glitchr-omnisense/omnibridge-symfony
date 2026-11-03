@@ -25,7 +25,7 @@ class TranslationEnumsCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $baseLocation = dirname((new ReflectionClass('Base\\BaseBundle'))->getFileName());
+        $baseLocation = \Base\BaseBundle::getBundleDir().'/src';
         $enumRestriction = $input->getOption('enum') ?? "";
         $enums = array_merge(
             BaseBundle::getInstance()->getAllClasses("./src/Enum"),

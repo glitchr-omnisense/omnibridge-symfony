@@ -26,7 +26,7 @@ class TranslationCrudCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $baseLocation = dirname((new ReflectionClass('Base\\BaseBundle'))->getFileName());
+        $baseLocation = \Base\BaseBundle::getBundleDir().'/src';
         $crudRestriction = $input->getOption('crud') ?? "";
         $cruds = array_merge(
             BaseBundle::getInstance()->getAllClasses($baseLocation . "/Controller/Admin/Crud"),

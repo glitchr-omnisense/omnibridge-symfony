@@ -19,7 +19,7 @@ class BaseMappingCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $appList = BaseBundle::getInstance()->getAllClasses("./src", "App");
-        $baseLocation = dirname((new ReflectionClass('Base\\BaseBundle'))->getFileName());
+        $baseLocation = \Base\BaseBundle::getBundleDir().'/src';
         $baseList = array_merge(
             BaseBundle::getInstance()->getAllClasses($baseLocation . "/Enum", "Base"),
             BaseBundle::getInstance()->getAllClasses($baseLocation . "/Form", "Base"),
