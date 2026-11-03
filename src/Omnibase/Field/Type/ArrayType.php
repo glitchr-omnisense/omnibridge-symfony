@@ -3,6 +3,7 @@
 namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
 use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
+use Base\Field\Behaviour\Collection;
 use Base\Service\TranslatorInterface;
 use Base\Routing\AdminUrlGeneratorInterface;
 use Exception;
@@ -47,17 +48,8 @@ class ArrayType extends CollectionType
     {
         parent::configureOptions($resolver);
 
-        $resolver->setDefaults([
-            "target" => null,
-            "associative" => null,
-            "allow_add" => true,
-            "allow_delete" => true,
-            "entry_type" => TextType::class,
-            "webpack_entry" => "form.array",
-            "pattern" => null,
-            "length" => 0,
-            "placeholder" => []
-        ]);
+        // omnisense/omnibase's Collection: ArrayType's defaults, the same on every host (its entry here a Symfony type).
+        $resolver->setDefaults(array_replace(Collection::ARRAY_DEFAULTS, ['entry_type' => TextType::class]));
 
         $resolver->setNormalizer('target', function (Options $options, $value) {
             if ($options["pattern"] !== null && $value !== null) {
@@ -65,7 +57,7 @@ class ArrayType extends CollectionType
             }
         });
 
-        $resolver->setNormalizer('length', fn(Options $options, $value) => $options["pattern"] ? $this->getNumberOfArguments($options["pattern"]) : $value);
+        $resolver->setNormalizer('length', fn(Options $options, $value) => Collection::length(['pattern' => $options["pattern"], 'length' => $value]));
         $resolver->setNormalizer('allow_add', fn(Options $options, $value) => $options["length"] == 0 && $value);
         $resolver->setNormalizer('allow_delete', fn(Options $options, $value) => $options["length"] == 0 && $value);
     }

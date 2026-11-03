@@ -2,6 +2,7 @@
 
 namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
+use Base\Field\Behaviour\Collection as Entries;
 use Base\Service\TranslatorInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -63,31 +64,8 @@ class CollectionType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([
-            'form2' => false,
-            'length' => 0,
-            // Cap how many entries are BUILT into the form. Each entry is a full
-            // sub-form whose own relations get hydrated, so an unbounded
-            // collection is an unbounded query count - a thread with 146
-            // comments builds 146 sub-forms on every edit page load.
-            // Deliberately null (off) by default: see the allow_delete guard
-            // below for why this cannot be applied blindly.
-            'max_entries' => null,
-            // Window offset, used by the lazy-load endpoint to render the NEXT
-            // slice of an already-capped collection.
-            'entry_offset' => 0,
-            'allow_object' => false, // This is introduced because object should be stringeable, otherwise there will be some error turning it into string
-            'allow_add' => false,
-            'allow_delete' => true,
-            'html' => false,
-            'href' => null,
-            'prototype' => true,
-            'prototype_data' => null,
-            'prototype_name' => '__prototype__',
-            'group' => true,
-            'checkbox' => false,
-            'row_group' => true,
-            'entry_collapsed' => true,
+        // omnisense/omnibase's Collection (Entries): the defaults, the same on every host (its entry here a Symfony type).
+        $resolver->setDefaults(array_replace(Entries::DEFAULTS, [
             'entry_type' => HiddenType::class,
             'entry_label' => function ($i, $label) {
                 if ($i === "__prototype__") {
@@ -104,13 +82,10 @@ class CollectionType extends AbstractType
                 }
                 return $_label;
             },
-            'entry_options' => [],
-            'entry_required' => null,
-            'delete_empty' => false,
             'invalid_message' => function (Options $options, $previousValue) {
                 return 'The collection is invalid.';
             },
-        ]);
+        ]));
 
         $resolver->setNormalizer('entry_options', function (Options $options, $value) {
             $value['block_name'] = 'entry';
