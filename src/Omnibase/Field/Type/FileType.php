@@ -3,6 +3,7 @@
 namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
 use Base\Database\Attribute\Uploader;
+use Base\Field\Behaviour\Upload;
 use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
 use Omnibridge\Symfony\Omnibase\Form\FormFactory;
 use Omnibridge\Symfony\Omnibase\Form\FormFactoryInterface;
@@ -35,6 +36,9 @@ use Traversable;
 
 class FileType extends AbstractType implements DataMapperInterface
 {
+    /** The variant of the neutral behaviour this type draws (Base\Field\Behaviour\Upload). */
+    public const VARIANT = Upload::FILE;
+
     /**
      * @var AdvancedRouterInterface
      */
@@ -127,42 +131,8 @@ class FileType extends AbstractType implements DataMapperInterface
      */
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([
-            'class' => null,
-            'empty_data' => null,
-            'webpack_entry' => "form.dropzone",
-
-            'dropzone' => [],
-
-            'allow_delete' => true,
-            "allow_delete[confirmation]" => true,
-            "allow_cancel[confirmation]" => true,
-
-            'multiple' => null,
-            'clipboard' => false,
-
-            'href' => null,
-            'title' => null,
-            'allow_url' => false,
-            'allow_reupload' => true,
-
-            'sortable' => null,
-            'sortable-js' => $this->parameterBag->get("base.vendor.sortablejs.javascript"),
-
-            'lightbox' => ['resizeDuration' => 500, 'fadeDuration' => 250, 'imageFadeDuration' => 100],
-            'alt' => null,
-
-            'thumbnail_width' => null,
-            'thumbnail_height' => 250,
-            'max_size' => null,
-            'max_files' => null,
-            'mime_types' => [],
-            "data_mapping" => null,
-            "parallel_uploads" => 5,
-            "upload_multiple" => false,
-
-            "inline" => false
-        ]);
+        // FileType's defaults are the neutral behaviour's (Base\Field\Behaviour\Upload), with the script's address of this host.
+        $resolver->setDefaults(Upload::DEFAULTS + ['sortable-js' => $this->parameterBag->get("base.vendor.sortablejs.javascript")]);
 
         $resolver->setNormalizer('class', function (Options $options, $value) {
             return $value === null ? $options["data_class"] : $value;
@@ -256,244 +226,39 @@ class FileType extends AbstractType implements DataMapperInterface
         }
     }
 
-    /**
-     * Storage-aware existence check.
-     *
-     * `file_exists()` only ever answers for the LOCAL filesystem. Once media
-     * moved to S3 it returned false for every stored file, so the three view
-     * vars below (path / download / clippable) were built from an empty set and
-     * the dropzone received bare basenames instead of URLs: it then requested
-     * "image.webp" relative to the current admin page, got a 404, and Dropzone
-     * re-emitted its own error Event as the thumbnail source - which is how
-     * twelve <img src="[object Event]"> ended up on a gallery edit page.
-     */
-    private function fileIsAvailable(?string $path): bool
+    /** The behaviour this type draws (Base\Field\Behaviour\Upload): FileType's own, each child's its variant. */
+    protected function upload(): Upload
     {
-        if (null === $path || '' === $path) {
-            return false;
-        }
-
-        if (file_exists($path)) {
-            return true;
-        }
-
-        // Remote (or otherwise non-local) storage. FileService::getMimeType()
-        // reads through flysystem first, so a resolvable mime type means the
-        // storage can see the object - which is exactly the question here.
-        try {
-            return null !== $this->fileService->getMimeType($path);
-        } catch (\Throwable) {
-            return false;
-        }
+        return new Upload(static::VARIANT);
     }
 
+    /**
+     * What the block reads, from the neutral behaviour (plan "omnibase agnostic", step F5d) - the record's
+     * stored files, their addresses, the sizes and types accepted, the dropzone's settings and address, an
+     * image's thumbnail, modal and cropper -, the same omnibridge/laravel's renderer draws; whether it
+     * holds several and in order, as this host's metadata guesses them.
+     */
     public function buildView(FormView $view, FormInterface $form, array $options): void
     {
-        $parent = $form->getParent();
-        $entity = $parent->getData();
-
+        $entity = $form->getParent()->getData();
         $options["multiple"] = $this->formFactory->guessMultiple($form, $options);
         $options["sortable"] = $this->formFactory->guessSortable($form, $options);
 
-        $view->vars["inline"] = $options["inline"];
-
-        $view->vars["lightbox"] = null;
-        if (is_array($options["lightbox"])) {
-            $view->vars["lightbox"] = json_encode($options["lightbox"]);
+        $vars = $this->upload()->vars($options + [
+            'upload_record' => $entity,
+            'upload_property' => $form->getName(),
+            'upload_data' => $form->getData(),
+            'upload_entity' => $this->classMetadataManipulator->isEntity($entity),
+            'upload_media' => $this->mediaService,
+            'upload_files' => $this->fileService,
+        ], $view->vars['value'], $view->vars['id']);
+        $view->vars['attr'] = array_replace($view->vars['attr'], $vars['attr'] ?? []);
+        unset($vars['attr'], $vars['file_value']);
+        if (array_key_exists('thumbnail', $vars)) {
+            // The thumbnail's path as the page links it (Base\View\AssetPaths: omnibase's Twig environment answers it under Twig).
+            $vars['thumbnail'] = null !== $this->assets ? $this->assets->getAsset($options["thumbnail"]) : $options["thumbnail"];
         }
-
-        if ($this->classMetadataManipulator->isEntity($entity)) {
-            $files = Uploader::get($entity, $form->getName());
-            if (!is_array($files)) {
-                $files = [$files];
-            }
-
-            $files = array_map(fn($f) => $f ? $f->getPath() : null, $files);
-
-            $propertyType = Uploader::getTypeOfField($entity, $form->getName());
-            if ($options["multiple"] && $propertyType != "array") {
-                $view->vars['max_files'] = 1;
-            }
-            
-        } else {
-            $files = $form->getData();
-        }
-
-        if (!is_array($files)) {
-            $files = $files ? [$files] : [];
-        }
-        $view->vars["files"] = array_filter($files);
-
-        $view->vars["allow_reupload"] = $options["allow_reupload"];
-        $view->vars["allow_url"] = $options["allow_url"];
-
-        $view->vars['max_files'] = $view->vars['max_files'] ?? $options["max_files"];
-        // Same min() the CONSTRAINT applies in buildForm() above, rather than
-        // re-resolving from scratch and discarding an explicitly passed
-        // max_size. Without it the displayed hint and the enforced limit
-        // could disagree, and did: getMaxFilesize() starts from PHP's ini
-        // ceiling and only narrows it when it finds an #[Uploader] attribute
-        // on ($class ?? $entity). For a TRANSLATABLE file field, $entity is
-        // the per-locale translation row - present for a locale that already
-        // has a value, null for one that doesn't. So the same field
-        // advertised "2MB" under the locale that had an upload and PHP's raw
-        // "33MB" under the empty ones, while all of them actually rejected
-        // anything over 2MB. Reported live on /admin/settings (Logo).
-        $maxFilesize = Uploader::getMaxFilesize($options["class"] ?? $entity ?? null, $options["data_mapping"] ?? $form->getName());
-        if (!empty($options["max_size"])) {
-            $maxFilesize = min($maxFilesize, $options["max_size"]);
-        }
-
-        $view->vars['max_size'] = $options["max_size"] = $maxFilesize;
-
-        $mimeTypes = $options["mime_types"];
-        if (!$mimeTypes && $entity) {
-            $mimeTypes = Uploader::getMimeTypes($options["class"] ?? $entity, $options["data_mapping"] ?? $form->getName());
-        }
-
-        $view->vars["mime_types"] = $mimeTypes;
-
-        $view->vars['value'] = Uploader::getPublic($entity ?? null, $options["data_mapping"] ?? $form->getName()) ?? $files;
-
-        $view->vars['clippable'] = $view->vars['path'] = $view->vars['download'] = json_encode([]);
-        $view->vars['previews'] = json_encode([]);
-        if (!is_array($view->vars["value"]) && $options["multiple"]) {
-            $view->vars["value"] = [$view->vars["value"]];
-        } elseif (is_array($view->vars["value"]) && !$options["multiple"]) {
-            $view->vars["value"] = first($view->vars["value"]);
-        }
-
-        if (is_array($view->vars['value'])) {
-
-            if ($view->vars['value']) {
-
-                // Keyed by POSITION, not basename: every uploaded image is stored
-                // as "<hash>/image.webp", so basenaming the key collapsed a
-                // twelve-photo gallery into a single map entry and eleven
-                // thumbnails had no URL at all. The client walks the value list
-                // in order, so the index is the one key guaranteed unique.
-                $view->vars['path'] = json_encode(array_values(array_transforms(function ($k, $v): ?array {
-                    if (!$this->fileIsAvailable($v)) {
-                        return null;
-                    }
-
-                    // thumbnail(), not image(): these URLs feed 124px dropzone
-                    // previews, and handing them the ORIGINAL made a twelve-photo
-                    // gallery pull twelve 2880x2160 files (~400KB each, ~5MB of
-                    // originals to draw thumbnails) - enough of them stalled that
-                    // only 7 of 12 ever painted. 1024px keeps the lightbox usable
-                    // while costing a fraction of that.
-                    return [$k, $this->fileService->isImage($v)
-                        ? $this->mediaService->thumbnail($v, 1024, 1024)
-                        : $this->mediaService->linkable($v)];
-                }, array_filter($view->vars['value']))));
-
-                // What the 124px dropzone previews actually DISPLAY. `path`
-                // above stays at 1024px because it is what the lightbox, the
-                // clipboard and "open in a tab" hand out, but drawing a dozen
-                // 1024px images into 124px boxes still fetched megabytes and,
-                // on a cold cache, timed out often enough that half a gallery
-                // never painted. Square-cropped (OUTBOUND) so every preview is
-                // the same rounded tile whatever the photo's aspect ratio.
-                // Non-images keep the plain link, and the list stays aligned
-                // with `path` position for position - the client walks both by
-                // index.
-                $view->vars['previews'] = json_encode(array_values(array_transforms(function ($k, $v): ?array {
-                    if (!$this->fileIsAvailable($v)) {
-                        return null;
-                    }
-
-                    return [$k, $this->fileService->isImage($v)
-                        ? $this->mediaService->thumbnailOutbound($v, 320, 320)
-                        : $this->mediaService->linkable($v)];
-                }, array_filter($view->vars['value']))));
-
-                $view->vars['download'] = json_encode(array_transforms(function ($k, $v): ?array {
-                    return $this->fileIsAvailable($v) ? [basename($v), $this->fileService->downloadable($v)] : null;
-                }, array_filter($view->vars['value'])));
-
-                $view->vars['clippable'] = json_encode(array_transforms(function ($k, $v): ?array {
-                    return $this->fileIsAvailable($v) ? [basename($v), $this->fileService->isImage($v)] : null;
-                }, array_filter($view->vars['value'])));
-            }
-
-            $view->vars["value"] = implode("|", array_map(fn($v) => $v !== null ? basename($v) : null, $view->vars["value"]));
-
-        } else {
-
-            $view->vars['path'] = $view->vars["value"];
-            $view->vars['previews'] = $view->vars["value"];
-            $view->vars['download'] = $this->fileService->downloadable($view->vars["value"]);
-            $view->vars['clippable'] = $this->fileService->isImage($view->vars["value"]);
-        }
-
-        $view->vars["clipboard"] = $options["clipboard"];
-        $view->vars["sortable"] = true;
-        $view->vars['dropzone'] = null;
-        $view->vars["ajax"] = null;
-        $view->vars['multiple'] = $options['multiple'];
-        $view->vars['allow_delete'] = $options['allow_delete'];
-        $view->vars['href'] = $options["href"];
-        $view->vars["confirm_action"] = $options["allow_cancel[confirmation]"] || $options["allow_delete[confirmation]"];
-
-        if (is_array($options["dropzone"]) && $options["multiple"]) {
-            $action = (!empty($options["action"]) ? $options["action"] : ".");
-            $view->vars["attr"]["class"] = "dropzone";
-
-            $options["dropzone"] ??= [];
-            if (!array_key_exists("url", $options["dropzone"])) {
-                $options["dropzone"]["url"] = $action;
-            }
-            if ($options['allow_delete'] !== null) {
-                $options["dropzone"]["addRemoveLinks"] = $options['allow_delete'];
-            }
-            $options["dropzone"]["maxFilesize"] = $options["max_size"] / 1e6; // from B to MB
-            if ($options['max_files'] !== null) {
-                $options["dropzone"]["maxFiles"] = $options["max_files"];
-            }
-            if ($mimeTypes) {
-                $options["dropzone"]["acceptedFiles"] = implode(",", $mimeTypes);
-            }
-
-            if (!array_key_exists("parallelUploads", $options["dropzone"])) {
-                $options["dropzone"]["parallelUploads"] = $options['parallel_uploads'];
-            }
-            if (!array_key_exists("uploadMultiple", $options["dropzone"])) {
-                $options["dropzone"]["uploadMultiple"] = $options['upload_multiple'];
-            }
-
-            $options["dropzone"]["thumbnailWidth"] = $options['thumbnail_width'] ?? null;
-            $options["dropzone"]["thumbnailHeight"] = $options['thumbnail_height'] ?? null;
-
-            $options["dropzone"]["dictDefaultMessage"] = $options["dropzone"]["dictDefaultMessage"] ?? $this->translator->trans("@fields.fileupload.dropzone.default_message");
-            $options["dropzone"]["dictFallbackMessage"] = $options["dropzone"]["dictFallbackMessage"] ?? $this->translator->trans("@fields.fileupload.dropzone.fallback_message");
-            $options["dropzone"]["dictFileTooBig"] = $options["dropzone"]["dictFileTooBig"] ?? $this->translator->trans("@fields.fileupload.dropzone.file_too_big");
-            $options["dropzone"]["dictInvalidFileType"] = $options["dropzone"]["dictInvalidFileType"] ?? $this->translator->trans("@fields.fileupload.dropzone.invalid_file_type");
-            $options["dropzone"]["dictMaxFilesExceeded"] = $options["dropzone"]["dictMaxFilesExceeded"] ?? $this->translator->trans("@fields.fileupload.dropzone.max_files_exceeded");
-            $options["dropzone"]["dictResponseError"] = $options["dropzone"]["dictResponseError"] ?? $this->translator->trans("@fields.fileupload.dropzone.response_error");
-            $options["dropzone"]["dictCancelUpload"] = $options["dropzone"]["dictCancelUpload"] ?? $this->translator->trans("@fields.fileupload.dropzone.cancel_upload");
-            $options["dropzone"]["dictRemoveFile"] = $options["dropzone"]["dictRemoveFile"] ?? $this->translator->trans("@fields.fileupload.dropzone.remove_file");
-
-            if ($options["allow_cancel[confirmation]"]) {
-                $options["dropzone"]["dictCancelUploadConfirmation"] = $options["dropzone"]["dictCancelUploadConfirmation"] ?? $this->translator->trans("@fields.fileupload.dropzone.cancel_upload_confirmation");
-            }
-            if ($options["allow_delete[confirmation]"]) {
-                $options["dropzone"]["dictRemoveFileConfirmation"] = $options["dropzone"]["dictRemoveFileConfirmation"] ?? $this->translator->trans("@fields.fileupload.dropzone.remove_file_confirmation");
-            }
-
-            if (array_key_exists("maxFiles", $options["dropzone"]) && !empty($view->vars["value"])) {
-                $options["dropzone"]["maxFiles"] -= count(explode("|", $view->vars["value"]));
-            }
-
-            $token = $this->csrfTokenManager->getToken("dropzone")->getValue();
-            $data = $this->obfuscator->encode(array_merge($options["dropzone"], ["token" => $token]), ObfuscatorInterface::USE_SHORT);
-            $view->vars["ajax"] = $this->router->generate("ux_dropzone", ["data" => $data]);
-
-            $options["dropzone"]["url"] = $view->vars["ajax"];
-
-            $view->vars["dropzone"] = json_encode($options["dropzone"]);
-            $view->vars["sortable"] = json_encode($options["sortable"]);
-        }
+        $view->vars = array_replace($view->vars, $vars);
     }
 
     /**
