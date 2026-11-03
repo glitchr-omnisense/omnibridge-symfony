@@ -7,6 +7,8 @@ use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
 use Base\Enum\UserRole;
 use Base\Database\Repository\Repositories;
 use Base\Field\Behaviour\Select;
+use Base\Field\Search\RemoteSearch;
+use Omnibridge\Runtime;
 use Base\Form\Common\NativeEnum;
 use Omnibridge\Symfony\Omnibase\Form\FormFactory;
 use Base\Service\LocalizerInterface;
@@ -772,6 +774,12 @@ class SelectType extends AbstractType implements DataMapperInterface
         }
     }
 
+    /** omnibase's remote search, the one its ux_autocomplete routes answer with. */
+    protected function search(): RemoteSearch
+    {
+        return Runtime::get(RemoteSearch::class);
+    }
+
     public function buildView(FormView $view, FormInterface $form, array $options): void
     {
         /* Override options.. I couldn't done that without accessing data */
@@ -885,22 +893,9 @@ class SelectType extends AbstractType implements DataMapperInterface
             }
 
             //
-            // Prepare variables
-            $tokenName = "select2";
-            $token = $this->csrfTokenManager->getToken($tokenName)->getValue();
-
-            $array = [
-                "class" => $options["class"],
-                "fields" => $options["autocomplete_fields"],
-                "filters" => $options["choice_filter"],
-                'capitalize' => $options["capitalize"],
-                "html" => $options["use_html"],
-                "avatar" => $options["avatar"],
-                "token_name" => $tokenName,
-                "token" => $token
-            ];
-
-            $hash = $this->obfuscator->encode($array, ObfuscatorInterface::USE_SHORT);
+            // What the remote search is handed (its class, fields, filters, case, token): the neutral search's
+            // (Base\Field\Search\RemoteSearch), the one omnibridge/laravel's FormView asks as well
+            $hash = $this->search()->data($options["class"], (array) $options["autocomplete_fields"], (array) $options["choice_filter"], $options["capitalize"], (bool) $options["use_html"], (bool) $options["avatar"]);
 
             //
             // select2's settings: the neutral behaviour's (Base\Field\Behaviour\Select), the one every host reads
