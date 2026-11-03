@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed
+
+- `Omnibase\Field\Type\SelectType` makes its remote search's payload with omnisense/omnibase's `Base\Field\Search\RemoteSearch::data()`
+  (plan "omnibase agnostic", step F5d, slice 2), the neutral search its ux_autocomplete routes answer with, which omnibridge/laravel's
+  FormView asks as well. The payload and the markup are unchanged.
+
 ### Added
 
 - **The field types on omnibase's neutral behaviours** (omnisense/omnibase's plan "omnibase agnostic", step F5d, slice 1):
