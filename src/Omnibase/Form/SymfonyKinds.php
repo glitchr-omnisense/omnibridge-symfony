@@ -9,6 +9,11 @@ namespace Omnibridge\Symfony\Omnibase\Form;
  *
  * Plain strings: nothing here loads Symfony Form. Base\Field\Kinds reads it
  * by name when Symfony is the host.
+ *
+ * COVERAGE is what Symfony draws (plan "omnibase agnostic", step F5d): every
+ * kind of MAP through its type, a custom one through the type it names; the
+ * markup given whole (Kind::HTML, a captcha's widget on a host without form
+ * types) is no Symfony type, DefinitionForms refuses it aloud.
  */
 final class SymfonyKinds
 {
@@ -72,6 +77,27 @@ final class SymfonyKinds
 
         'submit' => 'Base\Field\Type\SubmitType',
         'button' => 'Base\Field\Type\ButtonType',
+    ];
+
+    public const COVERAGE = [
+        'text' => 'implemented', 'textarea' => 'implemented', 'email' => 'implemented', 'password' => 'implemented',
+        'url' => 'implemented', 'tel' => 'implemented', 'search' => 'implemented', 'slug' => 'implemented',
+        'code' => 'implemented', 'editor' => 'implemented', 'wysiwyg' => 'implemented', 'hidden' => 'implemented',
+        'integer' => 'implemented', 'number' => 'implemented', 'money' => 'implemented', 'forex' => 'implemented',
+        'stock' => 'implemented', 'year' => 'implemented',
+        'boolean' => 'implemented', 'checkbox' => 'implemented', 'choice' => 'implemented', 'country' => 'implemented',
+        'currency' => 'implemented', 'locale' => 'implemented', 'gender' => 'implemented', 'role' => 'implemented',
+        'state' => 'implemented', 'route' => 'implemented', 'icon' => 'implemented', 'emoji' => 'implemented',
+        'color' => 'implemented', 'color_picker' => 'implemented', 'quadrant' => 'implemented',
+        'date' => 'implemented', 'datetime' => 'implemented', 'datetime_picker' => 'implemented', 'time' => 'implemented',
+        'file' => 'implemented', 'image' => 'implemented', 'cropper' => 'implemented', 'avatar' => 'implemented',
+        'audio' => 'implemented', 'video' => 'implemented',
+        'association' => 'implemented', 'association_file' => 'implemented', 'attribute' => 'implemented',
+        'array' => 'implemented', 'collection' => 'implemented', 'repeated' => 'implemented', 'translation' => 'implemented',
+        'discriminator' => 'implemented',
+        'submit' => 'implemented', 'button' => 'implemented',
+        'html' => 'unsupported: markup given whole is a renderer\'s (Laravel\'s captcha row); a Symfony form adds a type, a template prints markup',
+        'custom' => 'implemented',
     ];
 
     /** Symfony types no kind names first: the kind they render. */

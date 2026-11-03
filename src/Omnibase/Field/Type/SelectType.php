@@ -6,6 +6,7 @@ use Base\Admin\Controller\AbstractCrudController;
 use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
 use Base\Enum\UserRole;
 use Base\Database\Repository\Repositories;
+use Base\Field\Behaviour\Select;
 use Base\Form\Common\NativeEnum;
 use Omnibridge\Symfony\Omnibase\Form\FormFactory;
 use Base\Service\LocalizerInterface;
@@ -902,95 +903,18 @@ class SelectType extends AbstractType implements DataMapperInterface
             $hash = $this->obfuscator->encode($array, ObfuscatorInterface::USE_SHORT);
 
             //
-            // Prepare select2 options
-            $selectOpts = $options["select2"];
-            $selectOpts["multiple"] = $options["multiple"] ? "multiple" : "";
-            if ($options["select2-template"]) {
-                $selectOpts["template"] = $options["select2-template"];
-            }
-            if ($options["select2-templateResult"]) {
-                $selectOpts["templateResult"] = $options["select2-templateResult"];
-            }
-            if ($options["select2-templateSelection"]) {
-                $selectOpts["templateSelection"] = $options["select2-templateSelection"];
-            }
-            if ($options["autocomplete"]) {
-                $selectOpts["ajax"] = [
-                    "url" => $this->router->generate($options["autocomplete_endpoint"], array_merge($options["autocomplete_endpoint_parameters"], ["data" => $hash])),
-                    "type" => $options["autocomplete_type"],
-                    "delay" => $options["autocomplete_delay"],
-                    "dataType" => "json",
-                    "html" => $options["use_html"],
-                    "cache" => true
-                ];
-
-                if (!array_key_exists("autocomplete_data", $selectOpts) && $options["autocomplete_data"] !== null) {
-                    $selectOpts["ajax"]["data"] = $options["autocomplete_data"];
-                }
-                if (!array_key_exists("autocomplete_processResults", $selectOpts) && $options["autocomplete_processResults"] !== null) {
-                    $selectOpts["ajax"]["processResults"] = $options["autocomplete_processResults"];
-                }
-            }
-
-            if (!array_key_exists("minimumResultsForSearch", $selectOpts)) {
-                $selectOpts["minimumResultsForSearch"] = $options["minimumResultsForSearch"];
-            }
-            if (!array_key_exists("closeOnSelect", $selectOpts)) {
-                $selectOpts["closeOnSelect"] = $options["closeOnSelect"] ?? !$options["multiple"];
-            }
-            if (!array_key_exists("selectOnClose", $selectOpts)) {
-                $selectOpts["selectOnClose"] = $options["selectOnClose"];
-            }
-            if (!array_key_exists("dropdownCssClass", $selectOpts) && $options["dropdownCssClass"] !== null) {
-                $selectOpts["dropdownCssClass"] = $options["dropdownCssClass"];
-            }
-
-            $selectOpts["containerCssClass"] = $selectOpts["containerCssClass"] ?? "";
-            $selectOpts["dropdownCssClass"] = $selectOpts["dropdownCssClass"] ?? "";
-            if ($options["vertical"]) {
-                $selectOpts["containerCssClass"] .= " select2-selection--vertical";
-            }
-
-            if ($options["tags"] && !$options["autocomplete"] && empty($options["choices"])) {
-                $selectOpts["containerCssClass"] .= " select2-selection--wrap";
-                $selectOpts["dropdownCssClass"] .= " select2-selection--hide";
-            }
+            // select2's settings: the neutral behaviour's (Base\Field\Behaviour\Select), the one every host reads
+            $selectOpts = Select::select2(
+                $options,
+                (bool) $options["multiple"],
+                $options["autocomplete"] ? $this->router->generate($options["autocomplete_endpoint"], array_merge($options["autocomplete_endpoint_parameters"], ["data" => $hash])) : null,
+                $this->localizer->getLocaleLang($this->localizer->getLocale($options["language"])),
+                null !== $options["placeholder"] ? $this->translator->trans($options["placeholder"] ?? "", [], "@fields") : null,
+            );
 
             $view->vars["highlight"] = $options["highlight"];
             if ($options["tags"]) {
                 $view->vars["tokenSeparators"] = $options["tokenSeparators"];
-            }
-
-            if (!array_key_exists("placeholder", $selectOpts) && $options["placeholder"] !== null) {
-                $selectOpts["placeholder"] = $this->translator->trans($options["placeholder"] ?? "", [], "@fields");
-            }
-
-            if (!array_key_exists("multivalue", $selectOpts) && $options["multivalue"] !== null) {
-                $selectOpts["multivalue"] = $options["multivalue"];
-            }
-
-            if (!array_key_exists("language", $selectOpts)) {
-                $selectOpts["language"] = $this->localizer->getLocaleLang($this->localizer->getLocale($options["language"]));
-            }
-
-            // Separators cut what is typed into new choices: tags only. Without tags, select2's
-            // tokenizer meets a separator - a space in "Cours élémentaire" - and throws
-            // (_removeOldTags is not a function, the Tags decorator's): the search stopped there.
-            if (!array_key_exists("tokenSeparators", $selectOpts) && $options["tags"]) {
-                $selectOpts["tokenSeparators"] = $options["tokenSeparators"];
-            }
-            if (!array_key_exists("allowClear", $selectOpts)) {
-                $selectOpts["allowClear"] = array_key_exists("required", $options) && !$options["required"];
-            }
-            if (!array_key_exists("maximum", $selectOpts)) {
-                $selectOpts["maximum"] = (array_key_exists("maximum", $options) && $options["maximum"] > 0) ? $options["maximum"] : "";
-            }
-            if (!array_key_exists("tags", $selectOpts)) {
-                $selectOpts["tags"] = array_key_exists("tags", $options) && $options["tags"];
-            }
-
-            if (!array_key_exists("theme", $selectOpts)) {
-                $selectOpts["theme"] = $options["theme"];
             }
 
             //

@@ -3,6 +3,7 @@
 namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
 use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
+use Base\Field\Behaviour\Slug;
 use Base\Service\Model\AutovalidateInterface;
 use Doctrine\Common\Collections\Collection;
 use Exception;
@@ -35,34 +36,22 @@ final class SlugType extends AbstractType implements AutovalidateInterface
         return 'slug';
     }
 
+    /** The neutral behaviour's options (Base\Field\Behaviour\Slug): strict by default when nothing is kept. */
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver
-            ->setDefaults([
-                "separator" => "-",
-                "keep" => null,
-                "upper" => false,
-                "lock" => null,
-                "strict" => null,
-                "target" => null,
-                "required" => false
-            ]);
+        $resolver->setDefaults((new Slug())->options([]));
+        $resolver->setDefault("strict", null);
 
         $resolver->setNormalizer('strict', function (Options $options, $value) {
-            if ($value === null) {
-                return empty($options["keep"] ?? "");
-            }
-            return $value;
+            return $value ?? empty($options["keep"] ?? "");
         });
     }
 
     public function finishView(FormView $view, FormInterface $form, array $options): void
     {
-        $view->vars["keep"] = $options["keep"] ? preg_quote($options["keep"]) : null;
-        $view->vars["separator"] = $options["separator"] ?: null;
-        $view->vars["upper"] = json_encode($options["upper"]);
-        $view->vars["strict"] = json_encode($options["strict"]);
-        $view->vars["lock"] = json_encode($options["lock"]);
+        $vars = (new Slug())->vars($options, $view->vars["value"] ?? null, $view->vars["id"]);
+        unset($vars["target"]); // the form's own path, read below with the form
+        $view->vars = array_replace($view->vars, $vars);
 
         // Make sure field is not rquired when slugis nullable
         $dataClass = $form->getParent()->getConfig()->getDataClass();

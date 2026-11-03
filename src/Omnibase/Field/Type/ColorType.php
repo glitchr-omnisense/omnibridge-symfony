@@ -2,6 +2,7 @@
 
 namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
+use Base\Field\Behaviour\JsColor;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormInterface;
@@ -34,11 +35,7 @@ final class ColorType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([
-            'jscolor' => [],
-            'is_nullable' => true,
-            "webpack_entry" => "form.color"
-        ]);
+        $resolver->setDefaults((new JsColor())->options([]));
     }
 
     public function getParent(): ?string
@@ -46,36 +43,24 @@ final class ColorType extends AbstractType
         return TextType::class;
     }
 
+    /** The neutral behaviour's value (Base\Field\Behaviour\JsColor): #RRGGBBAA shown, kept as short as written. */
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use (&$options) {
-            $event->setData(expandhex($event->getData(), true));
-
-            if ($event->getData() === null) {
-                $event->setData("#00000000");
-            }
+        $colour = new JsColor();
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use (&$options, $colour) {
+            $event->setData($colour->transform($event->getData(), $options));
         });
 
-        $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) use (&$options) {
-            $event->setData(expandhex($event->getData(), true));
-
-            if ($event->getData() == "#00000000" && $options["is_nullable"]) {
-                $event->setData(null);
-            }
-
-            $event->setData(shrinkhex($event->getData()));
+        $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) use (&$options, $colour) {
+            $event->setData($colour->reverse($event->getData(), $options));
         });
     }
 
     public function buildView(FormView $view, FormInterface $form, array $options): void
     {
-        // JSColor requirement
-        $view->vars['attr']['data-jscolor'] = json_encode($options["jscolor"]);
-
-        // JSColor class for stylsheet
-        $view->vars['attr']["class"] = "form-color";
-
-        // Add alpha channel by default
+        $colour = new JsColor();
+        $vars = $colour->vars($options, $view->vars["value"], $view->vars["id"]);
+        $view->vars['attr'] = array_replace($view->vars['attr'], $vars['attr']);
         $view->vars["value"] = expandhex($view->vars["value"], true);
     }
 }

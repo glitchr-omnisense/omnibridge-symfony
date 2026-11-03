@@ -4,6 +4,7 @@ namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
 use Omnibridge\Symfony\Omnibase\Form\Transformer\ScaleNumberTransformer;
 use Omnibridge\Symfony\Omnibase\Form\Transformer\StrippedNumberToLocalizedStringTransformer;
+use Base\Field\Behaviour\Number;
 use Symfony\Component\Form\Extension\Core\DataTransformer\StringToFloatTransformer;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
@@ -38,42 +39,15 @@ class NumberType extends \Symfony\Component\Form\Extension\Core\Type\NumberType
     {
         parent::buildView($view, $form, $options);
 
-        $view->vars["stepUp"] = $options["stepUp"] ?? $options["step"];
-        $view->vars["stepDown"] = $options["stepDown"] ?? $options["step"];
-        $view->vars["keyUp"] = $options["keyUp"];
-        $view->vars["keyDown"] = $options["keyDown"];
-        $view->vars["throttleUp"] = $options["throttleUp"] ?? $options["throttle"];
-        $view->vars["throttleDown"] = $options["throttleDown"] ?? $options["throttle"];
-        $view->vars["min"] = $options["min"];
-        $view->vars["divisor"] = $options["divisor"];
-        $view->vars["max"] = $options["max"];
-        $view->vars["suffix"] = $options["suffix"];
-        $view->vars["inline"] = $options["inline"];
-        $view->vars["prefix"] = $options["prefix"];
+        // The steppers' settings, the neutral behaviour's (Base\Field\Behaviour\Number).
+        $view->vars = array_replace($view->vars, (new Number())->vars($options, $view->vars["value"] ?? null, $view->vars["id"]));
         $view->vars["disabled"] = $options["disabled"];
-        $view->vars["autocomplete"] = $options["autocomplete"];
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         parent::configureOptions($resolver);
 
-        $resolver->setDefaults([
-            'stepUp' => null,
-            'stepDown' => null,
-            'divisor' => 1,
-            'step' => 1,
-            'throttleUp' => null,
-            'throttleDown' => null,
-            'inline' => false,
-            'throttle' => 50,
-            "min" => null,
-            "max" => null,
-            "suffix" => null,
-            "prefix" => null,
-            "autocomplete" => false,
-            "keyUp" => true,
-            "keyDown" => true,
-        ]);
+        $resolver->setDefaults(array_diff_key((new Number())->options([]), array_flip(['scale', 'grouping', 'rounding_mode', 'html5', 'input', 'disabled'])));
     }
 }
