@@ -71,6 +71,9 @@ final class TestKernel extends Kernel
             'default_locale' => 'en',
             'session' => ['storage_factory_id' => 'session.storage.factory.mock_file'],
             'csrf_protection' => $this->security,
+            // symfony/asset is a requirement since omnibase 5.0 left it here: FrameworkBundle would enable the
+            // asset packages, and this kernel has none (ContractsTest: Urls::asset() gives the path as it is).
+            'assets' => ['enabled' => false],
         ]);
         if ($this->security) {
             $container->extension('security', [

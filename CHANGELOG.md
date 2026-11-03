@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+### Added
+
+- omnisense/omnibase's bundle and its Symfony host code, moved here for omnibase 5.0 (plan "omnibase agnostic",
+  step F6), each under `Omnibase\` with its path: `Omnibase\BaseBundle`, `Omnibase\Bundle\{AbstractBaseBundle,
+  AbstractBaseExtension, AbstractBaseConfiguration}`, `Omnibase\DependencyInjection\*` (`BaseExtension`,
+  `BaseConfiguration`, the compiler passes, the dumpers), the Symfony controllers `Omnibase\Controller\*` and the
+  service configuration `config/omnibase/` (`services*.php`, `services/*.php`). The bundle keeps its name and its
+  path, the core's `src/` (`getBundleDir()` is the core's folder: `@BaseBundle/...`, the templates, the
+  translations); its extension maps the core's entities under the bundle's name (DoctrineBundle derives an
+  attribute mapping from the bundle class's folder and namespace); the compiler passes are found beside it. The
+  controllers' services are registered under their new names, the former ids aliased (public).
+  omnibase 5.0 aliases the former names (`Base\BaseBundle`...); omnibase 4.x keeps its own classes and never
+  loads these, so this release serves both majors: its existing classes still name the bundle `Base\BaseBundle`.
+- `Omnibase\Routing\Loader\ControllerLoader` (`type: omnibase`): the routes of omnibase's controllers, this
+  package's then the core's actions (`src/Controller/Action`, `SignatureController`), imported once by an
+  application in place of `@BaseBundle/Controller`.
+
+### Changed
+
+- Requires omnibridge/doctrine, symfony/asset, cache, event-dispatcher, expression-language, process, var-dumper
+  and workflow, which omnibase 5.0 no longer requires (they were installed with omnibase 4.x already).
+
+
 ### Changed
 
 - `Omnibase\Field\Type\AssociationType`, `CollectionType`, `ArrayType` and `AttributeType` on omnisense/omnibase's neutral
