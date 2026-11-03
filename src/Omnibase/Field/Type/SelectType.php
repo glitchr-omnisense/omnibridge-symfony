@@ -994,7 +994,12 @@ class SelectType extends AbstractType implements DataMapperInterface
             }, $options["choices"] ?? $dataset ?? []);
 
             $selectOpts["data"] = $formattedData;
-            $selectOpts["selected"] = $selectedData;
+            // What select2 is told to select: the values of its entries. A record is its id, as its entry is
+            // (Autocomplete::resolve()); printed as the record itself, it was an empty object ([{}]) and
+            // form-type-select2.js's $(field).val() selected nothing.
+            $selectOpts["selected"] = array_values(array_map(fn (mixed $item): mixed => is_object($item) && !$item instanceof \UnitEnum
+                ? ($this->autocomplete->resolve($item, $options["class"] ?? $innerType)["id"] ?? null)
+                : $item, $selectedData));
 
             // The same entries, for the <option>s the server prints itself (finishView()).
             $view->vars["select2-entries"] = $formattedData;

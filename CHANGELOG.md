@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- `Omnibase\Field\Type\SelectType` tells select2 to select a record by its id (`selected` in data-select2-options, the value of
+  its entry), not the record itself, which JSON printed as an empty object (`[{}]`): form-type-select2.js's `$(field).val()`
+  selected nothing and a record's picker started empty in the browser (omnibase's plan "omnibase agnostic", step F5d).
+  A value or an enumeration's case is told as before. omnisense/omnibase's tests/Field/SelectTypeSelectedTest.
+
 ### Changed
 
 - `Omnibase\Field\Type\TranslationType` asks omnisense/omnibase's `Base\Field\Behaviour\Translation` what it decided itself
