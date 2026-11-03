@@ -26,7 +26,7 @@ class TranslationEntitiesCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $baseLocation = dirname((new ReflectionClass('Base\\BaseBundle'))->getFileName());
+        $baseLocation = \Base\BaseBundle::getBundleDir().'/src';
         $entityRestriction = $input->getOption('entity') ?? "";
         $entities = array_merge(
             BaseBundle::getInstance()->getAllNamespacesAndClasses("./src/Entity"),

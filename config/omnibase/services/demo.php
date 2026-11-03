@@ -49,6 +49,8 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ->tag('controller.service_arguments')
         ->tag('container.service_subscriber')
         ->call('setContainer', [service('Psr\Container\ContainerInterface')]);
+    // Its former id (omnibase 4.x's class name), as services-public.php aliases the others'.
+    $services->alias('Base\Controller\DemoController', 'Omnibridge\Symfony\Omnibase\Controller\DemoController')->public();
 
     // noindex on every response; no e-mail leaves.
     $services->set('Base\Subscriber\DemoSubscriber')

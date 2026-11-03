@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- The core's folder is asked of the bundle (`Base\BaseBundle::getBundleDir()`, the core's folder under omnibase 4.x
+  and 5.0 alike) by the commands that list its classes (translation:entities, :enums, :crud, icon:entities, :enums,
+  base:mapping, autocomplete:entities) and by ScreenResponder's templates, in place of the folder of the bundle's
+  class file, which is this package's under omnibase 5.0: translation:entities had lost the core's entities
+  (lesringostars' TranslationKeysTest).
+- The former ids of the moved controllers are registered (services-public.php; DemoController's beside it, in the
+  demo environment): `framework.error_controller: Base\Controller\ErrorController::Main` answers again.
+
 ### Added
 
 - omnisense/omnibase's bundle and its Symfony host code, moved here for omnibase 5.0 (plan "omnibase agnostic",

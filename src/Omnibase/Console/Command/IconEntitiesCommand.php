@@ -48,7 +48,7 @@ class IconEntitiesCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $baseLocation = dirname((new ReflectionClass('Base\\BaseBundle'))->getFileName());
+        $baseLocation = \Base\BaseBundle::getBundleDir().'/src';
         $entityId = $input->getOption('id');
         $entityClass = $input->getOption('entity');
 

@@ -49,7 +49,7 @@ class AutocompleteEntitiesCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $baseLocation = dirname((new ReflectionClass('Base\\BaseBundle'))->getFileName());
+        $baseLocation = \Base\BaseBundle::getBundleDir().'/src';
 
         $entityId = $input->getOption('id') ?? null;
         $entityClass = $input->getOption('entity') ?? "";

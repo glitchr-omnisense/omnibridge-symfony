@@ -156,4 +156,18 @@ return static function (ContainerConfigurator $container): void {
 
     // Admin / Command
     $services->alias('command.sessions.clear', 'Base\Console\Command\CacheClearSessionsCommand');
+
+    // The core's Symfony controllers, moved here with the bundle (plan "omnibase agnostic", step F6), are
+    // registered under their new names, which the routes' _controller carries; their former ids stay, as
+    // aliases, for a configuration that names one (framework.error_controller, a forward(), a Reference);
+    // DemoController's, registered in the demo environment only, beside it (services/demo.php).
+    foreach ([
+        'SecurityController', 'ProfilerController', 'ErrorController', 'RescueController', 'LocalizerController',
+        'WidgetController', 'SitemapController', 'MainController', 'ShortLinkController',
+        'UX\AutocompleteController', 'UX\MediaController', 'UX\EditorController', 'Api\ThreadController',
+        'Client\NotificationController', 'Client\UserSettingsController', 'Client\ContactController',
+        'Client\ThreadSearchController', 'Client\UserSearchController', 'Client\UserProfileController',
+    ] as $controller) {
+        $services->alias('Base\Controller\\'.$controller, 'Omnibridge\Symfony\Omnibase\Controller\\'.$controller)->public();
+    }
 };

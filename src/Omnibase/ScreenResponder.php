@@ -126,7 +126,7 @@ class ScreenResponder
     public function legacy(string $template, \Closure $variables, ?string $own = null): array
     {
         // The core's own templates (omnisense/omnibase's templates/, beside its src/ where BaseBundle is).
-        $own ??= \dirname((string) (new \ReflectionClass(\Base\BaseBundle::class))->getFileName(), 2).'/templates';
+        $own ??= \Base\BaseBundle::getBundleDir().'/templates';
         $own = realpath($own) ?: $own;
         $path = $this->views instanceof ViewSources ? (string) $this->views->sourcePath($template) : '';
 
