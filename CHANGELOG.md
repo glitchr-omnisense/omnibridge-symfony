@@ -4,6 +4,16 @@
 
 ### Changed
 
+- `Omnibase\Field\Type\AssociationFileType` on omnisense/omnibase's neutral `Base\Field\Behaviour\AssociationFile` (plan
+  "omnibase agnostic", step F5d, slice 5): its defaults are its `DEFAULTS`, its upload field's name and options its `child()` and
+  `childOptions()`, the related records' files its `files()`, `entityId` its `entries()`, and what is sent made into the related
+  records its `records()` - the same omnibridge/laravel's renderer and omnibase's neutral binder use; this host still guesses
+  whether it holds several and in order, links an administrator to a record's edit page, and writes the records into its
+  `PersistentCollection` (its inverse side told its owner). `form_type` also takes a variant's name (`file`, `image`, `avatar`).
+  The markup is unchanged.
+- `FileType`'s `File` constraint on `[raw]` now limits a file to its announced ceiling: omnisense/omnibase's constraint reads the
+  integer it is given as bytes (it read it as bits: a field announcing 32 MB refused a file over 4 MB).
+
 - `Omnibase\Field\Type\FileType` and its children (`ImageType`, `AvatarType`, `AudioType`, `VideoType`) on omnisense/omnibase's
   neutral `Base\Field\Behaviour\Upload` (plan "omnibase agnostic", step F5d, slice 4): their defaults are its `DEFAULTS` and
   `VARIANTS` (each type's `VARIANT`), and their view is its `vars()` - the record's stored files, their addresses, the sizes and
