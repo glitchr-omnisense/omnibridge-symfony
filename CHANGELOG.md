@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Added
+
+- **`Omnibase\Service\SymfonyBaseService`** (omnisense/omnibase's plan "omnibase agnostic", step F5c, item 3): the Symfony half of
+  omnibase's BaseService, which is framework-neutral since. The container hands it out as `base.service` and
+  `Base\Service\BaseService` (lazy, the same 23 arguments): the kernel and its container, the console (`exec()`), the form
+  factory (`createForm()`), the profiler, Symfony's request, routes and responses (`getRequest()`, `getRoute()`, `redirect()`,
+  `redirectToRoute()`, `refresh()`, `isAdmin()`, `isProfiler()`, `getRouteIndex()`), `getToken()`, `isCsrfTokenValid()` with a
+  form, the session object, and Symfony's services where no contract answers.
+
 ### Changed
 
 - **The field types** (`Omnibase\Field\Type\*`, 17 of them) are no longer given Twig's `Environment`, which they did not read;
