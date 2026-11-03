@@ -2,6 +2,7 @@
 
 namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
+use Base\Field\Behaviour\Upload;
 use InvalidArgumentException;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
@@ -11,6 +12,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class AvatarType extends ImageType
 {
+    public const VARIANT = Upload::AVATAR;
+
     public function getBlockPrefix(): string
     {
         return 'avatar';
@@ -47,11 +50,9 @@ class AvatarType extends ImageType
         }
     }
 
+    /** FileType's view on this type's variant of the behaviour (Base\Field\Behaviour\Upload). */
     public function buildView(FormView $view, FormInterface $form, array $options): void
     {
         parent::buildView($view, $form, $options);
-
-        $view->vars['avatar'] = $view->vars['files'][0] ?? null;
-        $view->vars['files'] = [];
     }
 }

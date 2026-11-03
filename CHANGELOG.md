@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Changed
+
+- `Omnibase\Field\Type\FileType` and its children (`ImageType`, `AvatarType`, `AudioType`, `VideoType`) on omnisense/omnibase's
+  neutral `Base\Field\Behaviour\Upload` (plan "omnibase agnostic", step F5d, slice 4): their defaults are its `DEFAULTS` and
+  `VARIANTS` (each type's `VARIANT`), and their view is its `vars()` - the record's stored files, their addresses, the sizes and
+  types accepted, the dropzone's settings and address, an image's thumbnail, modal and cropper -, the same omnibridge/laravel's
+  renderer draws; whether a field holds several, and in order, is still guessed from this host's metadata, the thumbnail's
+  path still the page's asset paths, the media and file services this host's. The submission (`[file]`, `[raw]`, `[url]`, the
+  dropzone's uuids) is read as before. The markup is unchanged: the 13 forms, the 85 back-office pages and the admin's controls
+  of lesringostars, before and after, the same.
+
 ### Fixed
 
 - `Omnibase\Field\Type\SelectType` tells select2 to select a record by its id (`selected` in data-select2-options, the value of
