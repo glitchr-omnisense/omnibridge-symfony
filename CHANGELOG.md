@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- `Base\Validator\Constraints\UniqueValidator` registered on the unit of work where the core has it (omnibase 5.0,
+  step E1: UniqueEntity without Doctrine, on `Redirection` and `TextOverride`).
+
 ### Fixed
 
 - The core's folder is asked of the bundle (`Base\BaseBundle::getBundleDir()`, the core's folder under omnibase 4.x

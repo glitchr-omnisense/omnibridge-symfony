@@ -92,6 +92,14 @@ return static function (ContainerConfigurator $container): void {
             ->tag('validator.constraint_validator');
     }
 
+    // Unique (omnisense/omnibase 5.0, step E1 of its plan "omnibase agnostic"): UniqueEntity without Doctrine,
+    // the records looked up through the unit of work's Repositories. A 4.x core has no such class.
+    if (class_exists('Base\Validator\Constraints\UniqueValidator')) {
+        $services->set('Base\Validator\Constraints\UniqueValidator')
+            ->args([service('Omnibridge\Persistence\UnitOfWork')])
+            ->tag('validator.constraint_validator');
+    }
+
     // ------------------------------
     // Notifier channels
     // ------------------------------
