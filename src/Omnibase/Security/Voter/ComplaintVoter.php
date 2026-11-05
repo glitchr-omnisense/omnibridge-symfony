@@ -2,80 +2,41 @@
 
 namespace Omnibridge\Symfony\Omnibase\Security\Voter;
 
-use Base\Entity\User;
-use Base\Entity\User\Complaint;
+use Base\Auth\Policy\Complaint;
+use Omnibridge\Symfony\Contract\HierarchyRoles;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
 
-/**
- * Who reads and answers a complaint (Base\Entity\User\Complaint).
- *
- * COMPLAINT_READ / COMPLAINT_HANDLE, with the complaint as subject (or none: may this user read complaints at all).
- * PermissionVoter alone cannot say it - it matches tags and ignores what they are about - so this voter adds the
- * rule that matters:
- *
- *   - to read complaints at all: the reader role (ROLE_MODERATOR by default), or the permission tag
- *     COMPLAINT.READ / COMPLAINT.HANDLE given to a user or a group (Permission, GrantPermissionAdapter);
- *   - a complaint about somebody of the staff is only for those who OUTRANK them: whose reachable roles hold all of
- *     theirs and more (the role hierarchy decides, not a list here) - moderators do not judge a moderator;
- *   - nobody reads a complaint about themselves, except the top role (ROLE_SUPERADMIN by default), which reads them
- *     all: somebody has to read the ones about the top.
- */
-class ComplaintVoter extends Voter
-{
-    public const READ = "COMPLAINT_READ";
-    public const HANDLE = "COMPLAINT_HANDLE";
-
-    public function __construct(
-        private readonly AccessDecisionManagerInterface $decisions,
-        private readonly RoleHierarchyInterface $hierarchy,
-        private readonly string $readerRole = "ROLE_MODERATOR",
-        private readonly string $topRole = "ROLE_SUPERADMIN",
-    ) {
-    }
-
-    protected function supports(string $attribute, mixed $subject): bool
+if (!class_exists(Complaint::class)) {
+    // omnisense/omnibase 4.x: the rule is still this bridge's former code (Legacy\, removed once 4.x is no longer served).
+    class ComplaintVoter extends \Omnibridge\Symfony\Omnibase\Legacy\Security\Voter\ComplaintVoter
     {
-        return (self::READ === $attribute || self::HANDLE === $attribute) && (null === $subject || $subject instanceof Complaint);
     }
-
-    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
+} else {
+    /** COMPLAINT_READ / COMPLAINT_HANDLE: omnibase's Complaint policy on the role hierarchy (step F5e of its plan). */
+    class ComplaintVoter extends Voter
     {
-        $user = $token->getUser();
-        if (!$user instanceof User) {
-            return false;
-        }
-        $reach = $this->reach($user->getRoles());
-        if (\in_array($this->topRole, $reach, true)) {
-            return true;
-        }
-        $tag = self::READ === $attribute ? "COMPLAINT.READ" : "COMPLAINT.HANDLE";
-        if (!\in_array($this->readerRole, $reach, true) && !$this->decisions->decide($token, [$tag])) {
-            return false;
-        }
-        if (!$subject instanceof Complaint) {
-            return true;
+        public const READ = Complaint::READ;
+        public const HANDLE = Complaint::HANDLE;
+
+        private readonly Complaint $policy;
+
+        public function __construct(private readonly AccessDecisionManagerInterface $decisions, RoleHierarchyInterface $hierarchy, string $readerRole = 'ROLE_MODERATOR', string $topRole = 'ROLE_SUPERADMIN')
+        {
+            $this->policy = new Complaint(new HierarchyRoles($hierarchy), $readerRole, $topRole);
         }
 
-        $target = $subject->getTarget();
-        if ($target === $user || ($target && $target->getId() === $user->getId())
-            || (null !== $subject->getTargetName() && 0 === strcasecmp($subject->getTargetName(), (string) $user))) {
-            return false;
+        protected function supports(string $attribute, mixed $subject): bool
+        {
+            return $this->policy->supports($attribute, $subject);
         }
-        if (!$target instanceof User) {
-            return true;
-        }
-        // Outranking: every role they reach, I reach too - and more.
-        $theirs = $this->reach($target->getRoles());
-        return [] === array_diff($theirs, $reach) && [] !== array_diff($reach, $theirs);
-    }
 
-    /** @return string[] */
-    private function reach(array $roles): array
-    {
-        return array_values(array_unique($this->hierarchy->getReachableRoleNames($roles)));
+        protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
+        {
+            return $this->policy->decide($attribute, $subject, $token->getUser(), fn (string $tag): bool => $this->decisions->decide($token, [$tag]));
+        }
     }
 }

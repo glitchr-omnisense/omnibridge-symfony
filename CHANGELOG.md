@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Changed: the voters and SecuritySubscriber are adapters (omnisense/omnibase's plan "omnibase agnostic", step F5e, slice 1)
+
+- Under omnibase 5.0, `Omnibase\Security\Voter\{AccessVoter, AdminVoter, PermissionVoter, ComplaintVoter}` ask the core's
+  `Base\Auth\Policy\{Access, Maintenance, Launch, Admin, Permission, Complaint}` (same constructors, constants, services
+  and decisions), and `Omnibase\Subscriber\SecuritySubscriber` its `Restriction` (onAccessRequest) and `Welcome`
+  (onLoginSuccess); its other rules are the former ones until the next slice. Under omnibase 4.x, which has no
+  policies, each name is the former class, kept in `Omnibase\Legacy\` until 4.x is no longer served.
+- `tests/AdapterSizeTest`: no class of `Omnibase\{Security, Subscriber, Console\Command}` grows above an adapter's size
+  (60 lines of code) but those recorded (the next slices'), and the voters import no entity of omnibase's.
+
 ### Added
 
 - `Base\Validator\Constraints\UniqueValidator` registered on the unit of work where the core has it (omnibase 5.0,
