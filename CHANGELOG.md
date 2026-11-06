@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Changed: one pass compiles what the core declares is discovered (omnisense/omnibase's plan "omnibase agnostic", step F5e, slice 4c)
+
+- `Omnibase\DependencyInjection\Compiler\DiscoveryPass`: the core's registries (`Base\Discovery`) compiled - `collect`,
+  `contracts` (through the generic `DependencyInjection\ContractsPass`), `fallbacks`, `preferred`, `arguments`, `texts`,
+  `storages` at priority 0, `enumerations` at 10 (before DoctrineBundle's middleware pass), `repositories` at -10 (after
+  its repository pass) - and `DiscoveryPass::autoconfigure()`, the `autoconfigure` registry, from BaseExtension::load()
+  (the Twig group's tag renderers' included). BaseExtension's prepend takes the enumerations from
+  `Base\Discovery::enumerations()`; BaseBundle::boot() the contracts' locator id from the registry.
+- The fifteen passes that held those lists (AdminUrlGenerator, ApplicationTexts, Attribute, Contracts, EntityExtension,
+  EnumerationTypes, FlysystemStorages, Guard, IconProvider, ObfuscatorCompression, RepositoryInterfaces, Sharing,
+  TagRenderer, TextOverrideCache, Trading) are `Omnibase\Legacy\DependencyInjection\Compiler\Pass\*`, and BaseExtension's
+  former autoconfiguration `Omnibase\Legacy\DependencyInjection\Autoconfiguration`: registered for a core without
+  `Base\Discovery` (4.x) only. Left in `Compiler\Pass`: Symfony's own - TwigComponent, DoctrineConfiguration,
+  WebauthnMapping, WebauthnDeprecatedAlias, Workflow, FormerFormTypes.
+- On lesringostars the compiled container is identical before and after (debug:container JSON dev, prod and hidden,
+  routes, `config:dump-reference base`, `debug:config base`, the dumped XML of 4 598 services and its parameters in their
+  order). tests/DiscoveryPassTest.
+
 ### Changed: omnibase's options are compiled from the core's declaration (omnisense/omnibase's plan "omnibase agnostic", step F5e, slice 4b)
 
 - `Options\SchemaTree::build()`: a schema of options as data (omnisense/omnibridge's `Options\Processor` format) compiled

@@ -2,29 +2,20 @@
 
 namespace Omnibridge\Symfony\Omnibase\DependencyInjection;
 
-use Base\Attributes\AttributeInterface;
 use Omnibridge\Symfony\Omnibase\BaseBundle;
 use Omnibridge\Doctrine\Omnibase\Database\Type\UtcDateTimeImmutableType;
 use Omnibridge\Doctrine\Omnibase\Database\Type\UtcDateTimeType;
 use Doctrine\DBAL\Types\Type;
-use Base\Cache\Abstract\AbstractLocalCacheInterface;
-use Base\Database\Entity\EntityExtensionInterface;
-use Base\Demo\DemoAccountProviderInterface;
-use Base\EntityDispatcher\EventDispatcherInterface;
-use Base\Service\Model\Currency\CurrencyApiInterface;
-use Base\Service\Model\IconProvider\AbstractIconAdapter;
-use Base\Service\Model\IconProvider\IconAdapterInterface;
-use Base\Service\Model\Obfuscator\CompressionInterface;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
-use Symfony\Component\Workflow\WorkflowInterface;
 
 use Omnibridge\Symfony\Omnibase\Bundle\AbstractBaseExtension;
-use Base\Service\Model\Sharing\SharingAdapterInterface;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
+use Omnibridge\Symfony\Omnibase\DependencyInjection\Compiler\DiscoveryPass;
+use Omnibridge\Symfony\Omnibase\Legacy\DependencyInjection\Autoconfiguration as LegacyAutoconfiguration;
 
 class BaseExtension extends AbstractBaseExtension implements PrependExtensionInterface
 {
@@ -76,34 +67,14 @@ class BaseExtension extends AbstractBaseExtension implements PrependExtensionInt
             ));
         }
 
-        $container->registerForAutoconfiguration(AbstractIconAdapter::class)->addTag('base.service.icon');
-        $container->registerForAutoconfiguration(EntityExtensionInterface::class)->addTag('base.entity_extension');
-        $container->registerForAutoconfiguration(AttributeInterface::class)->addTag('base.attribute');
-        $container->registerForAutoconfiguration(IconAdapterInterface::class)->addTag('base.icon_provider');
-        $container->registerForAutoconfiguration(SharingAdapterInterface::class)->addTag('base.service.sharing');
-        $container->registerForAutoconfiguration(AbstractLocalCacheInterface::class)->addTag('base.simple_cache');
-        $container->registerForAutoconfiguration(CurrencyApiInterface::class)->addTag('currency.api');
-        $container->registerForAutoconfiguration(CompressionInterface::class)->addTag('obfuscator.compressor');
-        $container->registerForAutoconfiguration(WorkflowInterface::class)->addTag('workflow');
-        // The demonstration accounts a bundle or the application declares (docs/20-architecture/demo.md).
-        $container->registerForAutoconfiguration(DemoAccountProviderInterface::class)->addTag('base.demo_account_provider');
-        // omnibase's repositories are doctrine/orm's EntityRepository built from the ManagerRegistry
-        // (plan "omnibase agnostique", C3b), no longer DoctrineBundle's ServiceEntityRepository, whose
-        // interface DoctrineBundle tags: an application's repository extending them (App\Repository\*)
-        // is tagged here, and DoctrineBundle's repository factory finds it in the container as before.
-        $container->registerForAutoconfiguration(\Omnibridge\Doctrine\Omnibase\Database\Repository\ServiceEntityRepository::class)->addTag('doctrine.repository_service');
-
-        $container->registerForAutoconfiguration(EventDispatcherInterface::class)->addTag('doctrine.event_listener', ["event" => "preUpdate"]);
-        $container->registerForAutoconfiguration(EventDispatcherInterface::class)->addTag('doctrine.event_listener', ["event" => "postUpdate"]);
-        $container->registerForAutoconfiguration(EventDispatcherInterface::class)->addTag('doctrine.event_listener', ["event" => "prePersist"]);
-        $container->registerForAutoconfiguration(EventDispatcherInterface::class)->addTag('doctrine.event_listener', ["event" => "postPersist"]);
-        $container->registerForAutoconfiguration(EventDispatcherInterface::class)->addTag('doctrine.event_listener', ["event" => "preRemove"]);
-        $container->registerForAutoconfiguration(EventDispatcherInterface::class)->addTag('doctrine.event_listener', ["event" => "postRemove"]);
-        $container->registerForAutoconfiguration(EventDispatcherInterface::class)->addTag('doctrine.event_listener', ["event" => "postFlush"])
-            // Flushed after the flush that raised their events (EntityDispatcherFlushSubscriber).
-            ->addTag('base.entity_dispatcher')
-            ->addTag('kernel.reset', ['method' => 'reset']);
-        
+        // What a service whose class is one of the core's interfaces is tagged with: the core's `autoconfigure` registry
+        // (Base\Discovery, step F5e slice 4c), compiled here - Symfony reads it before any compiler pass; the former list
+        // for a core without it (4.x).
+        if (class_exists(\Base\Discovery::class)) {
+            DiscoveryPass::autoconfigure($container, \Base\Discovery::registry('autoconfigure'));
+        } else {
+            LegacyAutoconfiguration::register($container);
+        }
     }
 
     public function prepend(ContainerBuilder $builder): void
@@ -177,6 +148,16 @@ class BaseExtension extends AbstractBaseExtension implements PrependExtensionInt
         ];
         // The columns of a passkey, which the core describes (plan "omniauth", AU1).
         $types += \Omnibridge\Doctrine\Omnibase\Types::passkey();
+
+        // The core's declaration of where its enumerations are and what they extend (Base\Discovery, step F5e slice 4c).
+        if (class_exists(\Base\Discovery::class)) {
+            foreach (\Base\Discovery::enumerations(BaseBundle::getProjectDir(), BaseBundle::getBundleDir()) as $name => $className) {
+                $types[$name] = $className;
+            }
+            $builder->prependExtensionConfig('doctrine', ['dbal' => ['types' => $types]]);
+
+            return;
+        }
 
         $classList = array_merge(
             BaseBundle::getAllClasses(BaseBundle::getBundleDir() . "/src/Enum"),
