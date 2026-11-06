@@ -7,7 +7,8 @@ use App\Form\Type\UserProfileType;
 use Base\Attributes\Attribute\Iconize;
 use Base\Bridge\Symfony\AccountScreens;
 use Base\Bridge\Symfony\ScreenResponder;
-use Base\Enum\UserRole;
+use Base\Auth\Account\Outcome;
+use Base\Auth\Account\ProfileAccess;
 use Base\Form\Definition\RecordRules;
 use Base\Form\FormProcessorInterface;
 use Base\Form\FormProxyInterface;
@@ -19,39 +20,27 @@ use Omnibridge\Contract\Validation;
 use Omnibridge\Persistence\UnitOfWork;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Omnibridge\Symfony\Omnibase\Response\AnswersOutcomes;
 
+/**
+ * A member's profile and its editor under Symfony: whose, and who may edit it, is omnibase's ProfileAccess (plan
+ * "omnibase agnostic", step F5e slice 5), the same the twin's editor asks; the form and the screen are Symfony's.
+ */
 class UserProfileController extends AbstractController
 {
-    /**
-     * @var FormProxyInterface
-     */
-    protected FormProxyInterface $formProxy;
+    use AnswersOutcomes;
 
     /** The accounts by their interface (step R28), where it asked the entity manager for their repository. */
-    protected Users $users;
-
-    public function __construct(Users $users, FormProxyInterface $formProxy)
+    public function __construct(protected Users $users, protected FormProxyInterface $formProxy, protected ProfileAccess $profiles)
     {
-        $this->formProxy = $formProxy;
-        $this->users = $users;
     }
 
     #[Route("/profile/{id}/edit/", name: "user_profileEdit")]
     public function Edit(Request $request, Validation $validation, UnitOfWork $unitOfWork, int $id = -1)
     {
-        if ($id > 0) {
-            if (!($user = $this->users->oneById($id))) {
-                throw $this->createNotFoundException('User not found.');
-            }
-        } else {
-            if (!($user = $this->getUser()) || !$user->isPersistent()) {
-                return $this->redirectToRoute('user_search');
-            }
-        }
-
-        if ($user !== $this->getUser() && !$this->isGranted(UserRole::ADMIN)) {
-            throw new AccessDeniedException();
+        $user = $this->profiles->edit($id);
+        if ($user instanceof Outcome) {
+            return $this->answer($user);
         }
 
         return $this->formProxy
@@ -97,17 +86,10 @@ class UserProfileController extends AbstractController
     #[Iconize("fa-solid fa-fw fa-id-card")]
     public function Show(Request $request, ScreenResponder $responder, AccountScreens $screens, int $id = -1)
     {
-        if ($id > 0) {
-            if (!($user = $this->users->oneById($id))) {
-                throw $this->createNotFoundException('User not found.');
-            }
-        } else {
-            if (!($user = $this->getUser()) || !$user->isPersistent()) {
-                return $this->redirectToRoute('user_search');
-            }
+        $user = $this->profiles->show($id);
+        if ($user instanceof Outcome) {
+            return $this->answer($user);
         }
-
-        \assert($user instanceof \Base\Entity\User);
         $template = 'client/user/profile_show.html.twig';
 
         return $responder->respond($request, new View($template, $screens->profile($user), 'Account/Profile'), $responder->legacy($template, fn () => ['user' => $user]));

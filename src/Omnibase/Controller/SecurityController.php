@@ -3,147 +3,77 @@
 namespace Omnibridge\Symfony\Omnibase\Controller;
 
 use App\Entity\User;
+use App\Form\Type\SecurityLoginType;
+use App\Form\Type\SecurityRegistrationType;
+use Base\Attributes\Attribute\Iconize;
+use Base\Attributes\Attribute\IsGranted;
+use Base\Auth\Account\AlreadySignedIn;
+use Base\Auth\Account\Closing;
+use Base\Auth\Account\Outcome;
+use Base\Auth\Account\Passwords;
+use Base\Auth\Account\SignIn;
+use Base\Auth\Account\SignOutPage;
+use Base\Auth\Account\Verification;
+use Base\Auth\Account\WaitingPages;
 use Base\Auth\Registration;
-
-use Base\Database\UnitOfWorks;
-use Base\Entity\User\Notification;
+use Base\Form\FormProcessorInterface;
 use Base\Form\FormProxyInterface;
-use Base\Notifier\NotifierInterface;
+use Base\Form\Type\SecurityLoginTokenType;
+use Base\Form\Type\SecurityResetPasswordConfirmType;
+use Base\Form\Type\SecurityResetPasswordType;
 use Base\Routing\AdvancedRouterInterface;
 use Base\Security\LoginFormAuthenticator;
 use Base\Security\SignInGuard;
 use Base\Security\SignOut;
-
-use App\Form\Type\SecurityRegistrationType;
-use App\Form\Type\SecurityLoginType;
-use Base\Attributes\Attribute\IsGranted;
-
-use Omnibridge\Persistence\UnitOfWork;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-
+use Base\Service\ParameterBagInterface;
+use Base\Service\ReferrerInterface;
+use Base\Service\SpeculativeRequest;
+use Base\Validator\Constraints\UniqueEntity;
+use Omnibridge\Symfony\Omnibase\Response\AnswersOutcomes;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Config\Definition\Exception\Exception;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
-
-use Base\Entity\User\Token;
-use Base\Form\Type\SecurityResetPasswordType;
-use Base\Repository\Users;
-use Base\Attributes\Attribute\Iconize;
-use Base\Form\FormProxy;
-use Base\Form\FormProcessorInterface;
-use Base\Form\Type\SecurityLoginTokenType;
-use Base\Service\SpeculativeRequest;
-use Base\Service\ReferrerInterface;
-use Base\Form\Type\SecurityResetPasswordConfirmType;
-use Base\Repository\User\Tokens;
-
-use Base\Security\RescueFormAuthenticator;
-use Base\Service\MaintenanceProviderInterface;
-use Base\Service\LauncherInterface;
-use Base\Service\ParameterBagInterface;
-use Base\Service\SecurityPolicy;
-use Base\Service\TranslatorInterface;
-use Base\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Security\Http\Authenticator\Passport\Badge\RememberMeBadge;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 
-use Symfony\Component\Security\Http\Authenticator\Passport\Badge\RememberMeBadge;
-
+/**
+ * The account's pages under Symfony: omnibase's Base\Auth\Account rules decide each (plan "omnibase agnostic",
+ * step F5e slice 5) - the sign-in and its link, the sign-out, the e-mail's verification and the approval, the
+ * account closed and opened again, the passwords, the waiting pages -, the same omnibridge/laravel asks. What
+ * stays here is Symfony's: the forms, the firewall's sign-out and its token, the authenticator that signs in.
+ */
 class SecurityController extends AbstractController
 {
-    /**
-     * @var TranslatorInterface
-     */
-    protected TranslatorInterface $translator;
-
-    /**
-     * @var TokenStorageInterface
-     */
-    protected TokenStorageInterface $tokenStorage;
-
-    /**
-     * @var FormProxyInterface
-     */
-    protected FormProxyInterface $formProxy;
-
-    /**
-     * @var NotifierInterface
-     */
-    protected NotifierInterface $notifier;
-
-    /**
-     * @var AdvancedRouterInterface
-     */
-    protected AdvancedRouterInterface $router;
-
-    /**
-     * @var ParameterBagInterface
-     */
-    protected ParameterBagInterface $parameterBag;
-
-    protected UnitOfWork $unitOfWork;
-
-    /**
-     * @var Users
-     */
-    protected Users $userRepository;
-
-    /**
-     * @var Tokens
-     */
-    protected Tokens $tokenRepository;
+    use AnswersOutcomes;
 
     public function __construct(
-        NotifierInterface       $notifier,
-        UnitOfWork $unitOfWork,
-        Tokens                  $tokenRepository,
-        Users                   $userRepository,
-        AdvancedRouterInterface $router,
-        FormProxy               $formProxy,
-        TokenStorageInterface   $tokenStorage,
-        TranslatorInterface     $translator,
-        ParameterBagInterface   $parameterBag)
-    {
-        $this->router = $router;
-        $this->translator = $translator;
-        $this->tokenStorage = $tokenStorage;
-        $this->formProxy = $formProxy;
-        $this->parameterBag = $parameterBag;
-        $this->notifier = $notifier;
-
-        $this->unitOfWork = $unitOfWork;
-        $this->userRepository = $userRepository;
-        $this->tokenRepository = $tokenRepository;
+        protected SignIn $signIn,
+        protected SignOutPage $signOut,
+        protected AlreadySignedIn $already,
+        protected Verification $verification,
+        protected Closing $closing,
+        protected Passwords $passwords,
+        protected WaitingPages $waiting,
+        protected AdvancedRouterInterface $router,
+        protected FormProxyInterface $formProxy,
+        protected ParameterBagInterface $parameterBag,
+        protected ReferrerInterface $referrer,
+    ) {
     }
 
     #[Route("/login", name: "security_login")]
     #[Iconize("fa-solid fa-fw fa-arrow-right-to-bracket")]
-    public function Login(Request $request, ReferrerInterface $referrer, AuthenticationUtils $authenticationUtils, ?SignInGuard $signInGuard = null): Response
+    public function Login(Request $request, AuthenticationUtils $authenticationUtils, ?SignInGuard $signInGuard = null): Response
     {
-        // In case of maintenance, still allow some users to login
-        if ($this->isGranted("EXCEPTION_ACCESS")) {
-            return $this->redirectToRoute(RescueFormAuthenticator::LOGIN_ROUTE);
+        if ($outcome = $this->signIn->page()) {
+            return $this->answer($outcome);
         }
 
-        // Redirect to the right page when access denied
-        if (($user = $this->getUser())) {
-
-            // Remove expired tokens
-            $user->removeExpiredTokens();
-
-            if ($this->isGranted('IS_AUTHENTICATED_FULLY')) {
-                return $this->redirect($referrer->getUrl() ?? $this->router->getUrlIndex());
-            }
-
-            $notification = new Notification("login.partial");
-            $notification->send("info");
-        }
-
-        // Generate form
         $lastUsername = $authenticationUtils->getLastUsername();
         $formProcessor = $this->formProxy
             ->createProcessor("form:login", SecurityLoginType::class, [
@@ -156,85 +86,45 @@ class SecurityController extends AbstractController
             ])
             ->handleRequest($request);
 
-        // get the login error if there is one
-        $error = $authenticationUtils->getLastAuthenticationError();
-
-        // last username entered by the user
         return $this->render('security/login.html.twig', [
             "identifier" => $lastUsername,
             "form" => $formProcessor->getForm()->createView(),
             "last_username" => $lastUsername,
-            "error" => $error
+            "error" => $authenticationUtils->getLastAuthenticationError(),
         ]);
     }
 
     #[Route("/logout", name: "security_logout")]
     #[Iconize("fa-solid fa-fw fa-right-from-bracket")]
-    public function Logout(Request $request, ReferrerInterface $referrer)
+    public function Logout(Request $request): Response
     {
-        // A prefetch is not a click. Honouring one here would sign the user
-        // out while the page keeps drawing itself signed-in, and whatever they
-        // then submit posts as an anonymous visitor (prod 2026-09-11: two
-        // comment replies lost). Answer with nothing to cache.
+        // A prefetch is not a click: nothing to cache, nobody signed out.
         if (SpeculativeRequest::is($request)) {
             return new Response("", Response::HTTP_NO_CONTENT, ["Cache-Control" => "no-store"]);
         }
 
-        // If user is found.. go to the logout request page
-        if ($this->getUser()) {
-            // Where the firewall's logout asks a CSRF token (enable_csrf), the
-            // link carries it (Base\Security\SignOut) and it is handed on to
-            // the firewall, which checks it. Without it - a link from another
-            // site, an <img>, a page kept from a session that has ended - the
-            // visitor stays signed in and is asked to confirm, by a link with
-            // a token of this session.
-            $logout = $this->router->getRouteFirewall($this->router->generate(LoginFormAuthenticator::LOGOUT_REQUEST_ROUTE))?->getLogout() ?? [];
-            $parameter = $logout["csrf_parameter"] ?? SignOut::PARAMETER;
-            $token = $request->query->get($parameter);
-            if (($logout["enable_csrf"] ?? false) && !$this->isCsrfTokenValid($logout["csrf_token_id"] ?? SignOut::TOKEN_ID, is_string($token) ? $token : null)) {
-                $tokenId = $logout["csrf_token_id"] ?? SignOut::TOKEN_ID;
+        if (!$this->getUser()) {
+            $this->signOut->left($request->getSession()?->remove("_user"));
 
-                return $this->render('security/logout.html.twig', [
-                    "logoutPath" => $this->router->generate(LoginFormAuthenticator::LOGOUT_ROUTE, [$parameter => $this->container->get('security.csrf.token_manager')->getToken($tokenId)->getValue()]),
-                    "returnUrl" => $referrer->getUrl() ?? $this->router->getUrlIndex(),
-                ], new Response(null, Response::HTTP_OK, ["Cache-Control" => "no-store"]));
-            }
-
-            $response = $this->redirectToRoute(LoginFormAuthenticator::LOGOUT_REQUEST_ROUTE, is_string($token) ? [$parameter => $token] : []);
-            $response->headers->clearCookie('REMEMBERME', "/", $this->router->getDomain());
-
-            return $response;
+            return $this->answer($this->signOut->after($this->router->isSecured($request)));
         }
 
-        // Check if the session is found.. meaning, the user just logged out
-        $left = $request->getSession()?->remove("_user");
-        // An id (SecuritySubscriber::onLogout); an older session may still hold the entity.
-        $user = is_object($left) && method_exists($left, "getId") ? $left->getId() : $left;
-        $user = is_scalar($user) ? $this->userRepository->find($user) : null;
-        if ($user) {
-            if ($user->isKicked()) {
-
-                $notification = new Notification("kickout", [$user]);
-                $notification->setUser($user);
-                $notification->send("warning");
-                $user->kick(false);
-
-            } else {
-
-                $notification = new Notification("logout.success", [$user]);
-                $notification->send("info");
-            }
-
-            // Remove expired tokens
-            $user->removeExpiredTokens();
-            $this->unitOfWork->flush();
+        // The firewall's sign-out and its token (enable_csrf): asked to confirm without the session's, handed on with it.
+        $logout = $this->router->getRouteFirewall($this->router->generate(LoginFormAuthenticator::LOGOUT_REQUEST_ROUTE))?->getLogout() ?? [];
+        $parameter = $logout["csrf_parameter"] ?? SignOut::PARAMETER;
+        $tokenId = $logout["csrf_token_id"] ?? SignOut::TOKEN_ID;
+        $token = $request->query->get($parameter);
+        if ($this->signOut->confirms((bool) ($logout["enable_csrf"] ?? false), $tokenId, $token)) {
+            return $this->render(SignOutPage::TEMPLATE, [
+                "logoutPath" => $this->router->generate(LoginFormAuthenticator::LOGOUT_ROUTE, [$parameter => $this->container->get('security.csrf.token_manager')->getToken($tokenId)->getValue()]),
+                "returnUrl" => $this->referrer->getUrl() ?? $this->router->getUrlIndex(),
+            ], new Response(null, Response::HTTP_OK, ["Cache-Control" => "no-store"]));
         }
 
-        $returnUrl = $referrer->getUrl() ?? $this->router->getUrlIndex();
-        if($this->router->isSecured($request)) $returnUrl = $this->router->getUrlIndex();
+        $response = $this->redirectToRoute(LoginFormAuthenticator::LOGOUT_REQUEST_ROUTE, is_string($token) ? [$parameter => $token] : []);
+        $response->headers->clearCookie('REMEMBERME', "/", $this->router->getDomain());
 
-        // Redirect to previous page
-        return $this->redirect($returnUrl);
+        return $response;
     }
 
     #[Route("/logout-request", name: "security_logoutRequest")]
@@ -245,127 +135,59 @@ class SecurityController extends AbstractController
 
     #[Route("/login/token/{token}", name: "security_loginWithToken")]
     #[Iconize("fa-solid fa-fw fa-arrow-right-to-bracket")]
-    public function LoginTokenRequest(Request $request, ReferrerInterface $referrer, AuthenticationUtils $authenticationUtils, LoginFormAuthenticator $authenticator, UserAuthenticatorInterface $userAuthenticator, ?string $token = null, ?\Omniauth\Omniauth $omniauth = null, ?\Omnibridge\Symfony\Auth\Contexts $contexts = null): Response
+    public function LoginTokenRequest(Request $request, LoginFormAuthenticator $authenticator, UserAuthenticatorInterface $userAuthenticator, ?string $token = null, ?\Omniauth\Omniauth $omniauth = null, ?\Omnibridge\Symfony\Auth\Contexts $contexts = null): Response
     {
-        // Where omniauth signs in (omnibridge/symfony's OmniauthAuthenticator answered a link with a token
-        // before this page; a refused one reaches it without), it issues the links too: 15 minutes, once,
-        // hashed, a new one at each request (plan "omniauth", QA4).
+        // Where omniauth signs in, it issues the links too (plan "omniauth", QA4): the address goes to it.
         $byOmniauth = null !== $omniauth && null !== $contexts && $omniauth->methods()->has(\Omniauth\Factor::Link);
-
-        if(!$this->parameterBag->get("base.user.login_with_token")) {
-            return $this->redirectToRoute(LoginFormAuthenticator::LOGIN_ROUTE);
+        if ($outcome = $this->signIn->link($token, $byOmniauth)) {
+            return $this->answer($outcome, $this->signingIn($request, $userAuthenticator, $authenticator));
         }
 
-        // e.g. query the "access token" database to search for this token
-        $loginToken = $byOmniauth ? null : $this->tokenRepository->oneSigningInByNameAndValue("login-token", $token);
-        if ($loginToken !== null && $loginToken->isValid() && $loginToken->getUser() !== null) {
-
-            // and return a UserBadge object containing the user identifier from the found token
-            $user = $loginToken->getUser();
-            $rememberMeBadge = new RememberMeBadge();
-            $rememberMeBadge->enable();
-
-            $userAuthenticator->authenticateUser($user, $authenticator, $request, [$rememberMeBadge]);
-            return $this->redirectToRoute($referrer->getUrl() ?? $this->router->getUrlIndex());
-        }
-
-        // Generate form
         $formProcessor = $this->formProxy
             ->createProcessor("form:login", SecurityLoginTokenType::class)
-            ->onSubmit(function (FormProcessorInterface $formProcessor, Request $request) use ($referrer, $userAuthenticator, $authenticator, $byOmniauth, $omniauth, $contexts) {
-
+            ->onSubmit(function (FormProcessorInterface $formProcessor, Request $request) use ($byOmniauth, $omniauth, $contexts) {
                 $email = $formProcessor->getForm()->get('email')->getData();
                 if ($byOmniauth) {
                     $omniauth->begin(\Omniauth\Factor::Link, $contexts->of($request), ['identifier' => (string) $email]);
-                } elseif (($user = $this->userRepository->oneByEmail($email))) {
-
-                    $user->removeExpiredTokens();
-
-                    $loginToken = $user->getToken("login-token");
-                    if(!$loginToken) {
-
-                        $loginToken = new Token("login-token", 30 * 24 * 3600, 3600);
-                        $loginToken->markAsLogginable();
-                        $loginToken->setUser($user);
-
-                        $this->unitOfWork->flush();
-
-                        // By e-mail alone. It was sent to the browser too, twice ("a link has been sent
-                        // to your address"), for an address that has an account and for no other.
-                        $this->notifier->loginToken($user, $loginToken)->sendBy(["email+"]);
-                    }
                 }
 
-                // One answer for every address, whether it has an account or not.
-                $notification = new Notification("loginToken.confirmation");
-                $notification->send("success");
-
-                return $this->redirectToRoute($referrer->getUrl() ?? $this->router->getUrlIndex());
+                return $this->answer($this->signIn->linkRequested($email, $byOmniauth));
             })
             ->handleRequest($request);
-        
-        // last username entered by the user
-        return $this->render('security/login_token.html.twig', [
-            "form" => $formProcessor->getForm()->createView()
-        ]);
+
+        return $this->render('security/login_token.html.twig', ["form" => $formProcessor->getForm()->createView()]);
     }
 
     #[Route("/register", name: "security_register")]
     public function Register(Request $request, LoginFormAuthenticator $authenticator, UserAuthenticatorInterface $userAuthenticator, Registration $registration): Response
     {
-        // If already connected..
-        if (($user = $this->getUser()) && $user->isPersistent()) {
-            $notification = new Notification("login.already");
-            $notification->send("warning");
-
-            return $this->redirectToRoute('user_profile');
+        if ($outcome = $this->already->check()) {
+            return $this->answer($outcome);
         }
 
-        // Prepare registration form
-        $formProcessor = $this->formProxy->createProcessor("form:login", SecurityRegistrationType::class, [
-            'validation_groups' => ['new'],
-            'validation_entity' => User::class
-        ])
+        return $this->formProxy->createProcessor("form:login", SecurityRegistrationType::class, ['validation_groups' => ['new'], 'validation_entity' => User::class])
             ->onSubmit(function (FormProcessorInterface $formProcessor, Request $request) use ($userAuthenticator, $authenticator, $registration) {
-
                 // Approved, its password, named, kept: the same on every host (Base\Auth\Registration).
                 $signedIn = $this->getUser();
                 $newUser = $registration->register($formProcessor->hydrate((new User())), $formProcessor->getData("plainPassword"), $signedIn instanceof User ? $signedIn : null);
 
-                $rememberMeBadge = new RememberMeBadge();
-                $rememberMeBadge->enable();
-
-                $userAuthenticator->authenticateUser($newUser, $authenticator, $request, [$rememberMeBadge]);
-                return $this->redirectToRoute('user_profile');
+                return $this->answer(Outcome::route(AlreadySignedIn::PROFILE_ROUTE)->signingIn($newUser, true), $this->signingIn($request, $userAuthenticator, $authenticator));
             })
-            ->onDefault(function (FormProcessorInterface $formProcessor) {
-                return $this->render('security/register.html.twig', [
-                    'form' => $formProcessor->getForm()->createView(),
-                    'user' => $formProcessor->getData(),
-                    // The address already has an account: the page says so, and gives the ways in.
-                    'account_exists' => $this->addressIsTaken($formProcessor->getForm()),
-                ]);
-            })
-            ->handleRequest($request);
-
-        return $formProcessor->getResponse();
+            ->onDefault(fn (FormProcessorInterface $formProcessor) => $this->render('security/register.html.twig', [
+                'form' => $formProcessor->getForm()->createView(),
+                'user' => $formProcessor->getData(),
+                // The address already has an account: the page says so, and gives the ways in.
+                'account_exists' => $this->addressIsTaken($formProcessor->getForm()),
+            ]))
+            ->handleRequest($request)
+            ->getResponse();
     }
 
-    /**
-     * Whether the sign-up was refused because its address already has an
-     * account. A sign-up that succeeds signs in at once, so the page cannot
-     * hide that an address is taken: it says it, and offers to sign in or to
-     * ask for a new password - where the answer is the same for every address.
-     */
+    /** Whether Symfony's validator refused the sign-up because its address already has an account. */
     private function addressIsTaken(FormInterface $form): bool
     {
-        if (!$form->isSubmitted()) {
-            return false;
-        }
-
-        foreach ($form->getErrors(true) as $error) {
-            $cause = $error->getCause();
-            $constraint = $cause instanceof ConstraintViolationInterface ? $cause->getConstraint() : null;
+        foreach ($form->isSubmitted() ? $form->getErrors(true) : [] as $error) {
+            $constraint = ($cause = $error->getCause()) instanceof ConstraintViolationInterface ? $cause->getConstraint() : null;
             if ($constraint instanceof UniqueEntity && \in_array("email", (array) $constraint->fields, true)) {
                 return true;
             }
@@ -376,323 +198,85 @@ class SecurityController extends AbstractController
 
     #[Route("/verify-email", name: "security_verifyEmail")]
     #[IsGranted("ROLE_USER")]
-    public function VerifyEmailRequest()
+    public function VerifyEmailRequest(): Response
     {
-        // Check if accound is already verified..
-        $user = $this->getUser();
-        if (!$user instanceof User) {
-            throw $this->createAccessDeniedException();
-        }
-        if ($user->isVerified()) {
-        
-            $notification = new Notification("verifyEmail.already");
-            $notification->send("info");
-        
-        } else {
-
-            $verifyEmailToken = $user->getToken("verify-email");
-            if ($verifyEmailToken && $verifyEmailToken->hasVeto()) {
-
-                $notification = new Notification("verifyEmail.resend", [$verifyEmailToken->getThrottleTimeStr()]);
-                $notification->send("danger");
-
-            } else {
-
-                $verifyEmailToken = new Token("verify-email", 24 * 3600, 3600);
-                $verifyEmailToken->setUser($user);
-
-                $notification = $this->notifier->sendVerificationEmail($user, $verifyEmailToken);
-                $notification->send("success");
-            }
-        }
-
-        $this->unitOfWork->flush();
-
-        return $this->redirectToRoute('user_profile');
+        return $this->answer($this->verification->request());
     }
 
     #[Route("/verify-email/{token}", name: "security_verifyEmailWithToken")]
     public function VerifyEmailResponse(Request $request, UserAuthenticatorInterface $userAuthenticator, LoginFormAuthenticator $authenticator, string $token): Response
     {
-        $token = $this->tokenRepository->oneByValueAndName($token, "verify-email");
-        if ($token) {
-            $userAuthenticator->authenticateUser($token->getUser(), $authenticator, $request);
+        if ($found = $this->verification->tokenOwner($token)) {
+            $userAuthenticator->authenticateUser($found->getUser(), $authenticator, $request);
         }
 
-        $user = $this->getUser();
-        if(!$user instanceof User) {
-            $notification = new Notification("verifyEmail.invalidToken");
-            $notification->send("danger");
-
-            return $this->redirectToRoute("security_verifyEmail");
-       }
-
-        $user->removeExpiredTokens();
-
-        if ($user->isVerified()) {
-            $notification = new Notification('verifyEmail.already');
-            $notification->setUser($user);
-            $notification->send('info');
-        } else {
-            $verifyEmailToken = $user->getValidToken("verify-email");
-
-            if ($verifyEmailToken === null || $verifyEmailToken->get() != $token->get()) {
-                $notification = new Notification("verifyEmail.invalidToken");
-                $notification->setUser($user);
-                $notification->send("danger");
-            } else {
-                $user->verify();
-                $verifyEmailToken->revoke();
-
-                $notification = new Notification("verifyEmail.success");
-                $notification->setUser($user);
-                $notification->send('success');
-
-                if (!$user->isApproved()) { // If the account needs further validation by admin..
-                    $this->AdminApprovalRequest($request);
-                }
-            }
-        }
-
-        $this->unitOfWork->flush();
-        return $this->redirectToRoute('user_profile');
+        return $this->answer($this->verification->confirm($found));
     }
 
     #[Route("/admin-approval", name: "security_adminApproval")]
-    public function AdminApprovalRequest(Request $request)
+    public function AdminApprovalRequest(): Response
     {
-        $user = $this->getUser();
-        if (!$user instanceof User) {
-            throw $this->createAccessDeniedException();
-        }
-        $user->removeExpiredTokens();
-
-        if (!$user->isVerified()) {
-            $notification = new Notification("adminApproval.verifyFirst");
-            $notification->send("warning");
-        } elseif (!$user->isApproved()) {
-            if (($adminApprovalToken = $user->getValidToken("admin-approval"))) {
-                $notification = new Notification("adminApproval.alreadySent");
-                $notification->send("warning");
-            } else {
-                $adminApprovalToken = new Token("admin-approval");
-                $adminApprovalToken->setUser($user);
-
-                $notification = $this->notifier->sendUserApprovalRequest($user);
-                $notification->send("success");
-            }
-        }
-
-        $this->unitOfWork->flush();
-        return $this->redirectToRoute('user_profile');
+        return $this->answer($this->verification->approval());
     }
 
     #[Route("/account-goodbye", name: "security_accountGoodbye")]
-    public function DisableAccountRequest(Request $request, SecurityPolicy $securityPolicy)
+    public function DisableAccountRequest(): Response
     {
-        $user = $this->getUser();
-
-        // A demonstration account is everyone's: it does not close itself.
-        if (!$securityPolicy->canChangeCredentials($user)) {
-            $notification = new Notification("@notifications.demo.locked");
-            $notification->send("warning");
-
-            return $this->redirectToRoute($this->router->getRouteIndex());
-        }
-
-        if ($user->isDisabled()) {
-            $notification = new Notification("accountGoodbye.already");
-            $notification->send("warning");
-
-            return $this->redirectToRoute($this->router->getRouteIndex());
-        } else {
-            $user->disable();
-            $user->logout();
-
-            $this->unitOfWork->flush();
-            return $this->redirectToRoute($this->router->getRouteIndex());
-        }
+        return $this->answer($this->closing->close());
     }
 
     #[Route("/welcome-back/{token}", name: "security_accountWelcomeBackWithToken")]
     public function EnableAccountRequest(Request $request, LoginFormAuthenticator $authenticator, UserAuthenticatorInterface $userAuthenticator, ?string $token = null): Response
     {
-        $welcomeBackToken = $this->tokenRepository->oneByValueAndName($token, "welcome-back");
-        $user = $welcomeBackToken ? $welcomeBackToken->getUser() : $this->getUser();
-        \assert(null === $user || $user instanceof \Base\Entity\User);
-
-        if ($user && !$user->isDisabled()) {
-            $welcomeBackToken->revoke();
-
-            $notification = new Notification("accountWelcomeBack.already");
-            $notification->send("warning");
-        } elseif ($user && $user->getValidToken("welcome-back")) {
-            $user->enable();
-            $authenticateUser = $userAuthenticator->authenticateUser($user, $authenticator, $request);
-
-            $this->unitOfWork->flush();
-            return $authenticateUser;
-        } else {
-            if ($welcomeBackToken) {
-                $welcomeBackToken->revoke();
-            }
-
-            $notification = new Notification("accountWelcomeBack.invalidToken");
-            $notification->send("danger");
-
-            $this->unitOfWork->flush();
-        }
-
-        return $this->redirectToRoute($this->router->getRouteIndex());
+        return $this->answer($this->closing->welcomeBack($token), $this->signingIn($request, $userAuthenticator, $authenticator));
     }
 
-    /**
-     * Display & process form to request a password reset.
-     */
-    
     #[Route("/reset-password", name: "security_resetPassword")]
-    public function ResetPasswordRequest(Request $request, SecurityPolicy $securityPolicy): Response
+    public function ResetPasswordRequest(Request $request): Response
     {
-        if (($user = $this->getUser()) && $user->isPersistent()) {
-            $notification = new Notification("login.already");
-            $notification->send("warning");
-
-            return $this->redirectToRoute('user_profile');
+        if ($outcome = $this->already->check()) {
+            return $this->answer($outcome);
         }
 
         $form = $this->createForm(SecurityResetPasswordType::class);
         $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-
-            $notification = new Notification("resetPassword.confirmation");
-
-            $email = $form->get('email')->getData();
-            $user = $this->userRepository->oneByEmail($email);
-            if ($user && !$securityPolicy->canChangeCredentials($user)) {
-
-                // A demonstration account keeps its password: said plainly, there is no secret about who it is.
-                $notification = new Notification("@notifications.demo.locked");
-                $notification->send("warning");
-
-                return $this->redirectToRoute(LoginFormAuthenticator::LOGIN_ROUTE);
-            }
-
-            if ($user) {
-
-                $user->removeExpiredTokens();
-                if (!$user->getToken("reset-password")) {
-                    $resetPasswordToken = new Token("reset-password", 3600);
-                    $resetPasswordToken->setUser($user);
-
-                    // By e-mail alone. The page answers the same for every address - the confirmation
-                    // sent below - and this notification, sent as the others are (by e-mail and to the
-                    // browser), added a second message for an address that has an account.
-                    $this->notifier->resetPasswordRequest($user, $resetPasswordToken)->sendBy(["email+"]);
-                }
-            }
-
-            $this->unitOfWork->flush();
-            $notification->send("success");
+        if ($form->isSubmitted() && $form->isValid() && ($outcome = $this->passwords->resetRequested($form->get('email')->getData()))) {
+            return $this->answer($outcome);
         }
 
-        return $this->render('security/reset_password_request.html.twig', [
-            'form' => $form->createView(),
-        ]);
+        return $this->render('security/reset_password_request.html.twig', ['form' => $form->createView()]);
     }
 
-    /**
-     * Validates and process the reset URL that the user clicked in their email.
-     */
-    
     #[Route("/reset-password/{token}", name: "security_resetPasswordWithToken")]
-    public function ResetPasswordResponse(Request $request, LoginFormAuthenticator $authenticator, UserAuthenticatorInterface $userAuthenticator, SecurityPolicy $securityPolicy, ?string $token = null): Response
+    public function ResetPasswordResponse(Request $request, LoginFormAuthenticator $authenticator, UserAuthenticatorInterface $userAuthenticator, ?string $token = null): Response
     {
-        if (($user = $this->getUser()) && $user->isPersistent()) {
-            $notification = new Notification("login.already");
-            $notification->send("warning");
-
-            return $this->redirectToRoute('user_profile');
-        }
-
-        // A reset link's token, still valid: not one of another kind, not an expired or revoked one.
-        $resetPasswordToken = $this->tokenRepository->oneByValue($token);
-        if (!$resetPasswordToken || 'reset-password' !== $resetPasswordToken->getName() || !$resetPasswordToken->isValid()) {
-
-            $notification = new Notification("resetPassword.invalidToken");
-            $notification->send("danger");
-
-            return $this->redirectToRoute($this->router->getRouteIndex());
-
-        } else {
-
-            $user = $resetPasswordToken->getUser();
-
-            if (!$securityPolicy->canChangeCredentials($user)) {
-                $notification = new Notification("@notifications.demo.locked");
-                $notification->send("warning");
-
-                return $this->redirectToRoute(LoginFormAuthenticator::LOGIN_ROUTE);
-            }
-
-            // The token is valid; allow the user to change their password.
-            $form = $this->createForm(SecurityResetPasswordConfirmType::class);
-            $form->handleRequest($request);
-
-            if ($form->isSubmitted() && $form->isValid()) {
-                $resetPasswordToken->revoke();
-                $user->setPlainPassword($form->get('plainPassword')->getData());
-
-                $notification = new Notification("resetPassword.success");
-
-                $this->unitOfWork->flush();
-
-                $rememberMeBadge = new RememberMeBadge();
-                $rememberMeBadge->enable();
-
-                $userAuthenticator->authenticateUser($user, $authenticator, $request, [$rememberMeBadge]);
-                $notification->send("success");
-
-                return $this->redirectToRoute($this->router->getRouteIndex());
-            }
-
-            return $this->render('security/reset_password.html.twig', ['form' => $form->createView()]);
-        }
-    }
-
-    /**
-     * A password to choose, before anything else: the account was made with one its owner did not
-     * choose (user:create, a "change-password" token; PasswordChangeSubscriber brings them here).
-     */
-    #[Route("/change-password", name: "security_changePassword")]
-    public function ChangePassword(Request $request, LoginFormAuthenticator $authenticator, UserAuthenticatorInterface $userAuthenticator): Response
-    {
-        $user = $this->getUser();
-        if (!$user instanceof \Base\Entity\User) {
-            return $this->redirectToRoute('security_login');
-        }
-
-        $changePasswordToken = $user->getValidToken(\Base\Subscriber\PasswordChangeSubscriber::TOKEN);
-        if (!$changePasswordToken) {
-            return $this->redirectToRoute($this->router->getRouteIndex());
+        $resetToken = $this->already->check() ?? $this->passwords->resetToken($token);
+        if ($resetToken instanceof Outcome) {
+            return $this->answer($resetToken);
         }
 
         $form = $this->createForm(SecurityResetPasswordConfirmType::class);
         $form->handleRequest($request);
-
         if ($form->isSubmitted() && $form->isValid()) {
-            $changePasswordToken->revoke();
-            $user->setPlainPassword($form->get('plainPassword')->getData());
-            $this->unitOfWork->flush();
+            return $this->answer($this->passwords->reset($resetToken, $form->get('plainPassword')->getData()), $this->signingIn($request, $userAuthenticator, $authenticator));
+        }
 
-            // A new password ends the session signed with the old one: signed in again, at once.
-            $rememberMeBadge = new RememberMeBadge();
-            $rememberMeBadge->enable();
-            $userAuthenticator->authenticateUser($user, $authenticator, $request, [$rememberMeBadge]);
+        return $this->render('security/reset_password.html.twig', ['form' => $form->createView()]);
+    }
 
-            (new Notification("changePassword.success"))->send("success");
+    /** A password to choose before anything else (user:create's token; PasswordChangeSubscriber brings the account here). */
+    #[Route("/change-password", name: "security_changePassword")]
+    public function ChangePassword(Request $request, LoginFormAuthenticator $authenticator, UserAuthenticatorInterface $userAuthenticator): Response
+    {
+        $changeToken = $this->passwords->changeToken();
+        if ($changeToken instanceof Outcome) {
+            return $this->answer($changeToken);
+        }
 
-            return $this->redirectToRoute($this->router->getRouteIndex());
+        $form = $this->createForm(SecurityResetPasswordConfirmType::class);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            return $this->answer($this->passwords->change($changeToken, $form->get('plainPassword')->getData()), $this->signingIn($request, $userAuthenticator, $authenticator));
         }
 
         return $this->render('security/reset_password.html.twig', [
@@ -702,43 +286,41 @@ class SecurityController extends AbstractController
         ]);
     }
 
-    /**
-     * Link to this controller to start the maintenance
-     */
-    
     #[Route("/m", name: "security_maintenance")]
-    public function Maintenance(MaintenanceProviderInterface $maintenanceProvider): Response
+    public function Maintenance(): Response
     {
-        return $this->render('security/maintenance.html.twig', [
-            'remainingTime' => $maintenanceProvider->getRemainingTime(),
-            'percentage' => $maintenanceProvider->getPercentage(),
-            'downtime' => $maintenanceProvider->getDowntime(),
-            'uptime' => $maintenanceProvider->getUptime()
-        ]);
+        return $this->answer($this->waiting->maintenance());
     }
 
     #[Route(["fr" => "/est/bientot/en/ligne", "en" => "/is/coming/soon"], name: "security_launch")]
-    public function Launch(LauncherInterface $launcher): Response
+    public function Launch(): Response
     {
-        return $this->render('security/launchdate.html.twig', [
-            'launchdate' => $launcher->getLaunchdate(),
-            'is_launchedd' => $launcher->isLaunched()
-        ]);
+        return $this->answer($this->waiting->launch());
     }
 
     #[Route(["fr" => "/est/bientot/disponible", "en" => "/is/soon/available"], name: "security_pending")]
     public function Pending(): Response
     {
-        return $this->render('security/pending.html.twig');
+        return $this->answer($this->waiting->pending());
     }
 
     #[Route(["fr" => "/en/attente/de/validation", "en" => "/waiting/for/approval"], name: "security_pendingForApproval")]
     #[IsGranted("ROLE_USER")]
     public function PendingForApproval(): Response
     {
-        if ($this->getUser()->isApproved()) {
-            return $this->redirectToRoute("app_index");
-        }
-        return $this->render('security/pendingForApproval.html.twig');
+        return $this->answer($this->waiting->pendingForApproval());
+    }
+
+    /** Symfony's sign-in of an account a rule asks for: the firewall's authenticator, remembered on demand. */
+    private function signingIn(Request $request, UserAuthenticatorInterface $userAuthenticator, LoginFormAuthenticator $authenticator): \Closure
+    {
+        return static function (object $user, bool $remember) use ($request, $userAuthenticator, $authenticator): ?Response {
+            $badges = [];
+            if ($remember) {
+                $badges[] = (new RememberMeBadge())->enable();
+            }
+
+            return $userAuthenticator->authenticateUser($user, $authenticator, $request, $badges);
+        };
     }
 }

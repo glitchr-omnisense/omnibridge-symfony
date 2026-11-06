@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### Changed: the account's controllers answer the core's rules (omnisense/omnibase's plan "omnibase agnostic", step F5e, slice 5a)
+
+- `Omnibase\Controller\{SecurityController, LocalizerController, RescueController, DemoController}` and
+  `Client\UserProfileController` keep their routes (the routes table is the same) and ask omnibase's
+  `Base\Auth\Account\*`, `Base\Demo\DemoSignIn` and `Base\Request\LocaleSwitch`; what stays here is Symfony's: the
+  forms, the firewall's sign-out and its token, the authenticator, Twig's loader. Their constructors take the rules
+  (SecurityController: the seven account rules, the router, the form proxy, the parameters, the referrer;
+  RescueController: the router, Twig, the form proxy, RescuePage; LocalizerController: LocaleSwitch added;
+  UserProfileController: ProfileAccess added). SecurityController: 509 lines of code -> 267, LocalizerController 103 -> 81,
+  RescueController 84 -> 60, UserProfileController 88 -> 72, DemoController 46 -> 33.
+- `Omnibase\Response\AnswersOutcomes`: a rule's `Base\Auth\Account\Outcome` answered by a controller as it answered
+  before (redirectToRoute, redirect, the index by its route or its address, the referrer, render, Security's refusal, a
+  404; the account signed in first through the controller's authenticator).
+- tests/AdapterSizeTest scans `Omnibase\Controller` too: `CONTROLLERS_STILL_ABOVE` lists the twelve still above an
+  adapter's size, each with its reason (slice 5b's, or glue of many routes).
+- No `Legacy\` copy: under omnibase 4.x the core's own `Base\Controller\*` answer (these are read by a 5.x core only).
+
 ### Changed: one pass compiles what the core declares is discovered (omnisense/omnibase's plan "omnibase agnostic", step F5e, slice 4c)
 
 - `Omnibase\DependencyInjection\Compiler\DiscoveryPass`: the core's registries (`Base\Discovery`) compiled - `collect`,
