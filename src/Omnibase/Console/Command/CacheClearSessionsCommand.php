@@ -2,50 +2,28 @@
 
 namespace Omnibridge\Symfony\Omnibase\Console\Command;
 
-use Omnibridge\Symfony\Omnibase\Console\Command;
-use Base\Service\LocalizerInterface;
-use Base\Service\ParameterBagInterface;
-use Base\Service\TranslatorInterface;
-use Doctrine\ORM\EntityManagerInterface;
+use Base\Console\Task\CacheClearSessions;
+use Base\Console\Task\CacheClearSessionsInput;
+use Omnibridge\Symfony\Omnibase\Console\Reports;
+use Omnibridge\Symfony\Omnibase\Legacy\Console\Command\CacheClearSessionsCommand as Legacy;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand(name: 'cache:clear:sessions', aliases: [], description: '')]
-class CacheClearSessionsCommand extends Command
-{
-    /** @var string */
-    protected string $projectDir;
-
-    public function __construct(
-        LocalizerInterface       $localizer,
-        TranslatorInterface      $translator,
-        EntityManagerInterface   $entityManager,
-        ParameterBagInterface    $parameterBag,
-        string                   $projectDir,
-    )
+if (!class_exists(CacheClearSessions::class)) {
+    // omnisense/omnibase 4.x: the task is still this bridge's former code (Legacy\, removed once 4.x is no longer served).
+    #[AsCommand(name: 'cache:clear:sessions', aliases: [], description: '')]
+    class CacheClearSessionsCommand extends Legacy
     {
-        parent::__construct($localizer, $translator, $entityManager, $parameterBag);
-        $this->projectDir = $projectDir;
     }
-
-    protected function execute(InputInterface $input, OutputInterface $output): int
+} else {
+    /** cache:clear:sessions: Symfony's session folder (var/sessions) to omnibase's CacheClearSessions task (its plan, step F5e, slice 3). */
+    #[AsCommand(name: 'cache:clear:sessions', aliases: [], description: '')]
+    class CacheClearSessionsCommand extends Legacy
     {
-        $io = new SymfonyStyle($input, $output);
-
-        $sessionDir = $this->projectDir . '/var/sessions';
-        if (is_dir($sessionDir)) {
-            
-            $files = glob($sessionDir . '/sess_*');
-            foreach ($files as $file) {
-                if (is_file($file)) {
-                    unlink($file);
-                }
-            }
+        protected function execute(InputInterface $input, OutputInterface $output): int
+        {
+            return (new CacheClearSessions())->run(new CacheClearSessionsInput($this->projectDir.'/var/sessions'), Reports::printer($input, $output))->status();
         }
-
-        $io->write("<info> [INFO] Session files cleared from ".$sessionDir.".</info>" . PHP_EOL, true);
-        return Command::SUCCESS;
     }
 }

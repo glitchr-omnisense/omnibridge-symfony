@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Changed: the console commands are adapters (omnisense/omnibase's plan "omnibase agnostic", step F5e, slice 3a)
+
+- Under omnibase 5.0, `Omnibase\Console\Command\{TranslationCrud, TranslationEntities, TranslationEnums,
+  TranslationControllers, TranslationSettings, CacheClear, CacheClearSessions, DemoReset, UploaderEntities,
+  UploaderImages, UploaderImagesCrop}Command` turn their options into the input of the core's `Base\Console\Task\*`
+  and print its `Base\Console\Report` (`Omnibase\Console\Reports`, as it comes); same names, options, constructors
+  and services. demo:reset runs the console's commands through `Omnibase\Console\ApplicationCommands`; cache:clear
+  gives the task FrameworkBundle's clear, the second clear's process and the sessions' command;
+  uploader:images:crop asks the resolution and the confirmation itself. Under omnibase 4.x each is its former code,
+  in `Omnibase\Legacy\Console\Command\` (DemoResetCommand's properties protected there).
+- translation:controllers reads the kernel's router (its former code read one it was never given).
+- `tests/AdapterSizeTest`: the ten of them that were above an adapter's size left STILL_ABOVE (11 left, the
+  Console's other commands: slice 3b).
+
 ### Changed: the subscribers are adapters (omnisense/omnibase's plan "omnibase agnostic", step F5e, slice 2)
 
 - Under omnibase 5.0, `Omnibase\Subscriber\SecuritySubscriber` asks the core's request rules for the rest of its
