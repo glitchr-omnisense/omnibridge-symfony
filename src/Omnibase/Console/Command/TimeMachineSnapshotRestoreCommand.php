@@ -2,52 +2,36 @@
 
 namespace Omnibridge\Symfony\Omnibase\Console\Command;
 
-use BackupManager\Filesystems\Destination;
-use Omnibridge\Symfony\Omnibase\Console\Command;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
+use Base\Console\Task\TimeMachineSnapshot;
+use Base\Console\Task\TimeMachineSnapshotRestoreInput;
+use Omnibridge\Symfony\Omnibase\Console\Reports;
+use Omnibridge\Symfony\Omnibase\Legacy\Console\Command\TimeMachineSnapshotRestoreCommand as Legacy;
 use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 
-#[AsCommand(name: 'timemachine:snapshot:restore', aliases: [], description: '')]
-class TimeMachineSnapshotRestoreCommand extends TimeMachineSnapshotCommand
-{
-    protected function configure(): void
+if (!class_exists(TimeMachineSnapshot::class)) {
+    // omnisense/omnibase 4.x: the task is still this bridge's former code (Legacy\, removed once 4.x is no longer served).
+    #[AsCommand(name: 'timemachine:snapshot:restore', aliases: [], description: '')]
+    class TimeMachineSnapshotRestoreCommand extends Legacy
     {
-        parent::configure();
-        $this->addOption('id', null, InputOption::VALUE_OPTIONAL, 'Which version do you want to get?', null);
     }
-
-    public function execute(InputInterface $input, OutputInterface $output): int
+} else {
+    /** timemachine:snapshot:restore: its options to omnibase's TimeMachineSnapshot task (omnibase's plan "omnibase agnostic", step F5e, slice 3), the Report printed. */
+    #[AsCommand(name: 'timemachine:snapshot:restore', aliases: [], description: '')]
+    class TimeMachineSnapshotRestoreCommand extends Legacy
     {
-        parent::execute($input, $output);
+        public function execute(InputInterface $input, OutputInterface $output): int
+        {
+            $this->timeMachine->setCommandOutput($output);
+            $helper = $this->getHelper('question');
 
-        $storages = $input->getArgument('storages') ?? [];
-        $prefix = $input->getOption('prefix') ?? null;
-        $cycle = $input->getOption('cycle') ?? -1;
-        $id = $input->getOption('id') ?? -1;
-
-        if (!$storages) {
-            return Command::FAILURE;
+            return (new TimeMachineSnapshot($this->timeMachine, $this->flysystem))->restore(
+                new TimeMachineSnapshotRestoreInput((array) $input->getArgument('storages'), $input->getOption('database'), $input->getOption('prefix'), (int) ($input->getOption('cycle') ?? -1), (int) ($input->getOption('id') ?? -1)),
+                static fn (string $question, bool $default): bool => (bool) $helper->ask($input, $output, new ConfirmationQuestion($question, $default)),
+                Reports::printer($input, $output),
+            )->status();
         }
-
-        $helper = $this->getHelper('question');
-        if($id < 0) {
-            $question = new ConfirmationQuestion('You are about to restore the latest version. Do you wish to continue ? [y/N] ', false);
-            if (!$helper->ask($input, $output, $question)) {
-                return Command::SUCCESS;
-            }
-        }
-
-        $helper = $this->getHelper('question');
-        $question = new ConfirmationQuestion('Do you wish to restore application from tarball ? [y/N] ', false);
-        $restoreApplication = $helper->ask($input, $output, $question);
-
-        $helper = $this->getHelper('question');
-        $question = new ConfirmationQuestion('Do you wish to restore database from tarball ? [y/N] ', false);
-        $restoreDatabase = $helper->ask($input, $output, $question);
-
-        return $this->timeMachine->restore($id, $restoreDatabase, $restoreApplication, $storages, $prefix, $cycle);
     }
 }

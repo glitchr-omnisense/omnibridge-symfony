@@ -2,51 +2,28 @@
 
 namespace Omnibridge\Symfony\Omnibase\Console\Command;
 
+use Base\Console\Task\EntityDiscriminator;
+use Base\Console\Task\EntityDiscriminatorInput;
+use Omnibridge\Symfony\Omnibase\Console\Reports;
+use Omnibridge\Symfony\Omnibase\Legacy\Console\Command\EntityDiscriminatorCommand as Legacy;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Omnibridge\Symfony\Omnibase\Console\Command;
-use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
-use Base\Service\LocalizerInterface;
-use Base\Service\ParameterBagInterface;
-use Base\Service\TranslatorInterface;
-use Doctrine\ORM\EntityManagerInterface;
-use Exception;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Attribute\AsCommand;
 
-#[AsCommand(name: 'entity:discriminator', aliases: [], description: '')]
-class EntityDiscriminatorCommand extends Command
-{
-    /**
-     * @var ClassMetadataManipulator
-     */
-    protected ClassMetadataManipulator $classMetadataManipulator;
-
-    public function __construct(
-        LocalizerInterface       $localizer,
-        TranslatorInterface      $translator,
-        EntityManagerInterface   $entityManager,
-        ParameterBagInterface    $parameterBag,
-        ClassMetadataManipulator $classMetadataManipulator
-    )
+if (!class_exists(EntityDiscriminator::class)) {
+    // omnisense/omnibase 4.x: the task is still this bridge's former code (Legacy\, removed once 4.x is no longer served).
+    #[AsCommand(name: 'entity:discriminator', aliases: [], description: '')]
+    class EntityDiscriminatorCommand extends Legacy
     {
-        parent::__construct($localizer, $translator, $entityManager, $parameterBag);
-        $this->classMetadataManipulator = $classMetadataManipulator;
     }
-
-    protected function configure(): void
+} else {
+    /** entity:discriminator: its options to omnibase's EntityDiscriminator task (omnibase's plan "omnibase agnostic", step F5e, slice 3), the Report printed. */
+    #[AsCommand(name: 'entity:discriminator', aliases: [], description: '')]
+    class EntityDiscriminatorCommand extends Legacy
     {
-        $this->addArgument('entity', InputArgument::REQUIRED, 'Which entity should be considered ?');
-    }
-
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
-        $entity = $input->getArgument('entity');
-
-        if (!$this->classMetadataManipulator->isEntity($entity)) {
-            throw new Exception("Class \"" . $entity . "\" is not an entity.");
+        protected function execute(InputInterface $input, OutputInterface $output): int
+        {
+            return (new EntityDiscriminator($this->unitOfWork))->run(new EntityDiscriminatorInput((string) $input->getArgument('entity')), Reports::printer($input, $output))->status();
         }
-
-        return Command::SUCCESS;
     }
 }
