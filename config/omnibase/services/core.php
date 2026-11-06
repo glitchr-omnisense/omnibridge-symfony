@@ -270,7 +270,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // omnisense/omnibridge's since A2 (Omnibridge\Contract\*), bound under
     // that name (their former names, Base\Contract\Urls... and
     // Omnibridge\Twig\Contract\*, are gone since omnibase 4's final pass). The registry gets them
-    // from the `base.contracts` locator (ContractsPass), with the framework's
+    // from the `base.contracts` locator (Base\Discovery's `contracts`, DiscoveryPass), with the framework's
     // clock, event dispatcher and mailer, seeded in BaseBundle::boot().
     //
     // Since A1 the adapters over Symfony's own services are omnibridge/symfony's

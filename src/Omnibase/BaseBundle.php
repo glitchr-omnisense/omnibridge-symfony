@@ -22,7 +22,8 @@ use Base\Contract\Runtime;
 use Omnibridge\Symfony\Omnibase\Console\Command\CacheClearCommand;
 use Base\Demo\DemoGuard;
 use Base\Demo\DemoMode;
-use Omnibridge\Symfony\Omnibase\DependencyInjection\Compiler\Pass\ContractsPass;
+use Omnibridge\Symfony\Omnibase\DependencyInjection\Compiler\DiscoveryPass;
+use Omnibridge\Symfony\Omnibase\Legacy\DependencyInjection\Compiler\Pass\ContractsPass;
 use Omnibridge\Symfony\Omnibase\DependencyInjection\Dumper\CliDumper;
 use Omnibridge\Symfony\Omnibase\DependencyInjection\Dumper\HtmlDumper;
 use Base\Service\Locator;
@@ -372,11 +373,13 @@ class BaseBundle extends AbstractBaseBundle
             Locator::setRuntime($this->container->get('base.runtime'));
         }
         // The contracts of the Foundation (Base\Contract\Runtime), from the
-        // locator ContractsPass builds: closures as well, nothing constructed
+        // locator the core's `contracts` registry names (Base\Discovery, built by
+        // DiscoveryPass): closures as well, nothing constructed
         // before a contract is asked; a new kernel's locator replaces the
         // previous one's, and what was resolved from it is forgotten.
-        if ($this->container->has(ContractsPass::SERVICE)) {
-            Runtime::setContainer($this->container->get(ContractsPass::SERVICE));
+        $contracts = class_exists(\Base\Discovery::class) ? \Base\Discovery::registry('contracts')['service'] : ContractsPass::SERVICE;
+        if ($this->container->has($contracts)) {
+            Runtime::setContainer($this->container->get($contracts));
         }
         Locator::setProjectDir($this->container->getParameter('kernel.project_dir'));
         Locator::setEnvironment($this->container->getParameter('kernel.environment'));
@@ -501,17 +504,29 @@ class BaseBundle extends AbstractBaseBundle
         }
 
         /* Register compiler passes */
-        $finder = new \Symfony\Component\Finder\Finder();
-        $finder->files()
-            ->in(__DIR__ . '/DependencyInjection/Compiler/Pass')
-            ->name('*Pass.php')
-            ->notName('AbstractPass.php');
+        // What the core declares is discovered among its services (Base\Discovery, plan "omnibase agnostic", step F5e
+        // slice 4c) is compiled by one generic pass; the passes left in Compiler/Pass are Symfony's own (TwigComponent,
+        // DoctrineConfiguration, WebauthnMapping, WebauthnDeprecatedAlias, Workflow, FormerFormTypes). A core without
+        // the declaration (4.x) has the former passes, which held its lists (Legacy\).
+        $directories = [__DIR__ . '/DependencyInjection/Compiler/Pass' => __NAMESPACE__ . '\\DependencyInjection\\Compiler\\Pass\\'];
+        if (class_exists(\Base\Discovery::class)) {
+            DiscoveryPass::register($container, \Base\Discovery::registries());
+        } else {
+            $directories[__DIR__ . '/Legacy/DependencyInjection/Compiler/Pass'] = __NAMESPACE__ . '\\Legacy\\DependencyInjection\\Compiler\\Pass\\';
+        }
+        foreach ($directories as $directory => $namespace) {
+            $finder = new \Symfony\Component\Finder\Finder();
+            $finder->files()
+                ->in($directory)
+                ->name('*Pass.php')
+                ->notName('AbstractPass.php');
 
-        foreach ($finder as $file) {
-            $class = __NAMESPACE__ . '\\DependencyInjection\\Compiler\\Pass\\' . $file->getBasename('.php');
-            if (class_exists($class) && !in_array($class, [__CLASS__])) {
-                $priority = method_exists($class, 'getPriority') ? $class::getPriority() : 0;
-                $container->addCompilerPass(new $class(), priority: $priority);
+            foreach ($finder as $file) {
+                $class = $namespace . $file->getBasename('.php');
+                if (class_exists($class) && !in_array($class, [__CLASS__])) {
+                    $priority = method_exists($class, 'getPriority') ? $class::getPriority() : 0;
+                    $container->addCompilerPass(new $class(), priority: $priority);
+                }
             }
         }
 

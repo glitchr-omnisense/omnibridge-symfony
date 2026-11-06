@@ -36,6 +36,6 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ->arg('$logger', service('logger')->nullOnInvalid());
 
     // The rewritten texts' pool (Base\Translation\OverridingTranslator): the shared Redis pool when the application has
-    // one (TextOverrideCachePass), so that the web, the worker and cron agree.
+    // one (Base\Discovery's `preferred`, compiled by DiscoveryPass), so that the web, the worker and cron agree.
     $services->alias('base.text_override.cache', 'cache.app');
 };

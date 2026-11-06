@@ -18,7 +18,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // parameters by a dotted path, decorates Symfony's parameter_bag; HotParameterBag, the settings stored
     // in the database laid over it, decorates it in turn and is `parameter_bag`. omnibase's
     // ParameterBagInterface is that same object, as DependencyInjection's interfaces and
-    // Runtime::parameters() (ContractsPass) are - it was the plain ParameterBag, without the settings.
+    // Runtime::parameters() (Base\Discovery's `contracts`) are - it was the plain ParameterBag, without the settings.
     $services->alias('Base\Service\ParameterBagInterface', 'parameter_bag');
 
     $services->set('Base\Service\ParameterBag')

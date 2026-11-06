@@ -48,8 +48,11 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // answers it - what the Symfony field types read (FileType's thumbnail) in place of Twig's environment (step F5c).
     $services->alias('Base\View\AssetPaths', 'twig');
 
-    // The tag renderers, handed to omnibase's environment (TagRendererPass).
-    $builder->registerForAutoconfiguration(TagRendererInterface::class)->addTag('twig.tag_renderer');
+    // The tag renderers, handed to omnibase's environment: the core's registries (Base\Discovery's `autoconfigure` and
+    // `collect`, step F5e slice 4c, compiled by BaseExtension and DiscoveryPass); here for a core without them (4.x).
+    if (!class_exists(\Base\Discovery::class)) {
+        $builder->registerForAutoconfiguration(TagRendererInterface::class)->addTag('twig.tag_renderer');
+    }
 
     // The core's (Base\Services, group "twig", which requires Twig; plan "omnibase agnostic", step F5e slice 4): the asset
     // package, the variables, the tag renderers, the extensions (omnibridge/twig's HelperExtension among them, in its
