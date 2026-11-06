@@ -43,7 +43,6 @@ final class AdapterSizeTest extends TestCase
         'Security/SignInGuard.php',
         'Security/UserChecker.php',
         'Security/UserProvider.php',
-        'Subscriber/AnalyticsSubscriber.php',
         'Subscriber/DemoBackOfficeSubscriber.php',
         'Subscriber/IntegritySubscriber.php',
         'Subscriber/IsGrantedSubscriber.php',
