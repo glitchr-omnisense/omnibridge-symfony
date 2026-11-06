@@ -45,15 +45,13 @@ class BaseExtension extends AbstractBaseExtension implements PrependExtensionInt
         //
         // Load service declaration (includes services, controllers,..)
         $loader = new PhpFileLoader($container, new FileLocator(\dirname(__DIR__, 3) . '/config/omnibase'));
-        // The core's list of services first (plan "omnibase agnostic", F5a and F5c item 3): each listed service
-        // defined from Base\Services, the configuration then saying what Symfony adds to it.
+        // The core's services are its declaration (Base\Services; plan "omnibase agnostic", F5a and F5e slice 4): its
+        // first group here, the others in their places among this bridge's own definitions (services/*.php).
         $loader->load('services-list.php');
         $loader->load('services.php');
         $loader->load('services-public.php');
         $loader->load('services-fix.php');
         $loader->load('services-decoration.php');
-        // The contracts the list names, last: those the configuration does not alias.
-        $loader->load('services-list-contracts.php');
 
         // The container loads its services' classes through the autoloader, also with debug, where Symfony would
         // write include_once of their files (inline_class_loader): a class moved to omnibridge/doctrine (plan

@@ -1,5 +1,7 @@
 <?php
 
+use Omnibridge\Symfony\Omnibase\DependencyInjection\Declarations;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use \Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
@@ -7,7 +9,7 @@ use Symfony\Component\DependencyInjection\Reference;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
-return static function (ContainerConfigurator $container): void {
+return static function (ContainerConfigurator $container, ContainerBuilder $builder): void {
     $services = $container->services();
 
     $services->defaults()
@@ -27,22 +29,9 @@ return static function (ContainerConfigurator $container): void {
         ])
         ->bind('$cacheDir', '%kernel.cache_dir%');
 
-    // Attribute reader
-    $services->set('Base\Attributes\AttributeReader')->public()
-        ->args([
-            new Reference('event_dispatcher'),
-            new Reference('advanced_router'),
-            new Reference('doctrine.orm.entity_manager'),
-            new Reference('parameter_bag'),
-            new Reference('flysystem'),
-            new Reference('request_stack'),
-            new Reference('security.token_storage'),
-            new Reference('base.database.entity_hydrator'),
-            new Reference('base.database.metadata_manipulator'),
-        ])
-        ->bind('$projectDir', '%kernel.project_dir%')
-        ->bind('$environment', '%kernel.environment%')
-        ->bind('$cacheDir', '%kernel.cache_dir%');
+    // The core's (Base\Services, group "database"; plan "omnibase agnostic", step F5e slice 4): the attribute reader
+    // and the entities' extensions.
+    Declarations::group($builder, 'database');
 
     // Security voters
     $services->set('Base\Security\Voter\AdminVoter')
@@ -68,8 +57,6 @@ return static function (ContainerConfigurator $container): void {
             new Reference('base.service.maintenance'),
             new Reference('base.service.launcher'),
         ]);
-
-    $services->set('Base\Database\Entity\EntityExtension')->public();
 
     // The repositories by their interfaces (audit "lesringostars face au master plan", step R15):
     // what the code of a site and of the core type-hints, Doctrine's repository behind. The users'

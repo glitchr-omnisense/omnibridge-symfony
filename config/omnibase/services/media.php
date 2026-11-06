@@ -1,5 +1,7 @@
 <?php
 
+use Omnibridge\Symfony\Omnibase\DependencyInjection\Declarations;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use \Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
@@ -7,7 +9,7 @@ use Symfony\Component\DependencyInjection\Reference;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
-return static function (ContainerConfigurator $container): void {
+return static function (ContainerConfigurator $container, ContainerBuilder $builder): void {
     $services = $container->services();
 
     $services->defaults()
@@ -164,173 +166,16 @@ return static function (ContainerConfigurator $container): void {
             '%base.extension.max_revisions%',
         ]);
 
+    // The core's (Base\Services, group "media"; plan "omnibase agnostic", step F5e slice 4): the spam checker, the sitemap,
+    // the text enhancers, the compressions' parent, the files, the storages, the SVG Imagine, the sharing and its
+    // adapters, the icons and their adapters, the trading and its currency APIs. After the Doctrine listeners above.
+    Declarations::group($builder, 'media');
 
     /* ------------------------------
-    * Core Services
-    * ------------------------------*/
-
-    $services->set('Base\Service\SpamChecker')
-        ->public()
-        ->args([
-            new Reference('Omnibridge\Contract\Requests'),
-            new Reference('setting_bag'),
-            new Reference('parameter_bag'),
-            new Reference('translator'),
-            new Reference('monolog.http_client'),
-            '%kernel.debug%',
-            new Reference('Base\Service\FormGuard'),
-            new Reference('advanced_router', ContainerInterface::NULL_ON_INVALID_REFERENCE),
-            new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
-        ]);
-
-    $services->set('Base\Service\Sitemapper')
-        ->public()
-        ->args([
-            new Reference('Omnibridge\Contract\Views'),
-            new Reference('base.attribute_reader'),
-            new Reference('advanced_router'),
-            new Reference('localizer'),
-            // A page left out of the sitemap is said here (Sitemapper::register()).
-            new Reference('logger', ContainerInterface::NULL_ON_INVALID_REFERENCE),
-        ]);
-
-
-    /* ------------------------------
-    * WYSIWYG Enhancers
-    * ------------------------------*/
-
-    $services->set('Base\Service\Model\Wysiwyg\SemanticEnhancer')
-        ->public()
-        ->tag('twig.runtime')
-        ->args([new Reference('Base\Repository\Layout\SemanticRepository')]);
-
-    $services->set('Base\Service\Model\Wysiwyg\MentionEnhancer')
-        ->public()
-        ->tag('twig.runtime')
-        ->args([
-            new Reference('App\Repository\Thread\MentionRepository'),
-            new Reference('App\Repository\UserRepository'),
-            new Reference('Base\Database\Repository\Repositories'),
-            new Reference('obfuscator'),
-        ]);
-
-    $services->set('Base\Service\Model\Wysiwyg\LinkEnhancer')
-        ->public()
-        ->tag('twig.runtime');
-
-    $services->set('Base\Service\Model\Wysiwyg\MediaEnhancer')
-        ->public()
-        ->tag('twig.runtime')
-        ->args([
-            new Reference('base.service.image'),
-            new Reference('flysystem'),
-            new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
-        ]);
-
-    $services->set('Base\Service\Model\Wysiwyg\HeadingEnhancer')
-        ->public()
-        ->tag('twig.runtime')
-        ->args([
-            new Reference('Omnibridge\Persistence\UnitOfWork'),
-            new Reference('slugger'),
-        ]);
-
-    $services->set('Base\Service\WysiwygEnhancer')
-        ->public()
-        ->tag('twig.runtime')
-        ->args([
-            new Reference('Omnibridge\Contract\Views'),
-            new Reference('heading_enhancer'),
-            new Reference('semantic_enhancer'),
-            new Reference('mention_enhancer'),
-            new Reference('Base\Service\Model\Wysiwyg\LinkEnhancer'),
-            new Reference('media_enhancer'),
-        ]);
-
-    $services->set('Base\Service\EditorEnhancer')
-        ->parent('Base\Service\WysiwygEnhancer')
-        ->public()
-        ->tag('twig.runtime');
-
-
-    /* ------------------------------
-    * Obfuscator System
-    * ------------------------------*/
-
-    $services->set('Base\Service\Model\Obfuscator\AbstractCompression')->abstract();
-
-    foreach ([
-        'NullCompression',
-        'ZlibCompression',
-        'GzipCompression',
-        'DeflateCompression',
-    ] as $class) {
-        // Defined from Base\Services (config/services-list.php), as the four below: Symfony adds its tags.
-        $services->get("Base\Service\Model\Obfuscator\Compression\\$class")
-            ->autowire(false)
-            ->tag('obfuscator.compression');
-    }
-
-    $services->get('Base\Service\Model\Obfuscator\Compression\HashidsCompression')
-        ->autowire(false)
-        ->tag('obfuscator.compression')
-        ->arg('$secret', '%kernel.secret%');
-
-    // The compressions given by their tag (ObfuscatorCompressionPass), its parameters omnibase's bag.
-    $services->get('Base\Service\Obfuscator')
-        ->autowire(false)
-        ->public()
-        ->tag('twig.runtime')
-        ->args([new Reference('parameter_bag')])
-        ->bind('$cacheDir', '%base.obfuscator.cache_dir%');
-
-
-    /* ------------------------------
-    * File & Media Services
-    * ------------------------------*/
-
-    $services->set('Base\Service\FileService')
-        ->public()
-        ->tag('twig.runtime')
-        ->args([
-            new Reference('Omnibridge\Contract\Views', ContainerInterface::NULL_ON_INVALID_REFERENCE),
-            new Reference('advanced_router'),
-            new Reference('obfuscator'),
-            new Reference('flysystem'),
-            new Reference('parameter_bag'),
-        ]);
-
-    // Defined from Base\Services (config/services-list.php); Symfony's services given as FileService's are.
-    $services->get('Base\Service\MediaService')
-            ->autowire(false)
-            ->public()
-            ->tag('twig.runtime')
-            ->args([
-                new Reference('Omnibridge\Contract\Views', ContainerInterface::NULL_ON_INVALID_REFERENCE),
-                new Reference('advanced_router'),
-                new Reference('obfuscator'),
-                new Reference('flysystem'),
-                new Reference('parameter_bag'),
-                new Reference('imagine.bitmap'),
-                new Reference('imagine.svg'),
-                new Reference('profiler', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
-                new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
-            ]);
-
-    // The storages by name, as omnisense/omnidrive's drives (Omnidrive\Drives, which omnibridge/symfony
-    // registers over the services tagged flysystem.storage): those league/flysystem-bundle tags from the
-    // application's configuration, or omnibase's local ones without it (FlysystemStoragesPass).
-    $services->set('Base\Service\Flysystem')
-        ->args([service('Omnidrive\Drives')])
-        ->public();
-
-
-    /* ------------------------------
-    * Imagine Adapters
+    * Imagine Adapters (the bitmap ones; the SVG one, imagine.svg, is the core's)
     * ------------------------------*/
 
     $services->alias('imagine.bitmap', 'imagine.adapter.imagick');
-    $services->alias('imagine.svg', 'imagine.adapter.svg');
 
     $services->set('imagine.meta_data.reader', 'Imagine\Image\Metadata\ExifMetadataReader');
 
@@ -338,87 +183,12 @@ return static function (ContainerConfigurator $container): void {
         'gd'      => 'Imagine\Gd\Imagine',
         'imagick' => 'Imagine\Imagick\Imagine',
         'gmagick' => 'Imagine\Gmagick\Imagine',
-        'svg'     => 'Base\Imagine\Svg\Imagine',
     ] as $id => $class) {
         $services->set("imagine.adapter.$id", $class)
             ->call('setMetadataReader', [new Reference('imagine.meta_data.reader')]);
     }
 
-
-    /* ------------------------------
-    * Sharing System
-    * ------------------------------*/
-
-    $services->set('Base\Service\Sharing')->public()->tag('twig.runtime');
-
-    $services->set('Base\Service\Model\Sharing\AbstractSharingAdapter')
-        ->args([new Reference('Omnibridge\Contract\Views')]);
-
-    foreach ([
-        'FacebookAdapter',
-        'LinkedInAdapter',
-        'GooglePlusAdapter',
-        'TumblrAdapter',
-        'TwitterAdapter',
-        'PinterestAdapter',
-    ] as $adapter) {
-        $services->set("Base\Service\Model\Sharing\Adapter\\$adapter")
-            ->parent('Base\Service\Model\Sharing\AbstractSharingAdapter')
-            ->tag('base.service.sharing');
-    }
-
-
-    /* ------------------------------
-    * Icon System
-    * ------------------------------*/
-
-    $services->set('Base\Service\IconProvider')
-        ->public()
-        ->tag('twig.runtime')
-        ->args([
-            new Reference('base.attribute_reader'),
-            new Reference('base.service.image'),
-            new Reference('localizer'),
-            new Reference('advanced_router'),
-        ])
-        ->bind('$cacheDir', '%kernel.cache_dir%');
-
-    $services->set('Base\Service\Model\IconProvider\Adapter\FontAwesomeAdapter')
-        ->tag('base.service.icon')
-        ->bind('$metadata', '%kernel.project_dir%/public/bundles/base/metadata/icons.yml')
-        ->bind('$cacheDir', '%kernel.cache_dir%');
-
-    $services->set('Base\Service\Model\IconProvider\Adapter\BootstrapTwitterAdapter')
-        ->tag('base.service.icon')
-        ->bind('$metadata', '%kernel.project_dir%/public/bundles/base/metadata/bootstrap-icons.json')
-        ->bind('$cacheDir', '%kernel.cache_dir%');
-
-
-    /* ------------------------------
-    * Trading & Currency
-    * ------------------------------*/
-
-    // Live unless the application says otherwise: BASE_TRADING_LIVE=0 keeps
-    // every rate to the stored ones but for the calls that ask for the
-    // providers (a free plan's monthly quota is spent otherwise).
+    // Live unless the application says otherwise: BASE_TRADING_LIVE=0 keeps every rate to the stored ones but for the
+    // calls that ask for the providers (a free plan's monthly quota is spent otherwise). Read by the core's Trading.
     $container->parameters()->set('env(BASE_TRADING_LIVE)', 'true');
-
-    $services->set('Base\Service\Trading')
-        ->args([new Reference('http_client')])
-        ->bind('$cacheDir', '%kernel.cache_dir%')
-        ->bind('$live', '%env(bool:BASE_TRADING_LIVE)%');
-
-    $services->set('Base\Service\Model\Currency\AbstractCurrencyApi')
-        ->args([new Reference('setting_bag')]);
-
-    foreach ([
-        'Fixer',
-        'AbstractApi',
-        'ExchangeRatesApi',
-        'CurrencyLayer',
-    ] as $api) {
-        $services->set("Base\Service\Model\Currency\Api\\$api")
-            ->parent('Base\Service\Model\Currency\AbstractCurrencyApi')
-            ->tag('currency.api');
-    }
 };

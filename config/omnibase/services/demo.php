@@ -1,6 +1,7 @@
 <?php
 
 use Base\Demo\DemoMode;
+use Omnibridge\Symfony\Omnibase\DependencyInjection\Declarations;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
@@ -16,19 +17,15 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
  * environment these services are not in the container at all.
  */
 return static function (ContainerConfigurator $container, ContainerBuilder $builder): void {
+    // The core's (Base\Services, group "demo"; plan "omnibase agnostic", step F5e slice 4): the mode, the accounts'
+    // registry and factory, the guard, and in `demo` only the two secrets where omniauth checks the password.
+    Declarations::group($builder, 'demo');
+
     $services = $container->services();
     $services->defaults()
         ->public(false)
         ->autowire()
         ->autoconfigure();
-
-    $services->set('Base\Demo\DemoMode')->public();
-    $services->set('Base\Demo\DemoAccountRegistry')->public()
-        ->arg('$roleHierarchy', service('security.role_hierarchy')->nullOnInvalid());
-    $services->set('Base\Demo\DemoAccountFactory')->public()
-        ->arg('$doctrine', service('doctrine'));
-    $services->set('Base\Demo\DemoGuard')->public()
-        ->arg('$doctrine', service('doctrine')->nullOnInvalid());
 
     // demo_mode() and demo_accounts() in a template: with the Twig layer (config/services/twig.php).
 
@@ -61,13 +58,6 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // The back office is not public: its accounts and the super-administrator sign in with a secret each, or not at all.
     $services->set('Base\Subscriber\DemoBackOfficeSubscriber')
         ->tag('kernel.event_subscriber');
-
-    // The same two secrets where omniauth checks the password (config/services/auth.php's stores).
-    if (interface_exists('Omniauth\Contract\Passwords')) {
-        $services->set('Base\Auth\DemoPasswords')
-            ->decorate('Omniauth\Contract\Passwords', null, 0, \Symfony\Component\DependencyInjection\ContainerInterface::IGNORE_ON_INVALID_REFERENCE)
-            ->args([service('.inner'), service('Base\Demo\DemoAccountRegistry'), '%base.demo.superadmin_password%', '%base.demo.admin_password%']);
-    }
 
     // A demonstration account keeps its identifier, address, password and second factor.
     $services->set('Base\DatabaseSubscriber\DemoAccountLockSubscriber')
