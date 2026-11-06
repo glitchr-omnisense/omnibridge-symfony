@@ -4,123 +4,31 @@ namespace Omnibridge\Symfony\Omnibase\Controller\UX;
 
 use Base\Attributes\Attribute\IsGranted;
 use Base\Repository\Layout\ImageCrops;
-use Base\Service\FileService;
 use Base\Service\Flysystem;
 use Base\Service\ImageRoute;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\HttpFoundation\Response;
-
 use Base\Service\MediaService;
-use Base\Traits\BaseTrait;
-
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
+use Symfony\Component\Routing\Attribute\Route;
 
-#[Route("", name:"ux_", priority:-1)]
+/**
+ * The image routes under Symfony: omnibase's Base\Service\ImageRoute answers each (audit R6; plan "omnibase agnostic",
+ * step F5e slice 5b) - the stored file, the image resized or cropped and kept in the local cache (not on a cacheless
+ * route), the redirection to the right extension -, as omnibridge/laravel's ImageController asks it; Symfony's are the
+ * routes (the debug image an editor's, through Security) and the profiler, left out of an ux_ route's answer.
+ * MediaService calls these actions by their names to resolve an image's address.
+ */
+#[Route("", name: "ux_", priority: -1)]
 class MediaController extends AbstractController
 {
-    use BaseTrait;
-
-    /**
-     * @var MediaService
-     */
-    protected MediaService $mediaService;
-
-    /**
-     * @var FileService
-     */
-    protected mixed $fileService = null;
-
-    /**
-     * @var Flysystem
-     */
-    protected Flysystem $flysystem;
-
-    /**
-     * @var ImageCrops
-     */
-    protected ImageCrops $imageCropRepository;
-
-    /**
-     * @var Profiler|null
-     */
-    protected ?Profiler $profiler;
-
-    /**
-     * @var RequestStack
-     */
-    protected RequestStack $requestStack;
-
-    /**
-     * @var ?bool
-     */
-    protected ?bool $localCache;
-
-    /**
-     * The image route's answers (audit "lesringostars face au master plan",
-     * R6): this controller's actions moved there as they were, for any host;
-     * the routes, their names and these actions stay.
-     */
     protected ImageRoute $imageRoute;
 
-    public function __construct(RequestStack $requestStack, Flysystem $flysystem, MediaService $mediaService, ImageCrops $imageCropRepository, ?Profiler $profiler = null, ?bool $localCache = null)
+    public function __construct(protected RequestStack $requestStack, Flysystem $flysystem, MediaService $mediaService, ImageCrops $imageCropRepository, protected ?Profiler $profiler = null, ?bool $localCache = null)
     {
-        $this->imageCropRepository = $imageCropRepository;
-
-        $this->mediaService = $mediaService;
-        $this->profiler = $profiler;
-
-        $this->fileService = cast($mediaService, FileService::class);
-        $this->flysystem = $flysystem;
-
-        $this->localCache = $localCache ?? true;
-        $this->requestStack = $requestStack;
-
-        $this->imageRoute = new ImageRoute($mediaService, $flysystem, $imageCropRepository, $this->localCache);
-    }
-
-    /**
-     * Returns a RedirectResponse to the given route with the given parameters.
-     */
-    public function redirectToRoute(string $route, array $parameters = [], int $status = 302): RedirectResponse
-    {
-        $request = $this->requestStack->getCurrentRequest();
-        $isUX = $request ? str_starts_with($request->attributes->get("_route"), "ux_") : true;
-        if ($this->profiler !== null && $isUX) {
-            $this->profiler->disable();
-        }
-
-        $cacheless = !$this->localCache ? "_cacheless" : "";
-        return parent::redirectToRoute($route . $cacheless, $parameters, $status);
-    }
-
-    /**
-     * The image route's answers for this request (Base\Service\ImageRoute):
-     * the local cache this controller uses, the profiler kept only off the
-     * ux_ routes, as before.
-     */
-    protected function route(): ImageRoute
-    {
-        return $this->imageRoute->with($this->localCache, !$this->isUX());
-    }
-
-    protected function isUX(): bool
-    {
-        $request = $this->requestStack->getCurrentRequest();
-
-        return $request ? str_starts_with($request->attributes->get("_route"), "ux_") : true;
-    }
-
-    /** A redirection of the route: the profiler left aside on an ux_ route, as redirectToRoute() did. */
-    protected function answer(Response $response): Response
-    {
-        if ($response instanceof RedirectResponse && $this->profiler !== null && $this->isUX()) {
-            $this->profiler->disable();
-        }
-
-        return $response;
+        $this->imageRoute = new ImageRoute($mediaService, $flysystem, $imageCropRepository, $localCache ?? true);
     }
 
     #[Route("/contents/{data}", name: "serve", requirements: ["data" => ".+"])]
@@ -133,8 +41,7 @@ class MediaController extends AbstractController
     #[Route("/images/cacheless/cropper/{identifier}/{data}", name: "imageCrop_cacheless", requirements: ["data" => ".+"])]
     public function ImageCropCacheless($data, string $identifier, ?string $extension = null): Response
     {
-        $this->localCache = false;
-        return $this->ImageCrop($data, $identifier, $extension);
+        return $this->answer($this->route(false)->imageCrop($data, $identifier, $extension));
     }
 
     #[Route("/images/cropper/{identifier}/{data}/image.{extension}", name: "imageCropExtension", requirements: ["data" => ".+"])]
@@ -147,8 +54,7 @@ class MediaController extends AbstractController
     #[Route("/images/cacheless/{data}/image.webp", name: "imageWebp_cacheless", requirements: ["data" => ".+"])]
     public function ImageWebpCacheless($data): Response
     {
-        $this->localCache = false;
-        return $this->ImageWebp($data);
+        return $this->answer($this->route(false)->imageWebp($data));
     }
 
     #[Route("/images/debug/{data}/image.{extension}", name: "debug_imageExtension", requirements: ["data" => ".+"])]
@@ -163,8 +69,7 @@ class MediaController extends AbstractController
     #[Route("/images/cacheless/{data}", name: "image_cacheless", requirements: ["data" => ".+"])]
     public function ImageCacheless($data, ?string $extension = null): Response
     {
-        $this->localCache = false;
-        return $this->Image($data, $extension);
+        return $this->answer($this->route(false)->image($data, $extension));
     }
 
     #[Route("/images/{data}/image.webp", name: "imageWebp", requirements: ["data" => ".+"])]
@@ -184,5 +89,28 @@ class MediaController extends AbstractController
     public function Image($data, ?string $extension = null, bool $debug = false): Response
     {
         return $this->answer($this->route()->image($data, $extension, $debug));
+    }
+
+    /** The image route for this request: the local cache (off on a cacheless route), the profiler kept off the ux_ routes. */
+    protected function route(?bool $localCache = null): ImageRoute
+    {
+        return $this->imageRoute->with($localCache, !$this->isUX());
+    }
+
+    protected function isUX(): bool
+    {
+        $request = $this->requestStack->getCurrentRequest();
+
+        return !$request || str_starts_with((string) $request->attributes->get("_route"), "ux_");
+    }
+
+    /** A redirection of the route: the profiler left aside on an ux_ route. */
+    protected function answer(Response $response): Response
+    {
+        if ($response instanceof RedirectResponse && null !== $this->profiler && $this->isUX()) {
+            $this->profiler->disable();
+        }
+
+        return $response;
     }
 }

@@ -2,42 +2,28 @@
 
 namespace Omnibridge\Symfony\Omnibase\Controller;
 
-use Base\Repository\Layout\ShortLinkRepository;
-use Base\Routing\AdvancedRouterInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Base\Attributes\Attribute\Route;
+use Base\Request\ShortLinkRedirect;
+use Omnibridge\Symfony\Omnibase\Response\AnswersOutcomes;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * A short link (s.<host>) under Symfony: omnibase's Base\Request\ShortLinkRedirect decides where it leads (plan
+ * "omnibase agnostic", step F5e slice 5b).
+ */
 class ShortLinkController extends AbstractController
 {
-    /**
-     * @var ShortLinkRepository
-     */
-    protected $shlinkRepository;
+    use AnswersOutcomes;
 
-    /**
-     * @var AdvancedRouterInterface
-     */
-    protected AdvancedRouterInterface $router;
-
-    public function __construct(AdvancedRouterInterface $router, ShortLinkRepository $shlinkRepository)
+    public function __construct(private readonly ShortLinkRedirect $shortLinks)
     {
-        $this->router = $router;
-        $this->shlinkRepository = $shlinkRepository;
     }
 
     #[Route("/{slug}", name: "shlink_redirect", subdomain: "s", priority: 1)]
     #[Route("/{slug}/{_locale}", name: "shlink_redirectByLocale", subdomain: "s", priority: 1)]
     public function Main(string $slug): Response
     {
-        /**
-         * @var ShortLink $this
-         */
-        $shlink = $this->shlinkRepository->findOneBySlug($slug);
-        if ($shlink === null) {
-            throw $this->createNotFoundException("Page requested doesn't exist.");
-        }
-
-        return $this->redirect($this->router->format($shlink->getUrl()));
+        return $this->answer($this->shortLinks->follow($slug));
     }
 }

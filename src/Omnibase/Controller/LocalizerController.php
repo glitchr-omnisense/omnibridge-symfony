@@ -3,12 +3,8 @@
 namespace Omnibridge\Symfony\Omnibase\Controller;
 
 use Base\Request\LocaleSwitch;
+use Base\Request\TimezoneSwitch;
 use Base\Routing\AdvancedRouterInterface;
-use Base\Service\ReferrerInterface;
-use Base\Service\LocalizerInterface;
-use Base\Service\TranslatorInterface;
-use Base\Subscriber\LocalizerSubscriber;
-use Omnibridge\Persistence\UnitOfWork;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,19 +13,17 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 
 /**
- * The language menu under Symfony: omnibase's Base\Request\LocaleSwitch decides (plan "omnibase agnostic", step
- * F5e slice 5) - the language, the member's own, the page to go back to -, the same omnibridge/laravel's
- * SwitchLocale asks; the route matched and generated, the flash and the cookie are Symfony's.
+ * The language menu and the time zone's choice under Symfony: omnibase's Base\Request\LocaleSwitch and TimezoneSwitch
+ * decide (plan "omnibase agnostic", step F5e slices 5a and 5b) - the language or the zone, the member's own, the page
+ * to go back to -, the same omnibridge/laravel's SwitchLocale asks; the route matched and generated, the flash and
+ * the cookies are Symfony's.
  */
 class LocalizerController extends AbstractController
 {
     public function __construct(
-        protected LocalizerInterface $localizer,
-        protected UnitOfWork $unitOfWork,
         protected AdvancedRouterInterface $router,
-        protected ReferrerInterface $referrer,
-        protected TranslatorInterface $translator,
         protected LocaleSwitch $switch,
+        protected TimezoneSwitch $timezones,
     ) {
     }
 
@@ -39,7 +33,7 @@ class LocalizerController extends AbstractController
      * address of its own. Without one ("/locale"), the choice is forgotten.
      */
     #[Route("/locale/{_locale}", name: "_switch_locale")]
-    public function Locale(Request $request, ReferrerInterface $referrer, ?string $_locale = null)
+    public function Locale(Request $request, ?string $_locale = null)
     {
         $locale = $this->switch->choose($_locale);
         if (null === $locale) {
@@ -59,46 +53,32 @@ class LocalizerController extends AbstractController
             $response->headers->setCookie(Cookie::create(LocaleSwitch::COOKIE, $locale, 0, "/", null, $request->isSecure(), false, false, Cookie::SAMESITE_LAX));
         }
         if ($_locale === null) {
-            $response->headers->clearCookie(LocalizerSubscriber::__LANG_IDENTIFIER__, "/");
+            $response->headers->clearCookie(LocaleSwitch::COOKIE, "/");
         }
 
         return $response;
     }
 
-    #[Route("/timezone/{_timezone}", name: "_switch_timezone")]
-    public function Timezone(Request $request, ReferrerInterface $referrer, ?string $_locale = null)
+    /**
+     * The visitor's time zone ("/timezone/Europe/Paris"): remembered (LOCATION/TIMEZONE, and a member's own), then the
+     * page they came from; a zone PHP does not know, the index; none ("/timezone"), the choice forgotten.
+     */
+    #[Route("/timezone/{_timezone}", name: "_switch_timezone", requirements: ["_timezone" => ".+"])]
+    public function Timezone(Request $request, ?string $_timezone = null): Response
     {
-        if ($_locale === null) {
-            setcookie(LocalizerSubscriber::__LANG_IDENTIFIER__, null);
-        }
-
-        $referrer->setUrl($_SERVER["HTTP_REFERER"] ?? null);
-        $referrerName = $this->router->getRouteName(strval($referrer));
-        $referrerParameters = array_filter($this->router->match(strval($referrer)), fn($a) => !str_starts_with($a, "_"), ARRAY_FILTER_USE_KEY);
-        $referrer->setUrl(null);
-
-        $availableLocales = array_merge($this->localizer->getAvailableLocaleLangs(), $this->localizer->getAvailableLocales());
-        if (in_array($_locale, $availableLocales)) {
-            setcookie('_locale', $_locale);
-            if (!$this->isGranted("IS_IMPERSONATOR")) {
-                $this->getUser()?->setLocale($this->localizer->getLocale($_locale));
-                $this->unitOfWork->flush();
+        $timezone = TimezoneSwitch::choose($_timezone);
+        if (null === $timezone) {
+            $response = $this->redirect($this->router->getUrlIndex());
+            if (null === $_timezone) {
+                $response->headers->clearCookie(TimezoneSwitch::COOKIE, "/");
             }
 
-            $this->addFlash("info", $this->translator->trans("@controllers.locale_changeto.action", [$this->localizer->getLocaleLangName($_locale)]));
-
-            if (!str_starts_with($referrerName, "_switch_timezone")) {
-                $referrer->setUrl(null);
-                $lang = $_locale ? "." . $this->localizer->getLocaleLang($_locale) : "";
-
-                try {
-                    return $this->redirect($this->router->generate($referrerName . $lang, $referrerParameters));
-                } catch (RouteNotFoundException $e) {
-                    return $this->redirect($this->router->generate($referrerName, $referrerParameters));
-                }
-            }
+            return $response;
         }
+        $this->timezones->remember($timezone);
+        $response = $this->redirect(TimezoneSwitch::back($request->headers->get("referer"), $request->getHost()) ?? $this->router->getUrlIndex());
+        $response->headers->setCookie(Cookie::create(TimezoneSwitch::COOKIE, $timezone, 0, "/", null, $request->isSecure(), false, false, Cookie::SAMESITE_LAX));
 
-        return $this->redirect($this->router->getUrlIndex());
+        return $response;
     }
 }

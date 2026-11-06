@@ -42,19 +42,22 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
 
     // Controllers
     $controllers = [
-        'Omnibridge\Symfony\Omnibase\Controller\MainController' => ['setting_bag'],
-        'Omnibridge\Symfony\Omnibase\Controller\ProfilerController' => ['base.notifier', 'App\Repository\UserRepository'],
-        'Omnibridge\Symfony\Omnibase\Controller\Client\ContactController' => ['form.proxy', 'base.notifier'],
-        'Omnibridge\Symfony\Omnibase\Controller\LocalizerController' => ['localizer', 'Omnibridge\Persistence\UnitOfWork', 'advanced_router', 'referrer', 'translator', 'Base\Request\LocaleSwitch'],
+        'Omnibridge\Symfony\Omnibase\Controller\MainController' => [],
+        'Omnibridge\Symfony\Omnibase\Controller\ProfilerController' => ['base.notifier', 'Base\Notifier\TestRecipient'],
+        'Omnibridge\Symfony\Omnibase\Controller\Client\ContactController' => ['form.proxy', 'Base\Notifier\ContactMessage'],
+        'Omnibridge\Symfony\Omnibase\Controller\LocalizerController' => ['advanced_router', 'Base\Request\LocaleSwitch', 'Base\Request\TimezoneSwitch'],
         'Omnibridge\Symfony\Omnibase\Controller\UX\MediaController' => ['request_stack', 'flysystem', 'base.service.image', 'Base\Repository\Layout\ImageCropRepository'],
-        'Omnibridge\Symfony\Omnibase\Controller\UX\AutocompleteController' => ['Base\Service\Obfuscator', 'request_stack', 'trading_market', 'translator', 'Omnibridge\Persistence\UnitOfWork', 'Base\Service\Paginator', 'Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator', 'Base\Field\Search\RemoteSearch', 'base.service.image'],
-        'Omnibridge\Symfony\Omnibase\Controller\WidgetController' => ['Base\Repository\Layout\Widget\AttachmentRepository'],
-        'Omnibridge\Symfony\Omnibase\Controller\ShortLinkController' => ['advanced_router', 'Base\Repository\Layout\ShortLinkRepository'],
+        'Omnibridge\Symfony\Omnibase\Controller\UX\AutocompleteController' => ['request_stack', 'Omnibridge\Persistence\UnitOfWork', 'Base\Field\Search\RemoteSearch', 'Base\Field\Search\ExchangeRate'],
+        'Omnibridge\Symfony\Omnibase\Controller\WidgetController' => ['Base\Request\AttachmentDownload'],
+        // The field's validation while a form is filled: never registered (constructor arguments, no service), so
+        // /ux/validation answered 500 (plan "omnibase agnostic", step F5e slice 5b).
+        'Omnibridge\Symfony\Omnibase\Controller\UX\AutovalidateController' => ['Base\Field\Validation\Autovalidate'],
+        'Omnibridge\Symfony\Omnibase\Controller\ShortLinkController' => ['Base\Request\ShortLinkRedirect'],
         // The like/follow/publish API. Was silently unregistered (constructor
         // arguments, no service): every /api/thread/{slug}/like answered 500
         // in production - "the like doesn't work".
-        'Omnibridge\Symfony\Omnibase\Controller\Api\ThreadController' => ['Omnibridge\Persistence\UnitOfWork', 'translator', 'Base\Repository\ThreadRepository', 'Base\Repository\Thread\LikeRepository'],
-        'Omnibridge\Symfony\Omnibase\Controller\Client\NotificationController' => ['Omnibridge\Persistence\UnitOfWork', 'Base\Repository\User\NotificationRepository', 'Base\Service\Push\WebPushService', 'security.csrf.token_manager', 'Base\Notifier\NotificationLinkerInterface'],
+        'Omnibridge\Symfony\Omnibase\Controller\Api\ThreadController' => ['Base\Thread\ThreadActions'],
+        'Omnibridge\Symfony\Omnibase\Controller\Client\NotificationController' => ['Base\Notifier\NotificationCenter'],
     ];
 
     foreach ($controllers as $id => $args) {
@@ -69,9 +72,9 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
             $definition->arg(4, new Reference('profiler', ContainerInterface::NULL_ON_INVALID_REFERENCE));
         }
         if ($id === 'Omnibridge\Symfony\Omnibase\Controller\UX\AutocompleteController') {
-            $definition->arg(9, new Reference('profiler', ContainerInterface::NULL_ON_INVALID_REFERENCE));
+            $definition->arg(4, new Reference('profiler', ContainerInterface::NULL_ON_INVALID_REFERENCE));
             // An entity whose repository is a plain Doctrine one is searched through omnibase's, built for it.
-            $definition->arg(10, service('doctrine'));
+            $definition->arg(5, service('doctrine'));
         }
     }
 

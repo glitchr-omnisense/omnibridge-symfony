@@ -34,24 +34,20 @@ final class AdapterSizeTest extends TestCase
     ];
 
     /**
-     * The controllers (step F5e, slice 5) still above it, each with its reason (the plan's §6 writes them too): those
-     * slice 5b empties, and those that stay above it with no rule of their own - glue of many routes.
+     * The controllers (step F5e, slice 5) still above it, each with its reason (the plan's §6 writes them too): glue
+     * of many routes, each decision a rule of the core's (twelve before slice 5b, eight after it).
      *
      * @var array<string, string>
      */
     public const CONTROLLERS_STILL_ABOVE = [
-        'Controller/Api/ThreadController.php' => 'slice 5b: the publication, follow and like API (Base\\Thread rules to come)',
-        'Controller/Client/NotificationController.php' => 'slice 5b: the push subscriptions and the service worker',
-        'Controller/Client/ThreadSearchController.php' => 'slice 5b: the search\'s terms and states',
+        'Controller/Client/NotificationController.php' => 'five routes of glue on Base\\Notifier\\NotificationCenter (slice 5b): the page\'s ScreenResponder and its legacy variables, the JSON answers, the service worker\'s headers',
         'Controller/Client/UserProfileController.php' => 'two pages\' glue: the profile form\'s errors from the core\'s RecordRules and the screen\'s legacy variables; whose profile is ProfileAccess\'s',
-        'Controller/Client/UserSettingsController.php' => 'slice 5b: the second factor, passkeys and sessions',
-        'Controller/ErrorController.php' => 'slice 5b: the error page\'s choice (debug, preview, the back office\'s)',
-        'Controller/LocalizerController.php' => 'the language menu is LocaleSwitch\'s; /timezone/{_timezone} kept as it was (it reads a _locale its path never carries), slice 5b',
+        'Controller/Client/UserSettingsController.php' => 'eight routes of glue on Base\\Auth\\Account\\{SecondFactor, Devices} (slice 5b): Symfony\'s form, scheb\'s TOTP authenticator (the secret, the code\'s check, the QR\'s content), the PNG answers, the settings\' ScreenResponder',
         'Controller/SecurityController.php' => 'seventeen routes of glue: Symfony\'s forms, the firewall\'s sign-out token, the authenticator; every decision is Base\\Auth\\Account\'s',
-        'Controller/UX/AutocompleteController.php' => 'slice 5b: the exchange rate\'s token and the repository a picker reads',
+        'Controller/UX/AutocompleteController.php' => 'three routes of glue on Base\\Field\\Search\\{RemoteSearch, ExchangeRate} (F5d, slice 5b): the profiler kept out, the icon provider, the omnibase repository built for a plain Doctrine one',
         'Controller/UX/DropzoneController.php' => 'three routes of glue on Base\\Field\\Upload\\Dropzone (F5d); the preview\'s caching headers',
         'Controller/UX/EditorController.php' => 'seven routes of glue on Base\\Field\\Editor\\EditorJs (F5d)',
-        'Controller/UX/MediaController.php' => 'slice 5b: the image routes\' cacheless variants and the profiler (ImageRoute decides)',
+        'Controller/UX/MediaController.php' => 'fourteen routes of glue on Base\\Service\\ImageRoute (R6, slice 5b): the cacheless variants, the editor\'s debug image through Security, the profiler kept off an ux_ route; MediaService calls these actions by name',
     ];
 
     public function testTheAdaptersStayOfAnAdaptersSize(): void
