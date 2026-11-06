@@ -45,7 +45,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         'Omnibridge\Symfony\Omnibase\Controller\MainController' => ['setting_bag'],
         'Omnibridge\Symfony\Omnibase\Controller\ProfilerController' => ['base.notifier', 'App\Repository\UserRepository'],
         'Omnibridge\Symfony\Omnibase\Controller\Client\ContactController' => ['form.proxy', 'base.notifier'],
-        'Omnibridge\Symfony\Omnibase\Controller\LocalizerController' => ['localizer', 'Omnibridge\Persistence\UnitOfWork', 'advanced_router', 'referrer', 'translator'],
+        'Omnibridge\Symfony\Omnibase\Controller\LocalizerController' => ['localizer', 'Omnibridge\Persistence\UnitOfWork', 'advanced_router', 'referrer', 'translator', 'Base\Request\LocaleSwitch'],
         'Omnibridge\Symfony\Omnibase\Controller\UX\MediaController' => ['request_stack', 'flysystem', 'base.service.image', 'Base\Repository\Layout\ImageCropRepository'],
         'Omnibridge\Symfony\Omnibase\Controller\UX\AutocompleteController' => ['Base\Service\Obfuscator', 'request_stack', 'trading_market', 'translator', 'Omnibridge\Persistence\UnitOfWork', 'Base\Service\Paginator', 'Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator', 'Base\Field\Search\RemoteSearch', 'base.service.image'],
         'Omnibridge\Symfony\Omnibase\Controller\WidgetController' => ['Base\Repository\Layout\Widget\AttachmentRepository'],

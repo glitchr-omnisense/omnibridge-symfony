@@ -3,9 +3,9 @@
 namespace Omnibridge\Symfony\Omnibase\Controller;
 
 use App\Repository\UserRepository;
-use Base\Demo\DemoAccountRegistry;
+use Base\Auth\Account\Outcome;
 use Base\Demo\DemoMode;
-use Base\Entity\User\Notification;
+use Base\Demo\DemoSignIn;
 use Base\Security\LoginFormAuthenticator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,51 +18,29 @@ use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
  * Signing in as a demonstration account in one click: the buttons of the
  * sign-in page's "Demonstration accounts" panel (@Base/demo/_accounts.html.twig).
  *
- * The route exists in the `demo` environment only. It is a POST carrying a
- * CSRF token - never a link: a GET that signs in is followed by a prefetch,
- * a crawler, a preview. Only a declared account is signed in, and never one
- * that opens the back office (base.demo.admin_roles) or whose roles reach
- * ROLE_SUPERADMIN: those sign in with their secret (DemoBackOfficeSubscriber).
+ * Which account, if any, is omnibase's DemoSignIn's decision (plan "omnibase agnostic", step F5e slice 5):
+ * the `demo` environment, the token, a declared account that opens no back office. The route exists in the
+ * `demo` environment only; the sign-in is Symfony's authenticator.
  */
 class DemoController extends AbstractController
 {
-    public const CSRF = 'demo_login';
+    public const CSRF = DemoSignIn::TOKEN;
 
     #[Route('/login/demo', name: 'security_loginDemo', methods: ['POST'], env: DemoMode::ENVIRONMENT)]
-    public function Login(Request $request, DemoMode $demo, DemoAccountRegistry $accounts, UserRepository $users, UserAuthenticatorInterface $userAuthenticator, LoginFormAuthenticator $authenticator): Response
+    public function Login(Request $request, DemoSignIn $demo, UserRepository $users, UserAuthenticatorInterface $userAuthenticator, LoginFormAuthenticator $authenticator): Response
     {
-        if (!$demo->isActive()) {
-            throw $this->createNotFoundException();
-        }
+        $outcome = $demo->decide($request->request->get('_token'), $request->request->get('account'), static function (string $identifier) use ($users): ?object {
+            try {
+                return $users->loadUserByIdentifier($identifier);
+            } catch (UserNotFoundException) {
+                return null;
+            }
+        });
 
-        if (!$this->isCsrfTokenValid(self::CSRF, (string) $request->request->get('_token'))) {
-            return $this->refuse('@notifications.demo.expired');
-        }
-
-        $account = $accounts->get((string) $request->request->get('account'));
-        if (null === $account) {
-            return $this->refuse('@notifications.demo.unknown');
-        }
-
-        try {
-            $user = $users->loadUserByIdentifier($account->identifier);
-        } catch (UserNotFoundException) {
-            return $this->refuse('@notifications.demo.unknown');
-        }
-
-        // The back office is not offered at a click - declared with its role, or promoted since.
-        if ($accounts->isSuperAdmin($user) || $accounts->isAdministrator($user) || $accounts->reachesAdministration($account->getAllRoles())) {
-            return $this->refuse('@notifications.demo.unknown');
-        }
-
-        return $userAuthenticator->authenticateUser($user, $authenticator, $request)
-            ?? $this->redirectToRoute($this->getParameter('base.site.index'));
-    }
-
-    private function refuse(string $message): Response
-    {
-        (new Notification($message))->send('warning');
-
-        return $this->redirectToRoute(LoginFormAuthenticator::LOGIN_ROUTE);
+        return match ($outcome->kind) {
+            Outcome::SIGNED_IN => $userAuthenticator->authenticateUser($outcome->signIn, $authenticator, $request) ?? $this->redirectToRoute($this->getParameter('base.site.index')),
+            Outcome::ROUTE => $this->redirectToRoute((string) $outcome->route),
+            default => throw $this->createNotFoundException(),
+        };
     }
 }

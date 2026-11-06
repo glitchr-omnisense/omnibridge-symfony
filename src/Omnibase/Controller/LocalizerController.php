@@ -2,6 +2,7 @@
 
 namespace Omnibridge\Symfony\Omnibase\Controller;
 
+use Base\Request\LocaleSwitch;
 use Base\Routing\AdvancedRouterInterface;
 use Base\Service\ReferrerInterface;
 use Base\Service\LocalizerInterface;
@@ -15,25 +16,21 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 
+/**
+ * The language menu under Symfony: omnibase's Base\Request\LocaleSwitch decides (plan "omnibase agnostic", step
+ * F5e slice 5) - the language, the member's own, the page to go back to -, the same omnibridge/laravel's
+ * SwitchLocale asks; the route matched and generated, the flash and the cookie are Symfony's.
+ */
 class LocalizerController extends AbstractController
 {
-    /**
-     * @var LocalizerInterface
-     */
-    protected LocalizerInterface $localizer;
-
-    protected AdvancedRouterInterface $router;
-    protected ReferrerInterface $referrer;
-    protected TranslatorInterface $translator;
-    protected UnitOfWork $unitOfWork;
-
-    public function __construct(LocalizerInterface $localizer, UnitOfWork $unitOfWork, AdvancedRouterInterface $router, ReferrerInterface $referrer, TranslatorInterface $translator)
-    {
-        $this->localizer = $localizer;
-        $this->router = $router;
-        $this->referrer = $referrer;
-        $this->translator = $translator;
-        $this->unitOfWork = $unitOfWork;
+    public function __construct(
+        protected LocalizerInterface $localizer,
+        protected UnitOfWork $unitOfWork,
+        protected AdvancedRouterInterface $router,
+        protected ReferrerInterface $referrer,
+        protected TranslatorInterface $translator,
+        protected LocaleSwitch $switch,
+    ) {
     }
 
     /**
@@ -44,52 +41,26 @@ class LocalizerController extends AbstractController
     #[Route("/locale/{_locale}", name: "_switch_locale")]
     public function Locale(Request $request, ReferrerInterface $referrer, ?string $_locale = null)
     {
-        $response = $this->switchLocale($request, $referrer, $_locale);
+        $locale = $this->switch->choose($_locale);
+        if (null === $locale) {
+            $response = $this->redirect($this->router->getUrlIndex());
+        } else {
+            $this->addFlash("info", $this->switch->remember((string) $_locale, $locale));
+            $path = LocaleSwitch::referred($request->headers->get("referer"), $request->getHost());
+            foreach ($this->switch->back(null !== $path ? $this->router->getRouteMatch($path) : null, (string) $_locale) as [$name, $parameters]) {
+                try {
+                    $response = $this->redirect($this->router->generate($name, $parameters));
+                    break;
+                } catch (RouteNotFoundException) {
+                }
+            }
+            $response ??= $this->redirect($this->router->getUrlIndex());
+            // The choice, for every page that has no language of its own in its address.
+            $response->headers->setCookie(Cookie::create(LocaleSwitch::COOKIE, $locale, 0, "/", null, $request->isSecure(), false, false, Cookie::SAMESITE_LAX));
+        }
         if ($_locale === null) {
             $response->headers->clearCookie(LocalizerSubscriber::__LANG_IDENTIFIER__, "/");
         }
-
-        return $response;
-    }
-
-    private function switchLocale(Request $request, ReferrerInterface $referrer, ?string $_locale): Response
-    {
-        $availableLocales = array_merge($this->localizer->getAvailableLocaleLangs(), $this->localizer->getAvailableLocales());
-        if (!in_array($_locale, $availableLocales)) {
-            return $this->redirect($this->router->getUrlIndex());
-        }
-
-        $locale = $this->localizer->getLocale($_locale);
-        if (!$this->isGranted("IS_IMPERSONATOR")) {
-            $this->getUser()?->setLocale($locale);
-            $this->unitOfWork->flush();
-        }
-
-        $this->addFlash("info", $this->translator->trans("@controllers.locale_changeto.action", [$this->localizer->getLocaleLangName($_locale)]));
-
-        // Back to the page the visitor came from, at its address in that language if it has one.
-        $response = null;
-        $from = $request->headers->get("referer");
-        $host = $from ? parse_url($from, PHP_URL_HOST) : null;
-        $path = $from && (!$host || $host === $request->getHost()) ? (parse_url($from, PHP_URL_PATH) ?: "/") : null;
-        $match = $path !== null ? $this->router->getRouteMatch($path) : null;
-        $referrerName = $match["_canonical_route"] ?? $match["_route"] ?? null;
-        if ($referrerName && !str_starts_with($referrerName, "_switch_locale")) {
-            foreach ($this->localizer->getAvailableLocaleLangs() as $available) {
-                $referrerName = str_ends_with($referrerName, "." . $available) ? substr($referrerName, 0, -strlen("." . $available)) : $referrerName;
-            }
-            $referrerParameters = array_filter($match, fn($a) => !str_starts_with($a, "_"), ARRAY_FILTER_USE_KEY);
-            $lang = "." . $this->localizer->getLocaleLang($_locale);
-            try {
-                $response = $this->redirect($this->router->generate($referrerName . $lang, $referrerParameters));
-            } catch (RouteNotFoundException $e) {
-                $response = $this->redirect($this->router->generate($referrerName, $referrerParameters));
-            }
-        }
-        $response ??= $this->redirect($this->router->getUrlIndex());
-
-        // The choice, for every page that has no language of its own in its address.
-        $response->headers->setCookie(Cookie::create(LocalizerSubscriber::__LANG_IDENTIFIER__, $locale, 0, "/", null, $request->isSecure(), false, false, Cookie::SAMESITE_LAX));
 
         return $response;
     }

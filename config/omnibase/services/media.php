@@ -39,26 +39,29 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ->call('setContainer', [new Reference('Psr\Container\ContainerInterface')])
         ->args([
             new Reference('advanced_router'),
-            new Reference('setting_bag'),
             new Reference('twig'),
-            new Reference('translator'),
             new Reference('form.proxy'),
+            new Reference('Base\Auth\Account\RescuePage'),
         ]);
 
     $services->set('Omnibridge\Symfony\Omnibase\Controller\SecurityController')
         ->tag('controller.service_arguments')
         ->tag('container.service_subscriber')
         ->call('setContainer', [new Reference('Psr\Container\ContainerInterface')])
+        // The account's rules, written once for every host (omnibase's Base\Auth\Account, plan "omnibase agnostic",
+        // step F5e slice 5), then what stays Symfony's.
         ->args([
-            new Reference('base.notifier'),
-            new Reference('Omnibridge\Persistence\UnitOfWork'),
-            new Reference('Base\Repository\User\TokenRepository'),
-            new Reference('App\Repository\UserRepository'),
+            new Reference('Base\Auth\Account\SignIn'),
+            new Reference('Base\Auth\Account\SignOutPage'),
+            new Reference('Base\Auth\Account\AlreadySignedIn'),
+            new Reference('Base\Auth\Account\Verification'),
+            new Reference('Base\Auth\Account\Closing'),
+            new Reference('Base\Auth\Account\Passwords'),
+            new Reference('Base\Auth\Account\WaitingPages'),
             new Reference('advanced_router'),
             new Reference('form.proxy'),
-            new Reference('security.token_storage'),
-            new Reference('translator'),
             new Reference('parameter_bag'),
+            new Reference('referrer'),
         ]);
 
     // Subscribers
