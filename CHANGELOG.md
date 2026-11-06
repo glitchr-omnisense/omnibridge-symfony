@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added: `omnibridge:schema:create` (omnisense/omnibase's plan "omnibase agnostic", step F7a)
+
+- `Omnibase\Console\Command\SchemaCreateCommand` (an adapter, within AdapterSizeTest's threshold) and
+  `Omnibase\Console\InstalledEntities` (where Doctrine's configuration says the entities are: the attribute drivers'
+  paths, the targets resolved, the enumerations DBAL has), registered with omnibase 5.0: the installed entities' tables
+  created in the empty database from their description (omnibase's `EntitySchema`, omnisense/omnibridge's
+  `SchemaCreator`), no SchemaTool; `--dump-sql`; a database holding a table of the description refused. On lesringostars
+  (MySQL, 132 tables): information_schema equal to the database doctrine:schema:create makes, column for column; the
+  core's SchemaCreateCommandTest runs it in the harness and in lesringostars' suite.
+
 ### Changed: the other controllers answer the core's rules (omnisense/omnibase's plan "omnibase agnostic", step F5e, slice 5b)
 
 - `Omnibase\Controller\Client\{UserSettingsController, NotificationController, ThreadSearchController,

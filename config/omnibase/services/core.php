@@ -468,6 +468,14 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         }
     }
 
+    // omnibridge:schema:create (plan "omnibase agnostic", step F7a): the installed entities' tables from their
+    // description, where the core describes them with no persistence (5.x) and omnisense/omnibridge writes them.
+    if (class_exists(\Base\Database\Schema\EntitySchema::class) && class_exists(\Omnibridge\Schema\Database\SchemaCreator::class)) {
+        $services->set(\Omnibridge\Symfony\Omnibase\Console\Command\SchemaCreateCommand::class)
+            ->args([service('doctrine.orm.entity_manager'), '%kernel.project_dir%'])
+            ->tag('console.command');
+    }
+
     // Console commands
     $services->set('Base\Console\Command\UserNotificationCommand')
         ->parent('Base\Console\Command')
