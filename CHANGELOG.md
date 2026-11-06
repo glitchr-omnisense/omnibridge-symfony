@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### Added: the persistence chosen, Eloquent's when it is the one (omnisense/omnibase's plan "omnibase agnostic", step F7d)
+
+- `Omnibase\DependencyInjection\Persistence`: omnibase's option `base.persistence` (config/packages/base.yaml, an
+  `%env()%` resolved when the container is compiled), chosen by omnisense/omnibridge's `Persistences` - the only one
+  installed, else the one named; omnibridge/doctrine and omnibridge/eloquent both installed and none named refused
+  aloud. The parameter `base.persistence` is the name chosen. On `eloquent`: omnibridge/eloquent's persistence
+  (`Omnibase\Persistence\EloquentHost`: Doctrine's PDO where DoctrineBundle is installed beside, else Capsule on
+  DATABASE_URL; the entities DoctrineBundle maps; omnibase's lifecycle from a service locator of the host's services
+  and the entity dispatchers tagged base.entity_dispatcher; the trash and vault scopes; kernel.reset) behind
+  `UnitOfWork`, `Snapshots`, `Backend`, the deprecated union `EntityManagerInterface|UnitOfWork`, `Repositories` and
+  the core's repository interfaces. Doctrine's wiring is unchanged.
+- `Compiler\Pass\EloquentPersistencePass`: on Eloquent, an `entity` user provider of security.yaml for the
+  application's users (no `property`, no `manager_name`) is the users' repository on Eloquent (it answers Security's
+  loader and provider methods as Doctrine's does).
+- What still names Doctrine's services by their ids (doctrine.orm.entity_manager, a repository by its class, the
+  AttributeReader) stays on Doctrine: listed by omnibase's plan, step F7d.
+
 ### Added: `omnibridge:schema:create` (omnisense/omnibase's plan "omnibase agnostic", step F7a)
 
 - `Omnibase\Console\Command\SchemaCreateCommand` (an adapter, within AdapterSizeTest's threshold) and
