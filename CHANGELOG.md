@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+### Changed: the other controllers answer the core's rules (omnisense/omnibase's plan "omnibase agnostic", step F5e, slice 5b)
+
+- `Omnibase\Controller\Client\{UserSettingsController, NotificationController, ThreadSearchController,
+  UserSearchController, ContactController}`, `Api\ThreadController`, `UX\{AutovalidateController,
+  AutocompleteController, MediaController}`, `ProfilerController`, `ErrorController`, `WidgetController`,
+  `ShortLinkController`, `SitemapController`, `MainController` and `LocalizerController::Timezone()` keep their routes
+  and names and ask omnibase's rules - `Base\Auth\Account\{SecondFactor, Devices, MemberSearch}`,
+  `Base\Thread\{ThreadActions, ThreadSearch}`, `Base\Notifier\{NotificationCenter, ContactMessage, TestRecipient}`,
+  `Base\Request\{TimezoneSwitch, ErrorPage, ShortLinkRedirect, AttachmentDownload, SitemapPage}`, `Base\Screen\Welcome`,
+  `Base\Field\Validation\Autovalidate`, `Base\Field\Search\ExchangeRate`; what stays here is Symfony's: the forms,
+  scheb's TOTP authenticator, the error renderer and Twig's loader, the profiler, the responses. Their constructors (and
+  config/omnibase/services/{core,media}.php) take the rules; ThreadSearchController keeps its three former arguments
+  for an application's controller that extends it. Lines of code: UserSettingsController 228 -> 92,
+  Api\ThreadController 179 -> 56, NotificationController 121 -> 66, MediaController 119 -> 89, AutocompleteController
+  116 -> 72, ThreadSearchController 72 -> 31, ErrorController 64 -> 51, LocalizerController 81 -> 60 (the others were
+  already below the threshold: SitemapController 15, MainController 17, ShortLinkController 20, WidgetController 22,
+  ProfilerController 24, UserSearchController 28, AutovalidateController 29, ContactController 31).
+- `/timezone/{_timezone}` (LocalizerController::Timezone()) works: a zone PHP knows kept in LOCATION/TIMEZONE and as
+  a member's own, back to the referring page; its route takes a zone's slash (`requirements: _timezone: .+`), and
+  `/timezone` alone forgets the choice. It read a `_locale` its path never carried and only went to the index.
+- AutovalidateController is wired (it never was: /ux/validation answered 500 whatever it was sent). A short link no
+  longer answers 500 (the router method it called does not exist).
+- tests/AdapterSizeTest: `CONTROLLERS_STILL_ABOVE` lists eight (twelve before), each with its reason - glue of many
+  routes on the core's rules.
+
 ### Changed: the account's controllers answer the core's rules (omnisense/omnibase's plan "omnibase agnostic", step F5e, slice 5a)
 
 - `Omnibase\Controller\{SecurityController, LocalizerController, RescueController, DemoController}` and

@@ -23,7 +23,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ->args([
             new Reference('error_handler.error_renderer.html'),
             new Reference('advanced_router'),
-            new Reference('Omnibridge\Contract\Environment'),
+            new Reference('Base\Request\ErrorPage'),
             new Reference('request_stack'),
             new Reference('profiler', ContainerInterface::IGNORE_ON_INVALID_REFERENCE)
         ]);

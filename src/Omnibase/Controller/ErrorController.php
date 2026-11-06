@@ -2,111 +2,61 @@
 
 namespace Omnibridge\Symfony\Omnibase\Controller;
 
-use Omnibridge\Contract\Environment;
-use Base\Service\Model\DevelopmentEnvironment;
-
+use Base\Request\ErrorPage;
 use Base\Routing\AdvancedRouterInterface;
-use Error;
-use ErrorException;
-use Exception;
-
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\ErrorHandler\ErrorRenderer\HtmlErrorRenderer;
 use Symfony\Component\ErrorHandler\Exception\FlattenException;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Profiler\Profiler;
-use Twig\Error\LoaderError;
 use Throwable;
+use Twig\Error\LoaderError;
 
+/**
+ * The error page under Symfony: omnibase's Base\Request\ErrorPage decides which (plan "omnibase agnostic", step F5e
+ * slice 5b) - the debug page for the site's developers, else the back office's or the site's -; Symfony's error
+ * renderer draws the debug page, under the error's own status (403, 422, 404; 500 for what is no HTTP error).
+ */
 class ErrorController extends AbstractController
 {
-    private Environment $environment;
-    private AdvancedRouterInterface $router;
-    private HtmlErrorRenderer $htmlErrorRenderer;
-    private RequestStack $requestStack;
-    private ?Profiler $profiler;
-
-    /** The Environment contract, where it asked BaseService whether it runs for its developers (plan "omnibase agnostique", C9). */
-    public function __construct(HtmlErrorRenderer $htmlErrorRenderer, AdvancedRouterInterface $router, Environment $environment, RequestStack $requestStack, ?Profiler $profiler = null)
-    {
-        $this->environment = $environment;
-        $this->router = $router;
-        $this->htmlErrorRenderer = $htmlErrorRenderer;
-        $this->requestStack = $requestStack;
-        $this->profiler = $profiler;
+    public function __construct(
+        private readonly HtmlErrorRenderer $htmlErrorRenderer,
+        private readonly AdvancedRouterInterface $router,
+        private readonly ErrorPage $errorPage,
+        private readonly RequestStack $requestStack,
+        private readonly ?Profiler $profiler = null,
+    ) {
     }
 
-    /**
-     * @param Throwable $exception
-     * @return Response
-     * @throws Exception
-     */
-    public function Main(Throwable $exception)
+    public function Main(Throwable $exception): Response
     {
         try {
-            $isPreview = $this->router->getRouteName() === "_preview_error";
-
-            if (DevelopmentEnvironment::is($this->environment) && !$isPreview) {
-                $response = $this->Rescue($exception);
-            } else {
-                $response = $this->renderException(FlattenException::createFromThrowable($exception));
+            $page = $this->errorPage->choose($this->router->getRouteName(), $this->requestStack->getCurrentRequest()?->getPathInfo() ?? '');
+            if (ErrorPage::RESCUE === $page) {
+                return $this->Rescue($exception);
             }
-        } catch (Error|Exception|ErrorException $fatalException) {
-            throw new Exception("Twig rendering engine failed (" . trim($fatalException->getMessage(), ".") . ") following a first exception. (see below)", 500, $exception);
-            $response = $this->Rescue($exception);
+            $flattenException = FlattenException::createFromThrowable($exception);
+            foreach ($page as $i => $template) {
+                try {
+                    return $this->render($template, ['flattenException' => $flattenException]);
+                } catch (LoaderError $loaderError) {
+                    // The back office's page missing (omnibase/admin not installed): the site's.
+                    if ($i === \count($page) - 1) {
+                        throw $loaderError;
+                    }
+                }
+            }
+        } catch (\Throwable $fatalException) {
+            throw new \Exception("Twig rendering engine failed (".trim($fatalException->getMessage(), ".").") following a first exception. (see below)", 500, $exception);
         }
 
-        // NB: Remember this might be annoying sometimes..
-        // $notification = new Notification($exception);
-        // if (DevelopmentEnvironment::is($this->environment)) $notification->send("danger");
-        // if (DevelopmentEnvironment::is($this->environment)) dump($exception);
-
-        return $response;
+        throw new \LogicException('No error page.');
     }
 
-
-    /**
-     * @admin/* path errors get the admin's own chrome instead of the
-     * front-end's exception.html.twig - matched by request PATH, not the
-     * resolved route name: a genuinely unmatched 404 never gets a
-     * "_route" attribute set at all, so route-name-based admin detection
-     * (AdvancedRouter::isAdmin()) silently misses exactly the most
-     * common admin error case (a bad/typo'd /admin/... URL). Falls back
-     * to the front-end template if base-bundle-admin isn't installed (no
-     * "@Admin" Twig namespace registered) or its error.html.twig is
-     * missing for any other reason.
-     */
-    private function renderException(FlattenException $flattenException): Response
-    {
-        $path = $this->requestStack->getCurrentRequest()?->getPathInfo() ?? '';
-
-        if (str_starts_with($path, '/admin')) {
-            try {
-                return $this->render('@Admin/error.html.twig', ['flattenException' => $flattenException]);
-            } catch (LoaderError $loaderError) {
-                // no-op: fall through to the front-end template below
-            }
-        }
-
-        return $this->render('exception.html.twig', ['flattenException' => $flattenException]);
-    }
-
-    /**
-     * The debug page of an error, under the error's own status: 403 for a
-     * refusal, 422 for a payload that does not validate, 404 for a page that
-     * does not exist, 500 for anything that is not an HTTP error.
-     *
-     * It answered 404 whatever the error. A response that is already a client
-     * error is kept as it is by the kernel, so in debug (dev, and the tests)
-     * every refusal and every validation failure of a signed-in user read as
-     * "not found" - while production, whose page is rendered with a 200 the
-     * kernel then replaces, gave the right one.
-     */
     public function Rescue(Throwable $exception): Response
     {
         $this->profiler?->disable();
-
         $flattenException = $this->htmlErrorRenderer->render($exception);
 
         return new Response($flattenException->getAsString(), $flattenException->getStatusCode(), $flattenException->getHeaders());

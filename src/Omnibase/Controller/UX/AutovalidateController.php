@@ -2,61 +2,41 @@
 
 namespace Omnibridge\Symfony\Omnibase\Controller\UX;
 
-use Base\Contract\Runtime;
-use Hashids\Hashids;
-use Omnibridge\Persistence\UnitOfWork;
+use Base\Field\Validation\Autovalidate;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\HttpFoundation\Response;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 
+/**
+ * A field's validation while the form is filled, under Symfony: omnibase's Base\Field\Validation\Autovalidate decides
+ * (plan "omnibase agnostic", step F5e slice 5b) - the payload, its token, the method expected.
+ */
 #[Route(priority: -1)]
 class AutovalidateController extends AbstractController
 {
-    private TranslatorInterface $translator;
-    private UnitOfWork $unitOfWork;
-    private Hashids $hashIds;
-
-    public function __construct(TranslatorInterface $translator, UnitOfWork $unitOfWork)
+    public function __construct(private readonly Autovalidate $autovalidate)
     {
-        $this->hashIds = new Hashids(Runtime::environment()->secret());
-        $this->unitOfWork = $unitOfWork;
-        $this->translator = $translator;
     }
 
+    /** @param array<string, mixed> $array */
     public function encode(array $array): string
     {
-        $hex = bin2hex(serialize($array));
-        return $this->hashIds->encodeHex($hex);
+        return $this->autovalidate->encode($array);
     }
 
+    /** @return array<string, mixed> */
     public function decode(string $hash): array
     {
-        $hex = $this->hashIds->decodeHex($hash);
-        return $hex ? unserialize(hex2bin($hex)) : [];
+        return $this->autovalidate->decode($hash);
     }
 
-    #[Route("/ux/validation/{hashid}", name:"ux_validation")]
+    #[Route("/ux/validation/{hashid}", name: "ux_validation")]
     public function Main(Request $request, string $hashid): Response
     {
-        $dict = $this->decode($hashid);
-        $token = $dict["token"] ?? null;
-        $value = $dict["value"] ?? null;
-        $formType = $dict["form_type"] ?? null;
+        $json = $this->autovalidate->answer($hashid, $request->getMethod());
 
-        $expectedMethod = Runtime::environment()->isDebug() ? "GET" : "POST";
-        if ($this->isCsrfTokenValid("validation", $token) && $request->getMethod() == $expectedMethod) {
-            $array = ["status" => "Fine"];
-            return new JsonResponse($array);
-        }
-
-        /*
-         * Add some checks here.
-         */
-        
-        return new JsonResponse("Invalid request", 500);
+        return new JsonResponse($json->data, $json->status);
     }
 }
