@@ -25,6 +25,11 @@ class BaseConfiguration extends AbstractBaseConfiguration
                 ->info('Automatically clear cache in case of integrity issue')
                 ->defaultValue(true)
             ->end()
+            // Plan "omnibase agnostic", step F7d (the core's declaration has it since then): the tree stays its twin.
+            ->scalarNode('persistence')
+                ->info('The persistence: doctrine or eloquent (null: the only one installed; required when both are)')
+                ->defaultValue(null)
+            ->end()
 
             ->arrayNode('database')->addDefaultsIfNotSet()
             ->children()

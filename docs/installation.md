@@ -31,6 +31,21 @@ Nothing to register: omnibase's `BaseBundle` imports this package's `config/serv
 omniauth extension (`OmniauthExtension::register()`) and seeds `Omnibridge\Runtime` itself. Do not
 add `OmnibridgeBundle` to `config/bundles.php` there.
 
+The persistence is omnibase's option `base.persistence` (omnisense/omnibase's plan "omnibase agnostic", step F7d):
+the only one installed when it names none; with omnibridge/doctrine and omnibridge/eloquent both installed it must
+name one (`doctrine` or `eloquent`) - or, where it names none, the environment variable `OMNIBRIDGE_PERSISTENCE` -,
+the container refuses to compile otherwise. Read when the container is compiled:
+an `%env(OMNIBASE_PERSISTENCE)%` there needs a cache:clear after a change.
+
+```yaml
+# config/packages/base.yaml
+base:
+    persistence: eloquent
+```
+
+On Eloquent the core's contracts answer from omnibridge/eloquent (its docs/hosts.md); an `entity` user provider of the
+application's users becomes the users' repository on Eloquent.
+
 ## In a Symfony application without omnibase
 
 ```sh

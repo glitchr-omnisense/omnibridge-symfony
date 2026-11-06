@@ -58,6 +58,13 @@ class BaseExtension extends AbstractBaseExtension implements PrependExtensionInt
 
         $this->setConfiguration($container, $config, $configuration->getTreeBuilder()->getRootNode()->getNode()->getName());
 
+        // The persistence (plan "omnibase agnostic", step F7d): base.persistence, required when omnibridge/doctrine and
+        // omnibridge/eloquent are both installed; Eloquent's services in place of Doctrine's behind the contracts.
+        // A site whose omnisense/omnibridge predates the choice (a 4.x site's lock) runs on Doctrine, as before.
+        if (class_exists(\Omnibridge\Persistence\Persistences::class)) {
+            Persistence::register($container, Persistence::choose($container, $config['persistence'] ?? null));
+        }
+
         // Override and merge form_themes.. to add some features.. Where TwigBundle is registered: Twig is
         // optional in the core (plan "omnibase agnostic", F4), and so are its form themes.
         if ($container->hasParameter('twig.form.resources')) {
