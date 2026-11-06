@@ -1,12 +1,14 @@
 <?php
 
+use Omnibridge\Symfony\Omnibase\DependencyInjection\Declarations;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
-return static function (ContainerConfigurator $container): void {
+return static function (ContainerConfigurator $container, ContainerBuilder $builder): void {
     $services = $container->services();
 
     $services->defaults()
@@ -29,55 +31,10 @@ return static function (ContainerConfigurator $container): void {
         ->decorate('parameter_bag')
         ->public(true);
 
-    // Translator services
-    $services->alias('Base\Service\TranslatorInterface', 'Base\Service\Translator');
 
-    // Defined from Base\Services (config/services-list.php); under Symfony it decorates the framework's translator.
-    $services->get('Base\Service\Translator')
-        ->autowire(false)
-        ->decorate('translator')
-        ->public(true)
-        ->tag('twig.runtime')
-        ->args([
-            new Reference('.inner'),
-            // Whether the kernel debugs, through omnibridge's Environment (plan "omnibase agnostic", F5a).
-            new Reference('Omnibridge\Contract\Environment'),
-            new Reference('parameter_bag'),
-            // How the site addresses people (base.translator.politeness: plain, polite, formal - or nothing).
-            '%base.translator.politeness%',
-        ]);
-
-    // Twig: omnibase's app variable and loader, with Twig only, a suggestion of the core
-    // (config/services/twig.php).
-    if (class_exists(\Twig\Environment::class)) {
-        // Twig AppVariable
-        $services->set('Base\Twig\AppVariable')
-            ->decorate('twig.app_variable')
-            ->public(true)
-            ->tag('twig.runtime')
-            ->args([
-                new Reference('.inner'),
-                new Reference('twig.random_variable'),
-                new Reference('twig.site_variable'),
-                new Reference('twig.email_variable'),
-                new Reference('twig.admin_variable'),
-                new Reference('setting_bag'),
-                new Reference('parameter_bag'),
-                new Reference('referrer'),
-                new Reference('twig'),
-                new Reference('localizer'),
-                new Reference('themizer'),
-            ]);
-
-        // Twig Loader
-        $services->set('Base\Twig\Loader\FilesystemLoader')
-            ->decorate('twig.loader.native_filesystem')
-            ->args([
-                new Reference('.inner'),
-                new Reference('parameter_bag'),
-                '%kernel.project_dir%',
-            ]);
-    }
+    // The core's (Base\Services, group "decoration"; plan "omnibase agnostic", step F5e slice 4): omnibase's app variable,
+    // Twig loader and environment around Twig's (with Twig only), API Platform's resource names an App\ override filters.
+    Declarations::group($builder, 'decoration');
 
     // Form services
     $services->alias('Base\Form\FormFactoryInterface', 'Base\Form\FormFactory');
@@ -103,30 +60,6 @@ return static function (ContainerConfigurator $container): void {
             '%kernel.project_dir%',
             '%env(default::APP_PATH)%',
             new Reference('request_stack', ContainerInterface::NULL_ON_INVALID_REFERENCE),
-        ]);
-
-    // Twig Environment: with Twig only (config/services/twig.php)
-    if (class_exists(\Twig\Environment::class)) {
-        $services->set('Base\Twig\Environment')
-            ->parent('twig')
-            ->decorate('twig')
-            ->args([
-                new Reference('request_stack'),
-                new Reference('localizer'),
-                new Reference('advanced_router'),
-                new Reference('parameter_bag'),
-            ]);
-    }
-
-    // API Platform: an App\ override replaces the Base\ resource it extends.
-    // Between the attribute/class-name collectors (priority 0) and the cache
-    // (-10), so the cached collection is the filtered one. API Platform is a
-    // suggestion of the core since 4.0: without its bundle, nothing to decorate,
-    // the decorator is dropped (and its class, on API Platform's interface, never loaded).
-    $services->set('Base\ApiPlatform\Metadata\Resource\Factory\OverriddenResourceNameCollectionFactory')
-        ->decorate('api_platform.metadata.resource.name_collection_factory', null, -5, ContainerInterface::IGNORE_ON_INVALID_REFERENCE)
-        ->args([
-            new Reference('.inner'),
         ]);
 
     // Console commands

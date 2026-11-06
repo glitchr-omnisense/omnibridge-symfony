@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Changed: omnibase's services are compiled from the core's declaration (omnisense/omnibase's plan "omnibase agnostic", step F5e, slice 4a)
+
+- Under omnibase 5.0, `Omnibase\DependencyInjection\Declarations::group()` compiles a group of `Base\Services` (the
+  core's 192 definitions, with their tags, calls, decorations, parents, bindings, contracts and `symfony` parts) into the
+  container; `config/omnibase/services-list.php` and each `services/<group>.php` call it in the group's place among this
+  bridge's own definitions, which they keep (controllers, subscribers, voters, commands, warmers, form types, the
+  Doctrine and Twig bridges' services, Symfony's fixes). `services-list-contracts.php` is gone (the contracts are the
+  declaration's). lesringostars' compiled container is identical before and after (dev and prod: every service, its
+  arguments, calls and tags, the aliases; `usages`, maker's suggestions and the order between events' listeners compared
+  as sets). Under omnibase 4.x nothing here is read (the 4.x core loads its own configuration).
+
 ### Changed: the console's other commands are adapters (omnisense/omnibase's plan "omnibase agnostic", step F5e, slice 3b)
 
 - Under omnibase 5.0, `Omnibase\Console\Command\{AutocompleteEntities, BaseMapping, EntityDiscriminator, IconEntities,

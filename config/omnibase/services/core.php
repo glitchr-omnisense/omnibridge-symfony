@@ -1,5 +1,7 @@
 <?php
 
+use Omnibridge\Symfony\Omnibase\DependencyInjection\Declarations;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use \Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
@@ -10,7 +12,7 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service_closure;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
 
-return static function (ContainerConfigurator $container): void {
+return static function (ContainerConfigurator $container, ContainerBuilder $builder): void {
     $services = $container->services();
 
     $services->defaults()
@@ -30,27 +32,6 @@ return static function (ContainerConfigurator $container): void {
     // Access token handler
     $services->set('Base\Security\AccessTokenHandler')
         ->args([service('Base\Repository\User\TokenRepository')]);
-
-    // Referrer
-    $services->set('Base\Service\Referrer')
-        ->public(true)
-        ->args([
-            service('Omnibridge\Contract\Requests'),
-            service('advanced_router'),
-        ]);
-
-    // Analytics (page views + visitor/user unique counters)
-    $services->set('Base\Service\Analytics\UserAgentClassifier')
-        ->public(false);
-
-    $services->set('Base\Service\Analytics')
-        ->public(true)
-        ->args([
-            service('Base\Repository\Analytics\PageViewRepository'),
-            service('Base\Repository\Analytics\VisitRepository'),
-            service('Base\Service\Analytics\UserAgentClassifier'),
-            service('Base\Repository\Analytics\PageVisitRepository'),
-        ]);
 
     // CacheClearSessionsCommand
     $services->set('Base\Console\Command\CacheClearSessionsCommand')
@@ -165,6 +146,27 @@ return static function (ContainerConfigurator $container): void {
         ->bind('$debug', '%kernel.debug%')
         ->bind('$environment', '%kernel.environment%');
 
+    // The core's (Base\Services, group "core"; plan "omnibase agnostic", step F5e slice 4): the referrer, the analytics,
+    // the setting bag, the security policy, the entity dispatchers, the group, trash and version managers, the thread and
+    // user subscribers, the notifier, the local caches, the entities' nouns, the host-neutral actions, the account's
+    // screens, the localizer, the themizer, maintenance, launch, the breadcrumb, the widgets, the mail trap, the
+    // TimeMachine (glitchr/backup-manager, where installed). After omnibase's router and before the routing loaders: the
+    // services a tag collects stay in the order they were (SettingSubscriber's Doctrine listener, below, before the
+    // core's ThreadSubscriber and UserSubscriber).
+    // Keeps the SettingBag snapshot in sync with every Setting/SettingIntl
+    // write, including the admin CRUD's plain flush() (which bypasses
+    // SettingBag::set() entirely). service_closure, NOT service: Doctrine
+    // instantiates listeners while initializing the event manager, and
+    // constructing SettingBag there (repository -> getClassMetadata) triggers
+    // a re-entrant resolveDiscriminator dispatch on the half-initialized
+    // event manager.
+    $services->set('Omnibridge\Doctrine\Omnibase\EntitySubscriber\SettingSubscriber')
+        ->tag('doctrine.event_listener', ['event' => 'postPersist'])
+        ->tag('doctrine.event_listener', ['event' => 'postUpdate'])
+        ->tag('doctrine.event_listener', ['event' => 'postRemove'])
+        ->args([service_closure('Base\Service\SettingBagInterface')]);
+    Declarations::group($builder, 'core');
+
     // Tracks config/routes_paths.yaml (the Base\Attributes\Attribute\Route
     // translationKey dictionary) as a routing resource, so the route cache
     // invalidates when it changes even though no loader reads routes from it.
@@ -176,32 +178,12 @@ return static function (ContainerConfigurator $container): void {
     $services->set('Omnibridge\Symfony\Omnibase\Routing\Loader\ControllerLoader')
         ->tag('routing.loader');
 
-    // SettingBag
-    $services->alias('Base\Service\SettingBagInterface', 'Base\Service\SettingBag');
-    $services->set('Base\Service\SettingBag')
-        ->public(true)
-        ->tag('twig.runtime')
-        ->args([
-            service('parameter_bag'),
-            service('Omnibridge\Persistence\UnitOfWork'),
-            service('Base\Repository\Layout\SettingRepository'),
-            service('localizer'),
-            service('cache.adapter'),
-        ])
-        ->bind('$environment', '%kernel.environment%');
     // Compiles+persists the settings snapshot at warmup so the first request after a
     // deploy/cache:clear hits a warm cache instead of compiling on-demand (C9: the
     // warmer is the bridge's, SettingBag stands on psr/cache).
     $services->set('Base\Bridge\Symfony\SettingBagWarmer')
         ->args([service('Base\Service\SettingBag')])
         ->tag('kernel.cache_warmer');
-
-    // Reads the administrator's account-security settings and answers "may
-    // this user change that themselves". Autowired on SettingBagInterface,
-    // which is aliased just above.
-    $services->set('Base\\Service\\SecurityPolicy')
-        ->autowire()
-        ->public(true);
 
     // Steers a signed-in user to the enrolment prompt while the administrator
     // requires a second factor they do not have.
@@ -220,146 +202,10 @@ return static function (ContainerConfigurator $container): void {
         ->autowire()
         ->tag('kernel.event_subscriber');
 
-    // Keeps the SettingBag snapshot in sync with every Setting/SettingIntl
-    // write, including the admin CRUD's plain flush() (which bypasses
-    // SettingBag::set() entirely). service_closure, NOT service: Doctrine
-    // instantiates listeners while initializing the event manager, and
-    // constructing SettingBag there (repository -> getClassMetadata) triggers
-    // a re-entrant resolveDiscriminator dispatch on the half-initialized
-    // event manager.
-    $services->set('Omnibridge\Doctrine\Omnibase\EntitySubscriber\SettingSubscriber')
-        ->tag('doctrine.event_listener', ['event' => 'postPersist'])
-        ->tag('doctrine.event_listener', ['event' => 'postUpdate'])
-        ->tag('doctrine.event_listener', ['event' => 'postRemove'])
-        ->args([service_closure('Base\Service\SettingBagInterface')]);
 
-    // Entity dispatchers shipped by this bundle.
-    //
-    // BaseExtension::load() calls registerForAutoconfiguration() on
-    // EventDispatcherInterface and attaches the six doctrine.event_listener
-    // tags to it - but autoconfiguration only ever applies to services that are
-    // actually DEFINED somewhere, and these two never were. A consuming app's
-    // own dispatchers get picked up by its `App\` resource block, which is why
-    // App-side ones worked and these silently did not: neither class was in the
-    // container at all, so thread.* and user.* were never dispatched.
-    //
-    // Concretely, that meant ThreadEvent::PUBLISHABLE never fired, so anything
-    // listening for it - such as an app subscriber that mails subscribers when
-    // a scheduled article comes due - never ran, with no error to show for it.
-    //
-    // autoconfigure() is required (the defaults() block above only sets
-    // public(false)); autowire() satisfies AbstractEventDispatcher's
-    // constructor, exactly as the app-side dispatchers are already resolved.
-    $services->set('Base\EntityDispatcher\Event\ThreadEventDispatcher')
-        ->autowire()
-        ->autoconfigure();
-
-    $services->set('Base\EntityDispatcher\Event\UserEventDispatcher')
-        ->autowire()
-        ->autoconfigure();
-
-    // The one service that turns eligibility into a capability.
-    //
-    // Group::isOpenTo() and awardsFor() deliberately grant nothing, so
-    // something has to close the gap between "has earned this" and "has it".
-    // In fr.latoucheoriginale.www that something is a single service,
-    // MarketplaceManager, and this is its counterpart for people.
-    $services->set('Base\Service\GroupManager')
-        ->autowire()
-        ->autoconfigure()
-        ->public();
-
-    // Reading and emptying the trash, i.e. everything that has to see what the
-    // trash filter hides. Public because the admin trash page and the purge
-    // command are its only callers and both fetch it by id.
-    $services->set('Base\Service\TrashManager')
-        ->public()
-        ->args([service('Omnibridge\Persistence\UnitOfWork'), service(\Base\Repository\Extension\TrashBalls::class)]);
-    $services->alias('trash_manager', 'Base\Service\TrashManager')->public();
-
-    // Reads the modification history back - for the per-field badge in form
-    // labels and for the entity-level history page.
-    $services->set('Base\Service\VersionManager')
-        ->public()
-        ->args([service('Omnibridge\Persistence\UnitOfWork'), service(\Base\Repository\Extension\Revisions::class), '%base.extension.max_revisions%']);
-    $services->alias('version_manager', 'Base\Service\VersionManager')->public();
-
-    // ...and the subscriber that HANDLES those events, which is the same bug
-    // one layer up: fixing the dispatchers above made thread.publishable fire,
-    // but this class was never defined either, so the only listeners left were
-    // the consuming app's own. Nothing set the thread's state.
-    //
-    // The visible symptom was a scheduled article that came due: the app
-    // subscriber mailed every newsletter subscriber, this one never flipped
-    // STATE_FUTURE to STATE_PUBLISH, and so the article stayed publishable.
-    // ThreadPublishableCommand only calls poke(), which touches updatedAt and
-    // relies on this subscriber for the actual transition - it even reports
-    // "These are now published" - so the cron re-sent the whole newsletter to
-    // every subscriber on its next run, every five minutes, indefinitely.
-    // Measured on beta before the fix: two runs, two newsletters, 24 queued
-    // mails for one article, and the state still STATE_FUTURE.
-    //
-    // Author and mention notifications live in the same handler, so they were
-    // silently dead for the same reason.
-    //
-    // Its Doctrine hooks were registered nowhere until 2026-11-02 (Marco's decision
-    // to turn them on): no reply was followed by its parent's owners, no Mention was
-    // ever stored, so thread.mentioned was never mailed. prePersist and onFlush relay
-    // to Base\Database\Lifecycle\ThreadParticipants; the enhancer comes in a
-    // closure, as SettingSubscriber's SettingBag does: Doctrine builds its listeners
-    // when the event manager initialises, and the enhancer's repositories read the
-    // mapping there.
-    $services->set('Base\EntitySubscriber\ThreadSubscriber')
-        ->autowire()
-        ->autoconfigure()
-        ->arg('$mentionEnhancer', service_closure('Base\Service\Model\Wysiwyg\MentionEnhancerInterface'))
-        ->tag('doctrine.event_listener', ['event' => 'prePersist'])
-        ->tag('doctrine.event_listener', ['event' => 'onFlush']);
-
-    // The user.* events' listener (UserEventDispatcher raises them): the verification asked at
-    // a registration, the approval confirmed, the goodbye of an account closed by its owner, the
-    // welcome back of one reopened; preFlush revokes an approval request out of the flush that
-    // raised the event (UserSubscriber::preFlush()). Registered in config/services/admin.php
-    // until the back office left the core (80088b2d), by nothing since: none of these was sent.
-    $services->set('Base\EntitySubscriber\UserSubscriber')
-        ->autowire()
-        ->autoconfigure()
-        ->tag('doctrine.event_listener', ['event' => 'preFlush']);
-
-    // Notifier
-    $services->alias('App\Notifier\Notifier', 'Base\Notifier\Notifier');
-    $services->alias('Base\Notifier\NotifierInterface', 'Base\Notifier\Notifier');
-    $services->set('Base\Notifier\Notifier')
-        ->parent('Base\Notifier\Abstract\BaseNotifier')
-        ->public(true);
-
-    // No BaseNotifierInterface alias here: aliasing an ABSTRACT definition is
-    // unresolvable by design, and once RemoveAbstractDefinitionsPass drops the
-    // target the dangling alias crashes framework.test's
-    // TestServiceContainerRealRefPass ("Undefined array key"). Autowire against
-    // NotifierInterface (aliased to the concrete notifier above) instead.
-    $services->set('Base\Notifier\Abstract\BaseNotifier')
-        ->abstract(true)
-        ->args([
-            service('notifier'),
-            service('notifier.channel_policy'),
-            service('Omnibridge\Persistence\UnitOfWork'),
-            service('parameter_bag'),
-            service('translator'),
-            service('localizer'),
-            service('advanced_router'),
-            service('Omnibridge\Contract\Views'),
-            service('setting_bag'),
-        ])
-        ->bind('$debug', '%kernel.debug%')
-        // what could not be sent is said there (BaseNotifier::send)
-        ->call('setLogger', [service('logger')->ignoreOnInvalid()])
-        // the administrators it notifies (step R28: the accounts by their interface)
-        ->call('setUsers', [service(\Base\Repository\Users::class)]);
 
     // LocalCache / CacheWarmers
     $cacheServices = [
-        'Base\Cache\Abstract\AbstractLocalCache' => ['$cacheDir' => '%kernel.cache_dir%'],
         'Base\Cache\Warmer\SpreadsheetCacheWarmer' => ['$cacheDir' => '%kernel.cache_dir%'],
         'Base\Cache\Warmer\IconCacheWarmer' => ['base.service.icon', '$cacheDir' => '%kernel.cache_dir%'],
         'Base\Cache\Warmer\LocalizerCacheWarmer' => ['localizer', '$cacheDir' => '%kernel.cache_dir%'],
@@ -444,10 +290,6 @@ return static function (ContainerConfigurator $container): void {
     $services->set('Base\Bridge\Symfony\RouterRoutes')
         ->args([service('advanced_router'), service('base.service.icon')->nullOnInvalid()]);
     $services->alias('Omnibridge\Contract\Routes', 'Base\Bridge\Symfony\RouterRoutes');
-    // What an entity is called (C4b): the translator's own EntityNouns, over the bundles BaseBundle knows.
-    $services->set('Base\Service\Model\EntityNouns')
-        ->factory([service('Base\Service\Translator'), 'getEntityNouns']);
-    $services->alias('Base\Contract\Nouns', 'Base\Service\Model\EntityNouns');
     $services->set('Base\Bridge\Symfony\LocalizerLocales')
         ->args([service('localizer')]);
     $services->alias('Omnibridge\Contract\Locales', 'Base\Bridge\Symfony\LocalizerLocales');
@@ -494,40 +336,6 @@ return static function (ContainerConfigurator $container): void {
         ->tag('kernel.event_listener', ['event' => 'kernel.view']);
     $services->set('Base\Bridge\Symfony\ActionArguments')
         ->tag('controller.argument_value_resolver', ['priority' => 50]);
-    // The bell's payload (formerly NotificationController::Latest()).
-    $services->set('Base\Controller\Action\Notification\Latest')->public()
-        ->args([service('Omnibridge\Contract\Access'), service('Base\Repository\User\Notifications'), service('Base\Notifier\NotificationLinkerInterface')->nullOnInvalid()])
-        ->tag('controller.service_arguments');
-    // The bell's read marks and removals (formerly NotificationController::MarkRead() and Delete()).
-    foreach (['Read', 'Delete'] as $action) {
-        $services->set('Base\Controller\Action\Notification\\'.$action)->public()
-            ->args([service('Omnibridge\Contract\Access'), service('Omnibridge\Contract\Tokens'), service('Base\Repository\User\Notifications')])
-            ->tag('controller.service_arguments');
-    }
-    // The second factor's enrolment page, its "not now" and the e-mailed code turned on or off (formerly
-    // UserSettingsController::Enrolment(), EnrolmentSkip(), TwoFactorAuthentication_ToggleEmail()); the session is
-    // omniauth's State where omniauth is set up.
-    $services->set('Base\Controller\Action\Settings\Enrolment')->public()
-        ->args([service('Omnibridge\Contract\Access'), service('Base\Service\SecurityPolicy'), service('Omnibridge\Contract\Urls'), service('Omniauth\Contract\State')->nullOnInvalid()])
-        ->tag('controller.service_arguments');
-    $services->set('Base\Controller\Action\Settings\EnrolmentSkip')->public()
-        ->args([service('Omnibridge\Contract\Access'), service('Omnibridge\Contract\Tokens'), service('Base\Service\SecurityPolicy'), service('Omnibridge\Contract\Urls'), service('Omniauth\Contract\State')->nullOnInvalid()])
-        ->tag('controller.service_arguments');
-    $services->set('Base\Controller\Action\Settings\EmailCodeToggle')->public()
-        ->args([service('Omnibridge\Contract\Access'), service('Omnibridge\Contract\Tokens'), service('Base\Service\SecurityPolicy'), service('Omnibridge\Contract\Urls'), service('Base\Repository\Users')])
-        ->tag('controller.service_arguments');
-    // A widget's page (formerly WidgetController::Page()).
-    $services->set('Base\Controller\Action\Widget\Page')->public()
-        ->args([service('Base\Repository\Layout\Widget\PageRepository')])
-        ->tag('controller.service_arguments');
-    $services->get('Base\Screen\Builder\Stories')->autowire(false)->public() // Base\Services'
-        ->args([service('Base\Contract\Texts'), service('Base\Contract\Pictures')]); // "now": Runtime::clock(), the framework's unless one is set by hand
-    // The account's screens (C5, its second part): the builder asks the security policy, the
-    // Urls and Tokens contracts; AccountScreens, a Twig runtime (it reads Twig's functions:
-    // |thumbnail, oauth_available(), push_available()...), hands it what only Symfony knows -
-    // registered with the Twig layer (config/services/twig.php).
-    $services->set('Base\Screen\Builder\Accounts')->public()
-        ->args([service('Base\Service\SecurityPolicy'), service('Omnibridge\Contract\Urls'), service('Omnibridge\Contract\Tokens')]); // "now": Runtime::clock()
 
     // BaseService: a lazy facade (plan "omnibase agnostique", C9). Lazy, it is a ghost
     // of the class until one of its methods reads a property: injecting it builds
@@ -565,45 +373,6 @@ return static function (ContainerConfigurator $container): void {
             new Reference('profiler', ContainerInterface::NULL_ON_INVALID_REFERENCE),
         ]);
 
-    // Services inheriting from AbstractLocalCache
-    $services->set('Base\Service\Localizer')
-        ->parent('Base\Cache\Abstract\AbstractLocalCache')
-        ->public(true)
-        ->tag('twig.runtime')
-        ->args([service('parameter_bag'), service('translator')]);
-
-    $services->set('Base\Service\Themizer')
-        ->parent('Base\Cache\Abstract\AbstractLocalCache')
-        ->public(true)
-        ->args([service('parameter_bag'), service('security.token_storage')]);
-
-    $services->set('Base\Cache\SimpleCache')
-        ->parent('Base\Cache\Abstract\AbstractLocalCache')
-        ->public(true);
-
-    // Maintenance / Launcher / Paginator / Breadgrinder / WidgetProvider
-    $services->set('Base\Service\MaintenanceProvider')
-        ->public(true)
-        ->args([service('advanced_router'), service('setting_bag'), service('Omnibridge\Contract\Access'), service('parameter_bag'), service('localizer'), service('Omnibridge\Contract\Access')]);
-
-    $services->set('Base\Service\Launcher')
-        ->public(true)
-        ->args([service('advanced_router'), service('parameter_bag'), service('setting_bag'), service('Omnibridge\Contract\Access'), service('Omnibridge\Contract\Access')]);
-
-    $services->get('Base\Service\Paginator') // Base\Services' (config/services-list.php), on omnibase's router
-        ->autowire(false)
-        ->public(true)
-        ->args([service('advanced_router'), service('parameter_bag')]);
-
-    $services->set('Base\Service\Breadgrinder')
-        ->public(true)
-        ->args([service('advanced_router'), service('translator'), service('parameter_bag')]);
-
-    $services->set('Base\Service\WidgetProvider')
-        ->public(true)
-        ->tag('twig.runtime')
-        ->args([service(\Base\Repository\Layout\Widgets::class), service(\Base\Repository\Layout\Widget\Slots::class)]);
-
     // Form extensions
     $services->set('Base\Form\Extension\FormTypeTranslateExtension')->tag('form.type_extension');
 
@@ -618,15 +387,6 @@ return static function (ContainerConfigurator $container): void {
             service('translator')->nullOnInvalid(),
             service('request_stack')->nullOnInvalid(),
         ]);
-
-    // Outgoing-mail trap: a hold-everything switch for the minutes after a
-    // hotfix, when you want to see what the site is about to send before it
-    // sends it. File-backed under var/ rather than the database or settings,
-    // because it has to work in exactly the situations where you distrust the
-    // application - and var/cache is wiped on deploy, var/ is not.
-    $services->set('Base\Mailer\MailTrap')
-        ->public(true)
-        ->args(['%kernel.project_dir%/var/mail-trap']);
 
     $services->set('Base\Subscriber\MailTrapSubscriber')
         ->args([service('Base\Mailer\MailTrap')])
@@ -703,15 +463,6 @@ return static function (ContainerConfigurator $container): void {
                 ->call('setMailTrap', [service('Base\Mailer\MailTrap')])
                 ->call('setMailerTransport', [service('mailer.transports')]);
         }
-    }
-
-    // TimeMachine service (glitchr/backup-manager, above; its aliases in services-public.php,
-    // its parent template in services-fix.php, under the same condition).
-    if ($timeMachine) {
-        $services->set('Base\Service\TimeMachine')
-            ->parent('Backup\Manager\Manager')
-            ->public(true)
-            ->args([service('flysystem'), service('doctrine'), service('parameter_bag')]);
     }
 
     // Console commands
