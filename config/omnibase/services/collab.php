@@ -9,10 +9,8 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
  * declaration (Base\Services, group "collab"; plan "omnibase agnostic", step F5e slice 4).
  */
 return static function (ContainerConfigurator $container, ContainerBuilder $builder): void {
-    // An empty-string default for each parameter: the container still compiles for an application with no deployed
-    // relay, collab_live stays optional, and CollabTicketFactory::isConfigured() refuses a ticket unless both are set.
-    $container->parameters()->set('env(COLLAB_TICKET_SECRET)', '');
-    $container->parameters()->set('env(COLLAB_RELAY_WS_URL)', '');
+    // env(COLLAB_TICKET_SECRET) and env(COLLAB_RELAY_WS_URL): empty unless the application deploys a relay (Base\Options).
+    Declarations::environment($builder, 'collab');
 
     Declarations::group($builder, 'collab');
 };

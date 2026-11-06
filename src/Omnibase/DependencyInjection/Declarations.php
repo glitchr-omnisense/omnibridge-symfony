@@ -2,6 +2,7 @@
 
 namespace Omnibridge\Symfony\Omnibase\DependencyInjection;
 
+use Base\Options;
 use Base\Services;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\Argument\BoundArgument;
@@ -39,6 +40,18 @@ final class Declarations
             foreach (Services::contracts($declaration) as $alias => $options) {
                 $builder->setAlias($alias, new Alias($options['target'] ?? $id, $options['public'] ?? false));
             }
+        }
+    }
+
+    /**
+     * The environment variables a group's services read through %env()% that need a value where the environment has
+     * none, as Symfony's env(NAME) parameters: their defaults are the core's declaration (Base\Options, step F5e
+     * slice 4b), set where the group is compiled.
+     */
+    public static function environment(ContainerBuilder $builder, string $group): void
+    {
+        foreach (Options::environment($group) as $name => $default) {
+            $builder->setParameter('env('.$name.')', $default);
         }
     }
 

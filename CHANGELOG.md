@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Changed: omnibase's options are compiled from the core's declaration (omnisense/omnibase's plan "omnibase agnostic", step F5e, slice 4b)
+
+- `Options\SchemaTree::build()`: a schema of options as data (omnisense/omnibridge's `Options\Processor` format) compiled
+  into a Config TreeBuilder, each node with the builder calls a hand-written tree makes. Under omnibase 5.0,
+  `Omnibase\DependencyInjection\BaseConfiguration` is the core's `Base\Options` compiled so; under a core without it,
+  the former hand-written tree, now `Omnibase\Legacy\DependencyInjection\BaseConfiguration`. On lesringostars
+  `config:dump-reference base`, `debug:config base` (dev, prod) and the compiled container are identical before and after.
+- `Declarations::environment()`: the `env(NAME)` parameters a group's services need (the core's `Options::environment()`:
+  `COLLAB_TICKET_SECRET`, `COLLAB_RELAY_WS_URL`, `BASE_TRADING_LIVE`), set where `collab` and `media` are compiled, in
+  place of the literals those files wrote.
+- tests/SchemaTreeTest: the tree and the Processor give the same values, refusals and deprecations (skipped with an
+  omnisense/omnibridge older than its `Options\`); omnibase's own options are compared in the core's harness.
+
 ### Changed: omnibase's services are compiled from the core's declaration (omnisense/omnibase's plan "omnibase agnostic", step F5e, slice 4a)
 
 - Under omnibase 5.0, `Omnibase\DependencyInjection\Declarations::group()` compiles a group of `Base\Services` (the
