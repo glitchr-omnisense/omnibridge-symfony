@@ -2,109 +2,28 @@
 
 namespace Omnibridge\Symfony\Omnibase\Console\Command;
 
-use Base\BaseBundle;
-
-use Base\Database\UnitOfWorks;
-use Exception;
-use ReflectionClass;
+use Base\Console\Task\AutocompleteEntities;
+use Base\Console\Task\EntitiesInput;
+use Omnibridge\Symfony\Omnibase\Console\Reports;
+use Omnibridge\Symfony\Omnibase\Legacy\Console\Command\AutocompleteEntitiesCommand as Legacy;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use Omnibridge\Symfony\Omnibase\Console\Command;
-use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
-use Base\Service\Model\AutocompleteInterface;
-
-use Base\Service\LocalizerInterface;
-use Base\Service\ParameterBagInterface;
-use Base\Service\TranslatorInterface;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Attribute\AsCommand;
-
-#[AsCommand(name: 'autocomplete:entities', aliases: [], description: '')]
-class AutocompleteEntitiesCommand extends Command
-{
-    /**
-     * @var ClassMetadataManipulator
-     */
-    protected ClassMetadataManipulator $classMetadataManipulator;
-
-    public function __construct(
-        LocalizerInterface       $localizer,
-        TranslatorInterface      $translator,
-        EntityManagerInterface   $entityManager,
-        ParameterBagInterface    $parameterBag,
-        ClassMetadataManipulator $classMetadataManipulator
-    )
+if (!class_exists(AutocompleteEntities::class)) {
+    // omnisense/omnibase 4.x: the task is still this bridge's former code (Legacy\, removed once 4.x is no longer served).
+    #[AsCommand(name: 'autocomplete:entities', aliases: [], description: '')]
+    class AutocompleteEntitiesCommand extends Legacy
     {
-        parent::__construct($localizer, $translator, $entityManager, $parameterBag);
-        $this->classMetadataManipulator = $classMetadataManipulator;
     }
-
-    protected function configure(): void
+} else {
+    /** autocomplete:entities: its options to omnibase's AutocompleteEntities task (omnibase's plan "omnibase agnostic", step F5e, slice 3), the Report printed. */
+    #[AsCommand(name: 'autocomplete:entities', aliases: [], description: '')]
+    class AutocompleteEntitiesCommand extends Legacy
     {
-        $this->addOption('id', null, InputOption::VALUE_OPTIONAL, 'Which entity should I pick up ?');
-        $this->addOption('entity', null, InputOption::VALUE_OPTIONAL, 'Which class should I pick up?');
-    }
-
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
-        $baseLocation = \Base\BaseBundle::getBundleDir().'/src';
-
-        $entityId = $input->getOption('id') ?? null;
-        $entityClass = $input->getOption('entity') ?? "";
-
-        if ($entityClass) {
-            if (!$this->classMetadataManipulator->isEntity($entityClass)) {
-                throw new Exception("Entity \"$entityClass\" doesn't exists");
-            }
-            if (!class_implements_interface($entityClass, AutocompleteInterface::class)) {
-                throw new Exception("Entity \"$entityClass\" doesn't implement " . AutocompleteInterface::class);
-            }
-
-            $repository = UnitOfWorks::repositories($this->unitOfWork)->of($entityClass);
-            $entities = $entityId ? $repository->findBy(["id" => $entityId]) : $repository->findAll();
-            if (empty($entities)) {
-                if ($entityId) {
-                    throw new Exception($entityClass . " #" . $entityId . " not found.");
-                } else {
-                    throw new Exception("No " . $entityClass . " found.");
-                }
-            }
-
-            $maxLength = 0;
-            foreach ($entities as $entity) {
-                $autocomplete = $entity->__autocomplete();
-                $maxLength = max(strlen($autocomplete), $maxLength);
-            }
-
-            foreach ($entities as $entity) {
-                $autocomplete = $entity->__autocomplete();
-                $autocompleteData = $entity->__autocompleteData();
-                if ($autocomplete) {
-                    $autocompleteData = trim(str_replace(["\t", "\n"], ["", " "], print_r($autocompleteData, true)));
-                }
-
-                $space = str_repeat(" ", max($maxLength - strlen($autocomplete), 0));
-
-                $output->section()->writeln("<info>" . $entityClass . " #" . $entity->getId() . "</info>; <warning>Autocomplete = </warning>\"" . $autocomplete . "\"" . $space . "<warning> / Data = </warning>\"$autocompleteData\"");
-            }
-        } else {
-
-            $entity = array_filter(array_merge(
-                BaseBundle::getInstance()->getAllClasses($baseLocation . "/Entity"),
-                BaseBundle::getInstance()->getAllClasses("./src/Entity"),
-            ), fn($c) => class_implements_interface($c, AutocompleteInterface::class));
-
-            if ($entity) {
-                $output->section()->writeln("Entity candidate list: " . $entityClass);
-            }
-
-            foreach ($entity as $_entity) {
-                $output->section()->writeln(" * <info>" . $_entity . "</info>");
-            }
+        protected function execute(InputInterface $input, OutputInterface $output): int
+        {
+            return (new AutocompleteEntities($this->unitOfWork))->run(new EntitiesInput($this->parameterBag->get('kernel.project_dir').'/src', $input->getOption('entity') ?: null, $input->getOption('id') ?: null), Reports::printer($input, $output))->status();
         }
-
-        return Command::SUCCESS;
     }
 }

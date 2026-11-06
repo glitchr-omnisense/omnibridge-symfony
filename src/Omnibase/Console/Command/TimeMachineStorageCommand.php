@@ -2,50 +2,27 @@
 
 namespace Omnibridge\Symfony\Omnibase\Console\Command;
 
-use BackupManager\Filesystems\Destination;
-use Omnibridge\Symfony\Omnibase\Console\Command;
-use Base\Service\LocalizerInterface;
-use Base\Service\ParameterBagInterface;
-use Base\Service\Storages;
-use Base\Service\TimeMachineInterface;
-use Base\Service\TranslatorInterface;
-use Doctrine\ORM\EntityManagerInterface;
+use Base\Console\Task\TimeMachineStorage;
+use Omnibridge\Symfony\Omnibase\Console\Reports;
+use Omnibridge\Symfony\Omnibase\Legacy\Console\Command\TimeMachineStorageCommand as Legacy;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-use Symfony\Component\Console\Attribute\AsCommand;
-
-#[AsCommand(name: 'timemachine:storage', aliases: [], description: '')]
-class TimeMachineStorageCommand extends Command
-{
-    /**
-     * @var TimeMachineInterface
-     */
-    protected $timeMachine;
-    private Storages $flysystem;
-
-    public function __construct(
-        LocalizerInterface     $localizer,
-        TranslatorInterface    $translator,
-        EntityManagerInterface $entityManager,
-        ParameterBagInterface  $parameterBag,
-        TimeMachineInterface   $timeMachine,
-        Storages     $flysystem
-    )
+if (!class_exists(TimeMachineStorage::class)) {
+    // omnisense/omnibase 4.x: the task is still this bridge's former code (Legacy\, removed once 4.x is no longer served).
+    #[AsCommand(name: 'timemachine:storage', aliases: [], description: '')]
+    class TimeMachineStorageCommand extends Legacy
     {
-        parent::__construct($localizer, $translator, $entityManager, $parameterBag);
-        $this->timeMachine = $timeMachine;
-        $this->flysystem = $flysystem;
     }
-
-    public function execute(InputInterface $input, OutputInterface $output): int
+} else {
+    /** timemachine:storage: its options to omnibase's TimeMachineStorage task (omnibase's plan "omnibase agnostic", step F5e, slice 3), the Report printed. */
+    #[AsCommand(name: 'timemachine:storage', aliases: [], description: '')]
+    class TimeMachineStorageCommand extends Legacy
     {
-        $output->section()->writeln("Available storage place(s):");
-
-        foreach ($this->timeMachine->getStorageList() as $storageName => $storage) {
-            $output->section()->writeln(" * <info>" . $storageName . "</info> (" . get_class($storage) . ")");
+        public function execute(InputInterface $input, OutputInterface $output): int
+        {
+            return (new TimeMachineStorage($this->timeMachine))->run(Reports::printer($input, $output))->status();
         }
-
-        return Command::SUCCESS;
     }
 }

@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
  * Omnibase\{Security, Subscriber, Console\Command} are adapters - the host's event turned into a call of the
  * core's rule -, of an adapter's size (THRESHOLD lines of code, comments and blank lines left out), and decide
  * nothing on omnibase's entities themselves. The classes still above it, recorded here, are those F5e's next
- * slices empty (the Console's other commands: slice 3b) or glue of the host's facts kept above it; the list only shrinks: a class leaves it when it is slimmed, none enters it.
+ * slices empty or glue of the host's facts kept above it; the list only shrinks: a class leaves it when it is slimmed, none enters it.
  * The 4.x-only copies of the rules (Legacy\, removed once omnibase 4.x is no longer served) are not adapters.
  */
 final class AdapterSizeTest extends TestCase
@@ -18,17 +18,6 @@ final class AdapterSizeTest extends TestCase
 
     /** @var list<string> */
     public const STILL_ABOVE = [
-        'Console/Command/AutocompleteEntitiesCommand.php',
-        'Console/Command/DoctrineArrayUpgradeCommand.php',
-        'Console/Command/DoctrineDatabaseImportCommand.php',
-        'Console/Command/DoctrineSchemaCharsetCommand.php',
-        'Console/Command/IconEntitiesCommand.php',
-        'Console/Command/MailTrapCommand.php',
-        'Console/Command/NotifierMailTestCommand.php',
-        'Console/Command/ThreadPublishableCommand.php',
-        'Console/Command/TimeMachineSnapshotCommand.php',
-        'Console/Command/UserCreateCommand.php',
-        'Console/Command/UserNotificationCommand.php',
         'Security/LoginFormAuthenticator.php',
         'Security/SignInGuard.php',
         'Security/UserChecker.php',
@@ -68,5 +57,15 @@ final class AdapterSizeTest extends TestCase
         foreach (glob(\dirname(__DIR__).'/src/Omnibase/Security/Voter/*.php') as $file) {
             self::assertDoesNotMatchRegularExpression('~^use Base\\\\Entity\\\\~m', (string) file_get_contents($file), basename($file));
         }
+    }
+
+    /** user:create's token (omnibase 5.0's UserCreate::PASSWORD_CHANGE) is the one PasswordChangeSubscriber asks at the first sign-in. */
+    public function testTheAccountsMadeFromTheConsoleChangeTheirPassword(): void
+    {
+        if (!class_exists(\Base\Console\Task\UserCreate::class)) {
+            self::markTestSkipped('omnibase 4.x has no console tasks.');
+        }
+
+        self::assertSame(\Base\Console\Task\UserCreate::PASSWORD_CHANGE, \Omnibridge\Symfony\Omnibase\Subscriber\PasswordChangeSubscriber::TOKEN);
     }
 }

@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Changed: the console's other commands are adapters (omnisense/omnibase's plan "omnibase agnostic", step F5e, slice 3b)
+
+- Under omnibase 5.0, `Omnibase\Console\Command\{AutocompleteEntities, BaseMapping, EntityDiscriminator, IconEntities,
+  IconEnums, MailTrap, Notifier, NotifierMailTest, ThreadPublishable, TimeMachineSnapshot, TimeMachineSnapshotBackup,
+  TimeMachineSnapshotRestore, TimeMachineStorage, TrashPurge, UserCreate, UserNotification}Command` run the core's
+  `Base\Console\Task\*`, and `Doctrine{ArrayUpgrade, DatabaseImport, SchemaCharset}Command` omnibridge/doctrine's
+  `Omnibridge\Doctrine\Omnibase\Console\Task\*`, printing the Report; same names, options, constructors and
+  services. What is the host's stays here: the questions (ConfirmationQuestion, Question, ChoiceQuestion), the import's
+  progress bar, the TimeMachine's console output, mailer.transports for a release. The application's `src/` is
+  kernel.project_dir's (the former code read `./src` from the working directory).
+- Under omnibase 4.x each is its former code in `Omnibase\Legacy\Console\Command\` (UserCreate's, MailTrap's and
+  TimeMachineStorage's private properties protected there).
+- tests/AdapterSizeTest: no Console class left in STILL_ABOVE; user:create's token is PasswordChangeSubscriber's.
+
 ### Changed: the console commands are adapters (omnisense/omnibase's plan "omnibase agnostic", step F5e, slice 3a)
 
 - Under omnibase 5.0, `Omnibase\Console\Command\{TranslationCrud, TranslationEntities, TranslationEnums,

@@ -2,58 +2,36 @@
 
 namespace Omnibridge\Symfony\Omnibase\Console\Command;
 
-use Omnibridge\Symfony\Omnibase\Console\Command;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
+use Base\Console\Task\TimeMachineSnapshot;
+use Base\Console\Task\TimeMachineSnapshotBackupInput;
+use Omnibridge\Symfony\Omnibase\Console\Reports;
+use Omnibridge\Symfony\Omnibase\Legacy\Console\Command\TimeMachineSnapshotBackupCommand as Legacy;
 use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 
-#[AsCommand(name: 'timemachine:snapshot:backup', aliases: [], description: '')]
-class TimeMachineSnapshotBackupCommand extends TimeMachineSnapshotCommand
-{
-    protected function configure(): void
+if (!class_exists(TimeMachineSnapshot::class)) {
+    // omnisense/omnibase 4.x: the task is still this bridge's former code (Legacy\, removed once 4.x is no longer served).
+    #[AsCommand(name: 'timemachine:snapshot:backup', aliases: [], description: '')]
+    class TimeMachineSnapshotBackupCommand extends Legacy
     {
-        parent::configure();
-        $this->addOption('id', null, InputOption::VALUE_OPTIONAL, 'Which version do you want to get?', null);
-        $this->addOption('batch', null, InputOption::VALUE_NONE, 'Do you run batch command ?', null);
-        $this->addOption('userlog', null, InputOption::VALUE_NONE, 'Save user info too?', null);
     }
-
-    public function execute(InputInterface $input, OutputInterface $output): int
+} else {
+    /** timemachine:snapshot:backup: its options to omnibase's TimeMachineSnapshot task (omnibase's plan "omnibase agnostic", step F5e, slice 3), the Report printed. */
+    #[AsCommand(name: 'timemachine:snapshot:backup', aliases: [], description: '')]
+    class TimeMachineSnapshotBackupCommand extends Legacy
     {
-        parent::execute($input, $output);
+        public function execute(InputInterface $input, OutputInterface $output): int
+        {
+            $this->timeMachine->setCommandOutput($output);
+            $helper = $this->getHelper('question');
 
-        $storages  = $input->getArgument('storages') ?? [];
-        $database  = $input->getOption('database')   ?? null;
-        $batchMode = $input->getOption('batch')      ?? false;
-        $userlog  = $input->getOption('userlog')    ?? false;
-        $prefix    = $input->getOption('prefix')     ?? null;
-        $cycle     = $input->getOption('cycle')      ?? -1;
-
-        if (!$storages) {
-            $output?->section()->writeln("Please select a storage. aborted.");
-            return Command::FAILURE;
+            return (new TimeMachineSnapshot($this->timeMachine, $this->flysystem))->backup(
+                new TimeMachineSnapshotBackupInput((array) $input->getArgument('storages'), $input->getOption('database'), $input->getOption('prefix'), (int) ($input->getOption('cycle') ?? -1), (bool) $input->getOption('batch'), (bool) $input->getOption('userlog')),
+                static fn (string $question, bool $default): bool => (bool) $helper->ask($input, $output, new ConfirmationQuestion($question, $default)),
+                Reports::printer($input, $output),
+            )->status();
         }
-
-        if($userlog) {
-            $output->section()->writeln("<info>User configuration will be included in the backup</info>\n");
-        } else {
-            $output->section()->writeln("<warning>User configuration will not be included in the backup</warning> (use `--userlog` option to include it)\n");
-        }
-
-        $helper = $this->getHelper('question');
-        $question = new ConfirmationQuestion('You are about to backup this application and its database. Do you wish to continue [Y/n] ? ', false);
-        if ($batchMode) $output?->section()->writeln("<warning>Batch mode enabled..</warning>\n");
-        if(!$batchMode && !$helper->ask($input, $output, $question))
-            return Command::SUCCESS;
-
-        if($this->timeMachine->backup($database, $storages, $userlog, $prefix, $cycle)) {
-            $output->section()->writeln("<info>Backup completed successfully.</info>\n");
-            return Command::SUCCESS;
-        }
-            
-        $output->section()->writeln("<error>Backup failed.</error>\n");
-        return Command::FAILURE;
     }
 }
