@@ -224,6 +224,23 @@ public function __construct(private readonly Drives $drives) {}
 $this->drives->get('local.uploads')->write('avatars/1.png', $bytes);
 ```
 
+## The schema created from the description: `omnibridge:schema:create`
+
+With omnisense/omnibase 5.0, `config/omnibase/services/core.php` registers `omnibridge:schema:create`
+(`Omnibase\Console\Command\SchemaCreateCommand`; omnibase's plan "omnibase agnostic", step F7a): the tables of the
+installed entities created in the application's empty database from their description - omnibase's
+`Base\Database\Schema\EntitySchema` and omnisense/omnibridge's `SchemaCreator`, no SchemaTool. Where the entities are is
+what Doctrine's configuration was given (`Omnibase\Console\InstalledEntities`: the attribute drivers' paths,
+DoctrineBundle's resolve_target_entities, the enumerations registered with DBAL); the database is the connection's,
+through its PDO, with its default table options (`charset`, `collation` - or DBAL 3's `collate`, which DBAL 4's
+SchemaTool no longer reads -, `engine`). The same statements as the artisan command and the plain-PHP
+`vendor/bin/omnibridge-schema-create`; a database that already holds a table of the description is refused, nothing run.
+
+```sh
+bin/console omnibridge:schema:create --dump-sql   # the statements, nothing run
+bin/console omnibridge:schema:create              # "132 tables created (289 statements)." on lesringostars
+```
+
 ## Static export: `Omnibridge\Symfony\Static\` (omnibridge/static)
 
 Where omnibridge/static is installed, `config/services.php` registers the
