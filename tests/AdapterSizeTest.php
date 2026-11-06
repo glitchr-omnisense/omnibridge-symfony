@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
  * Omnibase\{Security, Subscriber, Console\Command} are adapters - the host's event turned into a call of the
  * core's rule -, of an adapter's size (THRESHOLD lines of code, comments and blank lines left out), and decide
  * nothing on omnibase's entities themselves. The classes still above it, recorded here, are those F5e's next
- * slices empty (Subscribers, Console); the list only shrinks: a class leaves it when it is slimmed, none enters it.
+ * slices empty (the Console's other commands: slice 3b) or glue of the host's facts kept above it; the list only shrinks: a class leaves it when it is slimmed, none enters it.
  * The 4.x-only copies of the rules (Legacy\, removed once omnibase 4.x is no longer served) are not adapters.
  */
 final class AdapterSizeTest extends TestCase
@@ -19,8 +19,6 @@ final class AdapterSizeTest extends TestCase
     /** @var list<string> */
     public const STILL_ABOVE = [
         'Console/Command/AutocompleteEntitiesCommand.php',
-        'Console/Command/CacheClearCommand.php',
-        'Console/Command/DemoResetCommand.php',
         'Console/Command/DoctrineArrayUpgradeCommand.php',
         'Console/Command/DoctrineDatabaseImportCommand.php',
         'Console/Command/DoctrineSchemaCharsetCommand.php',
@@ -29,14 +27,6 @@ final class AdapterSizeTest extends TestCase
         'Console/Command/NotifierMailTestCommand.php',
         'Console/Command/ThreadPublishableCommand.php',
         'Console/Command/TimeMachineSnapshotCommand.php',
-        'Console/Command/TranslationControllersCommand.php',
-        'Console/Command/TranslationCrudCommand.php',
-        'Console/Command/TranslationEntitiesCommand.php',
-        'Console/Command/TranslationEnumsCommand.php',
-        'Console/Command/TranslationSettingsCommand.php',
-        'Console/Command/UploaderEntitiesCommand.php',
-        'Console/Command/UploaderImagesCommand.php',
-        'Console/Command/UploaderImagesCropCommand.php',
         'Console/Command/UserCreateCommand.php',
         'Console/Command/UserNotificationCommand.php',
         'Security/LoginFormAuthenticator.php',
