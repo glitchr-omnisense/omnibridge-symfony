@@ -225,7 +225,10 @@ return static function (ContainerConfigurator $container): void {
                 new Reference('base.service.maintenance'),
                 new Reference('base.service.launcher'),
                 new Reference('profiler', ContainerInterface::NULL_ON_INVALID_REFERENCE),
-                new Reference('Omnibridge\Contract\Tokens', ContainerInterface::NULL_ON_INVALID_REFERENCE)
+                new Reference('Omnibridge\Contract\Tokens', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                // omnibase 5.0's account rules (Base\Request\Rule\*: the presence and the approval write, the verification's link)
+                new Reference('Omnibridge\Persistence\UnitOfWork', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                new Reference('Omnibridge\Contract\Urls', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             ]
         ],
         'Base\Subscriber\ReferrerSubscriber' => [

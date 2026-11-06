@@ -2,6 +2,7 @@
 
 namespace Omnibridge\Symfony\Omnibase\Security;
 
+use Base\Request\Rule\EntryPoint;
 use App\Enum\UserRole;
 use Base\Repository\Users;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
@@ -73,6 +74,15 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 
     public function start(Request $request, ?AuthenticationException $authException = null): Response
     {
+        if (class_exists(EntryPoint::class)) {
+            // omnibase 5.0: its entry point's rule (Base\Request\Rule\EntryPoint, plan "omnibase agnostic", step F5e, slice 2),
+            // which omnibridge/laravel's access control asks too.
+            $decision = EntryPoint::decide(false, $request->getUri(), $this->authorizationChecker->isGranted("EXCEPTION_ACCESS"));
+            $this->referrer->setUrl($decision->remember);
+
+            return new RedirectResponse($this->router->generate($decision->route));
+        }
+
         $this->referrer->setUrl($request->getUri());
         
         $route = $this->authorizationChecker->isGranted("EXCEPTION_ACCESS") ? RescueFormAuthenticator::LOGIN_ROUTE : static::LOGIN_ROUTE;

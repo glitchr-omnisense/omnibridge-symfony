@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Changed: the subscribers are adapters (omnisense/omnibase's plan "omnibase agnostic", step F5e, slice 2)
+
+- Under omnibase 5.0, `Omnibase\Subscriber\SecuritySubscriber` asks the core's request rules for the rest of its
+  events: `Base\Request\Rule\Accounts` (the impersonation's reminder, the kick, the presence, the verification's
+  notice, the approval; before the page and on the answer), `MaintenancePage`, `LaunchPage` - each decision
+  (`Base\Request\Decision`) applied here: notices, the address kept, the sign-out, the profiler, the answer. Its
+  service takes `Omnibridge\Persistence\UnitOfWork` and `Omnibridge\Contract\Urls` too.
+- `LocalizerSubscriber` asks `Locale` (the page's language, LANG, the time zone), `IntegritySubscriber` asks
+  `Integrity` (still registered by nothing), `AnalyticsSubscriber` asks `Analytics`; `LoginFormAuthenticator::start()`
+  asks `EntryPoint`. Under omnibase 4.x each is its former code, in `Omnibase\Legacy\Subscriber\`.
+- `tests/AdapterSizeTest`: AnalyticsSubscriber left the classes above an adapter's size.
+
 ### Changed: the voters and SecuritySubscriber are adapters (omnisense/omnibase's plan "omnibase agnostic", step F5e, slice 1)
 
 - Under omnibase 5.0, `Omnibase\Security\Voter\{AccessVoter, AdminVoter, PermissionVoter, ComplaintVoter}` ask the core's
