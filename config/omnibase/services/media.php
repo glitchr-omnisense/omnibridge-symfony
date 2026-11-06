@@ -188,7 +188,6 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
             ->call('setMetadataReader', [new Reference('imagine.meta_data.reader')]);
     }
 
-    // Live unless the application says otherwise: BASE_TRADING_LIVE=0 keeps every rate to the stored ones but for the
-    // calls that ask for the providers (a free plan's monthly quota is spent otherwise). Read by the core's Trading.
-    $container->parameters()->set('env(BASE_TRADING_LIVE)', 'true');
+    // env(BASE_TRADING_LIVE): live unless the application says otherwise, read by the core's Trading (Base\Options).
+    Declarations::environment($builder, 'media');
 };
