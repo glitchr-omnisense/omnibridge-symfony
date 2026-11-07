@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added: the packages' listeners of the writes on eloquent (omnisense/omnibase's plan "omnibase agnostic", step B2)
+
+- On `base.persistence: eloquent`, the services tagged `omnibridge.lifecycle_listener` (omnisense/omnibridge's
+  `Lifecycle\Listeners::TAG`) are handed to omnibridge/eloquent's persistence (`EloquentHost::persistence()`'s
+  `$listeners`, a tagged iterator: made at the first event). glitchr/typesense-bundle tags its indexer so: the search
+  index follows Eloquent's writes as it follows Doctrine's.
+
 ### Fixed: every command reads and writes through the persistence chosen (omnisense/omnibase's plan "omnibase agnostic", step B4)
 
 - `Base\Console\Command`'s definition calls `setUnitOfWork()` with `Omnibridge\Persistence\UnitOfWork`, so every command
