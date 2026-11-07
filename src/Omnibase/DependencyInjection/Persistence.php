@@ -53,7 +53,9 @@ final class Persistence
         $persistence = 'Omnibridge\Eloquent\Omnibase\EloquentPersistence';
         $builder->setDefinition('omnibridge.eloquent.connection', (new Definition('Illuminate\Database\Connection'))
             ->setFactory([EloquentHost::class, 'connection'])
-            ->setArguments([new Reference('doctrine.dbal.default_connection', ContainerInterface::NULL_ON_INVALID_REFERENCE), '%env(default::DATABASE_URL)%']));
+            ->setArguments([new Reference('doctrine.dbal.default_connection', ContainerInterface::NULL_ON_INVALID_REFERENCE), '%env(default::DATABASE_URL)%'])
+            // Public: BaseBundle::shutdown() lets its PDO go when it was made.
+            ->setPublic(true));
 
         $services = [];
         foreach (\constant($persistence.'::HOST_SERVICES') as $id) {
