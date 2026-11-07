@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Fixed: thread:publishable writes through the persistence chosen (omnisense/omnibase's plan "omnibase agnostic", step F7f-3)
+
+- `Omnibase\Console\Command::setUnitOfWork()`, given `Omnibridge\Persistence\UnitOfWork` for `thread:publishable`: the
+  command writes through the persistence chosen, where its threads are read (`Threads`, Eloquent's on eloquent - it
+  refreshed and flushed them through Doctrine's entity manager: "is not managed", the cron published nothing). The other
+  commands keep the unit of work over the constructor's entity manager (user:notifications still asks Doctrine's
+  `App\Repository\UserRepository`); on doctrine the unit of work given is omnibridge/doctrine's over the same entity
+  manager.
+
 ### Fixed: what stayed on Doctrine with `base.persistence: eloquent` (omnisense/omnibase's plan "omnibase agnostic", step F7d-3)
 
 - The declarations name the core's repository interfaces: the access token handler (`User\Tokens`), the media
