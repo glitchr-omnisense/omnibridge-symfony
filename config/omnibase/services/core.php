@@ -397,7 +397,12 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
 
     // Console
     $services->set('Base\Console\Console')->public(true)->args([service('kernel')]);
-    $services->set('Base\Console\Command')->public(true)->args([service('localizer'), service('translator'), service('doctrine.orm.entity_manager'), service('parameter_bag')]);
+    // Every command's unit of work is the persistence's chosen (omnisense/omnibase's plan "omnibase agnostic", step B4):
+    // Doctrine's over the same entity manager on doctrine, omnibridge/eloquent's on eloquent, so that a command reads and
+    // writes where the site does. The commands named after Doctrine (doctrine:schema:charset, doctrine:array:upgrade,
+    // doctrine:database:import, base:mapping) use the entity manager itself, as before.
+    $services->set('Base\Console\Command')->public(true)->args([service('localizer'), service('translator'), service('doctrine.orm.entity_manager'), service('parameter_bag')])
+        ->call('setUnitOfWork', [service('Omnibridge\Persistence\UnitOfWork')->ignoreOnInvalid()]);
 
     $commandServices = [
         'Base\Console\Command\NotifierCommand',
@@ -440,7 +445,11 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
             $definition->arg(0, service('base.database.metadata_manipulator'));
         }
         if ($command === 'Base\Console\Command\NotifierMailTestCommand') {
-            $definition->args([service('base.notifier'), service('App\Repository\UserRepository')]);
+            // On 5.x the task reads the accounts through the command's unit of work (the persistence chosen); 4.x's
+            // former code still asks Doctrine's App\Repository\UserRepository.
+            $definition->args(class_exists(\Base\Console\Task\NotifierMailTest::class)
+                ? [service('base.notifier')]
+                : [service('base.notifier'), service('App\Repository\UserRepository')]);
         }
         if ($command === 'Base\Console\Command\AutocompleteEntitiesCommand') {
             $definition->args([service('base.database.metadata_manipulator')]);
@@ -449,10 +458,9 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
             $definition->args([service('time_machine'), service('flysystem')]);
         }
         if ($command === 'Base\Console\Command\ThreadPublishableCommand') {
-            // Its threads by their interface, and their writes through the same persistence's unit of work (step F7f
-            // of omnisense/omnibase's plan: on eloquent, Doctrine's entity manager refreshed a thread it did not manage).
-            $definition->call('setThreads', [service(\Base\Repository\Threads::class)])
-                ->call('setUnitOfWork', [service('Omnibridge\Persistence\UnitOfWork')]);
+            // Its threads by their interface (step F7f of omnisense/omnibase's plan; its writes through the same
+            // persistence's unit of work, which every command now gets from Base\Console\Command's definition: B4).
+            $definition->call('setThreads', [service(\Base\Repository\Threads::class)]);
         }
         if ($command === 'Base\Console\Command\TrashPurgeCommand') {
             $definition->call('setTrashManager', [service('Base\Service\TrashManager')]);
