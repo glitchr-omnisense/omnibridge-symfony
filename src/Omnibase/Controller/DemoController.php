@@ -2,16 +2,17 @@
 
 namespace Omnibridge\Symfony\Omnibase\Controller;
 
-use App\Repository\UserRepository;
 use Base\Auth\Account\Outcome;
 use Base\Demo\DemoMode;
 use Base\Demo\DemoSignIn;
+use Base\Repository\Users;
 use Base\Security\LoginFormAuthenticator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
+use Symfony\Component\Security\Core\User\UserLoaderInterface;
 use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
 
 /**
@@ -27,11 +28,13 @@ class DemoController extends AbstractController
     public const CSRF = DemoSignIn::TOKEN;
 
     #[Route('/login/demo', name: 'security_loginDemo', methods: ['POST'], env: DemoMode::ENVIRONMENT)]
-    public function Login(Request $request, DemoSignIn $demo, UserRepository $users, UserAuthenticatorInterface $userAuthenticator, LoginFormAuthenticator $authenticator): Response
+    public function Login(Request $request, DemoSignIn $demo, Users $users, UserAuthenticatorInterface $userAuthenticator, LoginFormAuthenticator $authenticator): Response
     {
+        // The users by omnibase's interface, the persistence chosen's (plan "omnibase agnostic", step F7d-3: on Eloquent,
+        // the account signed in is the one its connection is written for), each Security's user loader.
         $outcome = $demo->decide($request->request->get('_token'), $request->request->get('account'), static function (string $identifier) use ($users): ?object {
             try {
-                return $users->loadUserByIdentifier($identifier);
+                return $users instanceof UserLoaderInterface ? $users->loadUserByIdentifier($identifier) : ($users->oneByEmail($identifier) ?? $users->oneByUsername($identifier));
             } catch (UserNotFoundException) {
                 return null;
             }

@@ -478,6 +478,12 @@ class BaseBundle extends AbstractBaseBundle
             while ($requests->pop()) {
             }
         }
+        // omnibridge/eloquent's connection let go of the PDO it shares with Doctrine (base.persistence: eloquent, step
+        // F7d-3), as DoctrineBundle closes its own connections: a test suite booting kernel after kernel kept one
+        // database connection open per kernel otherwise (MySQL's "Too many connections").
+        if ($this->container?->initialized('omnibridge.eloquent.connection')) {
+            $this->container->get('omnibridge.eloquent.connection')->disconnect();
+        }
 
         parent::shutdown();
     }

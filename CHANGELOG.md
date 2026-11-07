@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Fixed: what stayed on Doctrine with `base.persistence: eloquent` (omnisense/omnibase's plan "omnibase agnostic", step F7d-3)
+
+- The declarations name the core's repository interfaces: the access token handler (`User\Tokens`), the media
+  controller (`Layout\ImageCrops`), the user provider and the analytics subscriber (`Users`), instead of Doctrine's
+  repository classes - on Doctrine the same services.
+- `DemoController` reads the account through `Base\Repository\Users` (the persistence chosen; Security's user loader),
+  not `App\Repository\UserRepository`: on Eloquent, the account signed in is the one its connection is written for.
+- `BaseBundle::shutdown()` lets omnibridge/eloquent's connection go of the PDO it shares with Doctrine (the service
+  `omnibridge.eloquent.connection`, now public): a suite booting kernel after kernel kept one database connection per
+  kernel open (MySQL's "Too many connections").
+
 ### Added: the persistence chosen, Eloquent's when it is the one (omnisense/omnibase's plan "omnibase agnostic", step F7d)
 
 - `Omnibase\DependencyInjection\Persistence`: omnibase's option `base.persistence` (config/packages/base.yaml, an

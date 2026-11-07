@@ -86,7 +86,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     $services->set('Base\Security\UserProvider', interface_exists('HWI\Bundle\OAuthBundle\Security\Core\User\OAuthAwareUserProviderInterface') ? 'Base\Security\OAuthUserProvider' : 'Base\Security\UserProvider')
         ->args([
             new Reference('Base\Security\UserTracker'),
-            new Reference('App\Repository\UserRepository'),
+            new Reference('Base\Repository\Users'),
         ]);
 
     $services->set('Base\Security\RescueFormAuthenticator')

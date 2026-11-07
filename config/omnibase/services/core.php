@@ -31,7 +31,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
 
     // Access token handler
     $services->set('Base\Security\AccessTokenHandler')
-        ->args([service('Base\Repository\User\TokenRepository')]);
+        ->args([service('Base\Repository\User\Tokens')]);
 
     // CacheClearSessionsCommand
     $services->set('Base\Console\Command\CacheClearSessionsCommand')
@@ -46,7 +46,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         'Omnibridge\Symfony\Omnibase\Controller\ProfilerController' => ['base.notifier', 'Base\Notifier\TestRecipient'],
         'Omnibridge\Symfony\Omnibase\Controller\Client\ContactController' => ['form.proxy', 'Base\Notifier\ContactMessage'],
         'Omnibridge\Symfony\Omnibase\Controller\LocalizerController' => ['advanced_router', 'Base\Request\LocaleSwitch', 'Base\Request\TimezoneSwitch'],
-        'Omnibridge\Symfony\Omnibase\Controller\UX\MediaController' => ['request_stack', 'flysystem', 'base.service.image', 'Base\Repository\Layout\ImageCropRepository'],
+        'Omnibridge\Symfony\Omnibase\Controller\UX\MediaController' => ['request_stack', 'flysystem', 'base.service.image', 'Base\Repository\Layout\ImageCrops'],
         'Omnibridge\Symfony\Omnibase\Controller\UX\AutocompleteController' => ['request_stack', 'Omnibridge\Persistence\UnitOfWork', 'Base\Field\Search\RemoteSearch', 'Base\Field\Search\ExchangeRate'],
         'Omnibridge\Symfony\Omnibase\Controller\WidgetController' => ['Base\Request\AttachmentDownload'],
         // The field's validation while a form is filled: never registered (constructor arguments, no service), so
@@ -93,7 +93,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         'Base\Subscriber\RouterSubscriber' => ['security.authorization_checker', 'advanced_router', 'parameter_bag'],
         'Base\Subscriber\ProfilerSubscriber' => ['advanced_router'],
         'Base\Subscriber\HotParameterBagSubscriber' => ['parameter_bag', 'setting_bag'],
-        'Base\Subscriber\AnalyticsSubscriber' => ['security.token_storage', 'advanced_router', 'translator', 'twig', 'App\Repository\UserRepository', '?ga.service'],
+        'Base\Subscriber\AnalyticsSubscriber' => ['security.token_storage', 'advanced_router', 'translator', 'twig', 'Base\Repository\Users', '?ga.service'],
         'Base\Subscriber\PageViewSubscriber' => ['Base\Service\Analytics', 'Symfony\Bundle\SecurityBundle\Security', '$excludedPrefixes' => ['/admin', '/_', '/api']],
     ];
 
