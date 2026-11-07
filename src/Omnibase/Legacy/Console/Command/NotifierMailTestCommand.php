@@ -19,12 +19,13 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class NotifierMailTestCommand extends Command
 {
     protected NotifierInterface $notifier;
-    protected UserRepository $userRepository;
+    /** Doctrine's App\Repository\UserRepository on omnisense/omnibase 4.x; none on 5.x, whose task reads the accounts through the persistence chosen. */
+    protected ?UserRepository $userRepository = null;
 
     public function __construct(...$args)
     {
         $this->notifier = first(extract_instanceof(NotifierInterface::class, ...$args));
-        $this->userRepository = first(extract_instanceof(UserRepository::class, ...$args));
+        $this->userRepository = first(extract_instanceof(UserRepository::class, ...$args)) ?: null;
         parent::__construct(...$args);
     }
 

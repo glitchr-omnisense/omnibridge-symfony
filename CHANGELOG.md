@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Fixed: every command reads and writes through the persistence chosen (omnisense/omnibase's plan "omnibase agnostic", step B4)
+
+- `Base\Console\Command`'s definition calls `setUnitOfWork()` with `Omnibridge\Persistence\UnitOfWork`, so every command
+  declared on it gets the persistence chosen (thread:publishable alone did, F7f-3): user:notifications, notifier:mail:test,
+  user:create, uploader:images:crop, entity:discriminator, icon:entities, autocomplete:entities read and write where the
+  site does - on doctrine omnibridge/doctrine's unit of work over the same entity manager, as before. The commands named
+  after Doctrine (doctrine:schema:charset, doctrine:array:upgrade, doctrine:database:import, base:mapping) use the entity
+  manager itself, as before.
+- notifier:mail:test is no longer given Doctrine's `App\Repository\UserRepository` on omnisense/omnibase 5.x (its task
+  reads the accounts through the unit of work); the legacy command's `$userRepository` is nullable, 4.x still given it.
+  omnisense/omnibase's UserNotification task reads the account through the users repository's loader, not
+  `instanceof App\Repository\UserRepository`.
+
 ### Fixed: thread:publishable writes through the persistence chosen (omnisense/omnibase's plan "omnibase agnostic", step F7f-3)
 
 - `Omnibase\Console\Command::setUnitOfWork()`, given `Omnibridge\Persistence\UnitOfWork` for `thread:publishable`: the
