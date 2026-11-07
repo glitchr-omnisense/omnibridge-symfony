@@ -449,7 +449,10 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
             $definition->args([service('time_machine'), service('flysystem')]);
         }
         if ($command === 'Base\Console\Command\ThreadPublishableCommand') {
-            $definition->call('setThreads', [service(\Base\Repository\Threads::class)]);
+            // Its threads by their interface, and their writes through the same persistence's unit of work (step F7f
+            // of omnisense/omnibase's plan: on eloquent, Doctrine's entity manager refreshed a thread it did not manage).
+            $definition->call('setThreads', [service(\Base\Repository\Threads::class)])
+                ->call('setUnitOfWork', [service('Omnibridge\Persistence\UnitOfWork')]);
         }
         if ($command === 'Base\Console\Command\TrashPurgeCommand') {
             $definition->call('setTrashManager', [service('Base\Service\TrashManager')]);

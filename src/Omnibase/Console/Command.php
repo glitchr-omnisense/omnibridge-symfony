@@ -34,7 +34,7 @@ class Command extends SymfonyCommand
      * @deprecated since step F2d of the plan "omnibase agnostic", ask $unitOfWork (and UnitOfWorks::repositories()); removed at 6.0
      */
     protected $entityManager;
-    /** The unit of work over the entity manager given (plan "omnibase agnostic", step F2d). */
+    /** The unit of work over the entity manager given (plan "omnibase agnostic", step F2d), else the persistence's chosen (setUnitOfWork()). */
     protected UnitOfWork $unitOfWork;
     /**
      * @var ParameterBagInterface
@@ -55,6 +55,20 @@ class Command extends SymfonyCommand
 
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
         parent::__construct();
+    }
+
+    /**
+     * The unit of work of the persistence the host chose (omnisense/omnibase's plan "omnibase agnostic", step F7f): the
+     * container's, given after the constructor's entity manager - Doctrine's over the same entity manager on doctrine,
+     * omnibridge/eloquent's on eloquent, so that a command's writes go where its repositories (Threads...) read: given
+     * to thread:publishable. The others keep the unit of work over the constructor's entity manager (user:notifications
+     * still asks Doctrine's App\Repository\UserRepository; the commands named after Doctrine, getEntityManager()).
+     */
+    public function setUnitOfWork(UnitOfWork $unitOfWork): static
+    {
+        $this->unitOfWork = $unitOfWork;
+
+        return $this;
     }
 
     protected function getTranslator(): TranslatorInterface
