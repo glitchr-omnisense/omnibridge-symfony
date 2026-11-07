@@ -40,6 +40,9 @@ final class Persistence
         return Persistences::choose(\is_string($configured) && '' !== $configured ? $configured : null, self::OPTION);
     }
 
+    /** omnisense/omnibridge's Lifecycle\Listeners::TAG (by value: a site whose omnisense/omnibridge predates it compiles too). */
+    public const LIFECYCLE_LISTENER = 'omnibridge.lifecycle_listener';
+
     public static function register(ContainerBuilder $builder, ?string $persistence): void
     {
         $builder->setParameter('base.persistence', $persistence);
@@ -75,6 +78,9 @@ final class Persistence
                 '%kernel.environment%',
                 $lifecycle,
                 new Reference('doctrine.orm.entity_manager', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                // The packages' listeners of the Lifecycle events (omnisense/omnibridge's Lifecycle\Listeners, step B2):
+                // glitchr/typesense-bundle's indexer, which follows Doctrine's writes through Doctrine's own events.
+                new TaggedIteratorArgument(self::LIFECYCLE_LISTENER),
             ])
             ->setPublic(true)
             ->addTag('kernel.reset', ['method' => 'reset']));

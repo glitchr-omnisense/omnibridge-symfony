@@ -36,13 +36,18 @@ final class EloquentHost
         return Connections::url($url);
     }
 
-    /** @param array<string, mixed> $lifecycle OmnibaseListeners' options the container gives (empty_trash, max_revisions, entity_dispatchers) */
-    public static function persistence(Connection $connection, ContainerInterface $services, string $projectDir, string $environment, array $lifecycle = [], ?object $entityManager = null): EloquentPersistence
+    /**
+     * @param array<string, mixed>      $lifecycle OmnibaseListeners' options the container gives (empty_trash, max_revisions, entity_dispatchers)
+     * @param iterable<callable>|null   $listeners the services tagged omnibridge.lifecycle_listener (omnisense/omnibridge's
+     *                                             Lifecycle\Listeners: a package hearing the writes, step B2), made at the first event
+     */
+    public static function persistence(Connection $connection, ContainerInterface $services, string $projectDir, string $environment, array $lifecycle = [], ?object $entityManager = null, ?iterable $listeners = null): EloquentPersistence
     {
         $options = $entityManager instanceof EntityManagerInterface && class_exists(InstalledEntities::class)
             ? InstalledEntities::options($entityManager, $projectDir)
             : ['project_dir' => $projectDir, 'paths' => EntitySchema::directories($projectDir)];
         $options['lifecycle'] = $lifecycle;
+        $options['listeners'] = $listeners;
         $persistence = EloquentPersistence::host($connection, $services, $options, EntitySchema::describe($options['paths'], $options));
         $persistence->backend()->enableScope('trash');
         $persistence->backend()->enableScope('vault', ['environment' => $environment]);
