@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Fixed: PhpSpreadsheet's cache warmer only with phpoffice/phpspreadsheet (omnisense/omnibase's plan "omnibase agnostic", step S)
+- omnibase's cache warmers are declared from `Omnibase\DependencyInjection\CacheWarmers::declarations()`, which
+  declares `Base\Cache\Warmer\SpreadsheetCacheWarmer` only where phpoffice/phpspreadsheet is installed: the core only
+  suggests it since 5.0, and a site without it had cache:clear (its optional warmers: a web container's start) stop on a
+  ClassNotFoundError. The other warmers are declared as before. tests/OptionalPackagesTest (in `bare` too). No other
+  service of the bridge is built on a package the core began suggesting at 5.0 (league/flysystem-ftp, symfony/discord-notifier,
+  symfony/http-client, web-auth/webauthn-lib: none named; omnimap's PSR-18 client was already guarded).
+
 ### Changed: the form and field types read the mapping on the persistence's shapes (omnisense/omnibase's plan "omnibase agnostic", step B leftovers)
 
 - `Form\FormMapping` (new) answers what the association, select, file, translation, attribute and slug types, the form

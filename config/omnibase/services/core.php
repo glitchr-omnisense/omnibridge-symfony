@@ -1,5 +1,6 @@
 <?php
 
+use Omnibridge\Symfony\Omnibase\DependencyInjection\CacheWarmers;
 use Omnibridge\Symfony\Omnibase\DependencyInjection\Declarations;
 use Omnibridge\Symfony\Omnibase\DependencyInjection\Persistence;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -211,15 +212,8 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
 
 
 
-    // LocalCache / CacheWarmers
-    $cacheServices = [
-        'Base\Cache\Warmer\SpreadsheetCacheWarmer' => ['$cacheDir' => '%kernel.cache_dir%'],
-        'Base\Cache\Warmer\IconCacheWarmer' => ['base.service.icon', '$cacheDir' => '%kernel.cache_dir%'],
-        'Base\Cache\Warmer\LocalizerCacheWarmer' => ['localizer', '$cacheDir' => '%kernel.cache_dir%'],
-        'Base\Cache\Warmer\ThemizerCacheWarmer' => ['themizer', '$cacheDir' => '%kernel.cache_dir%'],
-        'Base\Cache\Warmer\AttributeCacheWarmer' => ['base.attribute_reader', '$cacheDir' => '%kernel.cache_dir%'],
-        'Base\Cache\Warmer\MetadataCacheWarmer' => ['base.database.metadata_manipulator', 'base.attribute_reader', '$cacheDir' => '%kernel.cache_dir%'],
-    ];
+    // LocalCache / CacheWarmers: those whose packages are installed (CacheWarmers).
+    $cacheServices = CacheWarmers::declarations();
 
     foreach ($cacheServices as $id => $args) {
         $definition = $services->set($id);
