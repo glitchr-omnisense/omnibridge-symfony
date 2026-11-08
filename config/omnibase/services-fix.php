@@ -2,10 +2,11 @@
 
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 
-return static function (ContainerConfigurator $container): void {
+return static function (ContainerConfigurator $container, ContainerBuilder $builder): void {
     $services = $container->services();
 
     $services->defaults();
@@ -28,9 +29,11 @@ return static function (ContainerConfigurator $container): void {
             ->args([new Reference('assets.packages')]);
     }
 
-    // Doctrine fix
-    $services->alias('Doctrine\Bundle\DoctrineBundle\ConnectionFactory', 'doctrine.dbal.connection_factory');
+    // Doctrine fix, where Doctrine is there (plan "omnibase agnostic", step B3)
+    if (\Omnibridge\Symfony\Omnibase\DependencyInjection\Persistence::hasDoctrine($builder)) {
+        $services->alias('Doctrine\Bundle\DoctrineBundle\ConnectionFactory', 'doctrine.dbal.connection_factory');
 
-    $services->set('Doctrine\Persistence\Mapping\ClassMetadataFactory')
-        ->factory([new Reference('doctrine.orm.default_entity_manager'), 'getMetadataFactory']);
+        $services->set('Doctrine\Persistence\Mapping\ClassMetadataFactory')
+            ->factory([new Reference('doctrine.orm.default_entity_manager'), 'getMetadataFactory']);
+    }
 };

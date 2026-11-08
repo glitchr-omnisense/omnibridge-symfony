@@ -11,7 +11,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use Omnibridge\Symfony\Omnibase\Console\Command;
-use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
+use Omnibridge\Symfony\Omnibase\Database\MetadataManipulator as ClassMetadataManipulator;
 use Base\Service\Model\IconizeInterface;
 use Base\Service\LocalizerInterface;
 use Base\Service\ParameterBagInterface;
@@ -19,6 +19,11 @@ use Base\Service\TranslatorInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Attribute\AsCommand;
+
+// The alias this class is typed on (the core's MetadataManipulator on 5.x, Doctrine's on 4.x), defined when this file
+// is loaded: a type check never autoloads, and BaseBundle.php, which defines it too, is not every application's
+// (a 4.x one registers the core's Base\BaseBundle; plan "omnibase agnostic", step B3).
+class_exists(ClassMetadataManipulator::class);
 
 #[AsCommand(name: 'icon:entities', aliases: [], description: '')]
 class IconEntitiesCommand extends Command
@@ -31,7 +36,7 @@ class IconEntitiesCommand extends Command
     public function __construct(
         LocalizerInterface       $localizer,
         TranslatorInterface      $translator,
-        EntityManagerInterface   $entityManager,
+        ?EntityManagerInterface  $entityManager,
         ParameterBagInterface    $parameterBag,
         ClassMetadataManipulator $classMetadataManipulator
     )

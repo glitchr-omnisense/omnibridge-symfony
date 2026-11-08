@@ -3,7 +3,7 @@
 namespace Omnibridge\Symfony\Omnibase\Form;
 
 use Base\Database\Entity\EntityHydratorInterface;
-use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
+use Omnibridge\Symfony\Omnibase\Database\MetadataManipulator as ClassMetadataManipulator;
 use Base\Form\Common\FormModelInterface;
 use Omnibridge\Symfony\Omnibase\Form\Common\FormTypeInterface;
 use Omnibridge\Symfony\Omnibase\Form\Traits\FormGuessTrait;
@@ -19,6 +19,11 @@ use Symfony\Component\Form\FormRegistryInterface;
 
 use Symfony\Component\Form\FormFactory as SymfonyFormFactory;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+
+// The alias this class is typed on (the core's MetadataManipulator on 5.x, Doctrine's on 4.x), defined when this file
+// is loaded: a type check never autoloads, and BaseBundle.php, which defines it too, is not every application's
+// (a 4.x one registers the core's Base\BaseBundle; plan "omnibase agnostic", step B3).
+class_exists(ClassMetadataManipulator::class);
 
 class FormFactory extends SymfonyFormFactory implements FormFactoryInterface
 {

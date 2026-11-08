@@ -19,7 +19,7 @@ use Omnibridge\Contract\Access;
 use Omnibridge\Contract\Environment as EnvironmentContract;
 use Omnibridge\Contract\Requests;
 use Omnibridge\Contract\Urls;
-use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
+use Omnibridge\Symfony\Omnibase\Database\MetadataManipulator as ClassMetadataManipulator;
 use Omnibridge\Doctrine\Omnibase\DoctrineLocator;
 use Omnibridge\Symfony\Omnibase\FrameworkLocator;
 use Omnibridge\Symfony\Omnibase\Routing\AdvancedRouterInterface;
@@ -53,6 +53,11 @@ use Symfony\Component\Security\Http\FirewallMapInterface;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Contracts\EventDispatcher\Event;
 use Twig\Environment;
+
+// The alias this class is typed on (the core's MetadataManipulator on 5.x, Doctrine's on 4.x), defined when this file
+// is loaded: a type check never autoloads, and BaseBundle.php, which defines it too, is not every application's
+// (a 4.x one registers the core's Base\BaseBundle; plan "omnibase agnostic", step B3).
+class_exists(ClassMetadataManipulator::class);
 
 /**
  * omnisense/omnibase's BaseService under Symfony (its plan "omnibase agnostic", step F5c, item 3): the core's
@@ -105,7 +110,7 @@ class SymfonyBaseService extends BaseService
         FirewallMapInterface          $firewallMap,
         Environment                   $twig,
         SluggerInterface              $slugger,
-        ManagerRegistry               $doctrine,
+        ?ManagerRegistry              $doctrine,
         AuthorizationCheckerInterface $authorizationChecker,
         TokenStorageInterface         $tokenStorage,
         CsrfTokenManagerInterface     $csrfTokenManager,

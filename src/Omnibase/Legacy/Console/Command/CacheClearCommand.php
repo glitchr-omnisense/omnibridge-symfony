@@ -44,7 +44,7 @@ class CacheClearCommand extends Command
     public function __construct(
         LocalizerInterface      $localizer,
         TranslatorInterface     $translator,
-        EntityManagerInterface  $entityManager,
+        ?EntityManagerInterface $entityManager,
         ParameterBagInterface   $parameterBag,
         SymfonyCommand          $cacheClearCommand,
         SymfonyCommand          $cacheClearSessionsCommand,

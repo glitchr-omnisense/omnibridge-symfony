@@ -154,7 +154,7 @@ return function (ContainerConfigurator $configurator) {
         ->tag('form.type')
         ->args([
             new Reference('form.factory'),
-            new Reference('doctrine.orm.entity_manager'),
+            new Reference('doctrine.orm.entity_manager', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             new Reference('parameter_bag'),
         ]);
     $services->set('Base\Field\Type\FileType')

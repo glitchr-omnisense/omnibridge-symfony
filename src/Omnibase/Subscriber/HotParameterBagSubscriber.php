@@ -53,9 +53,11 @@ class HotParameterBagSubscriber implements EventSubscriberInterface
 
         \benchmark_start();
 
+        // A database without the settings' tables yet (omnibridge:schema:create's own start) leaves the parameters as
+        // configured: Doctrine's exception, or Eloquent's without Doctrine (plan "omnibase agnostic", step B3).
         try {
             $this->parameterBag->warm($this->settingBag);
-        } catch (DBALException) {
+        } catch (DBALException|\Illuminate\Database\QueryException|\PDOException) {
         }
     }
 }

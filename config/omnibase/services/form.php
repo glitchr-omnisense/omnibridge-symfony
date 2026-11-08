@@ -117,7 +117,9 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ],
         'Base\Subscriber\SecuritySubscriber' => [
             'args' => [
-                new Reference('App\Repository\UserRepository'),
+                // The users' repository of the persistence chosen on 5.x (plan "omnibase agnostic", step B3): Doctrine's
+                // App\Repository\UserRepository on doctrine, as before.
+                new Reference(class_exists(\Base\Request\Rule\Accounts::class) ? 'Base\Repository\Users' : 'App\Repository\UserRepository'),
                 new Reference('security.authorization_checker'),
                 new Reference('security.token_storage'),
                 new Reference('request_stack'),

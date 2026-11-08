@@ -1,6 +1,7 @@
 <?php
 
 use Omnibridge\Symfony\Omnibase\DependencyInjection\Declarations;
+use Omnibridge\Symfony\Omnibase\DependencyInjection\Persistence;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use \Symfony\Component\DependencyInjection\ContainerInterface;
@@ -74,7 +75,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         if ($id === 'Omnibridge\Symfony\Omnibase\Controller\UX\AutocompleteController') {
             $definition->arg(4, new Reference('profiler', ContainerInterface::NULL_ON_INVALID_REFERENCE));
             // An entity whose repository is a plain Doctrine one is searched through omnibase's, built for it.
-            $definition->arg(5, service('doctrine'));
+            $definition->arg(5, service('doctrine')->nullOnInvalid());
         }
     }
 
@@ -163,11 +164,14 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // constructing SettingBag there (repository -> getClassMetadata) triggers
     // a re-entrant resolveDiscriminator dispatch on the half-initialized
     // event manager.
-    $services->set('Omnibridge\Doctrine\Omnibase\EntitySubscriber\SettingSubscriber')
-        ->tag('doctrine.event_listener', ['event' => 'postPersist'])
-        ->tag('doctrine.event_listener', ['event' => 'postUpdate'])
-        ->tag('doctrine.event_listener', ['event' => 'postRemove'])
-        ->args([service_closure('Base\Service\SettingBagInterface')]);
+    // Doctrine's listener only where Doctrine is there (plan "omnibase agnostic", step B3).
+    if (Persistence::hasDoctrine($builder)) {
+        $services->set('Omnibridge\Doctrine\Omnibase\EntitySubscriber\SettingSubscriber')
+            ->tag('doctrine.event_listener', ['event' => 'postPersist'])
+            ->tag('doctrine.event_listener', ['event' => 'postUpdate'])
+            ->tag('doctrine.event_listener', ['event' => 'postRemove'])
+            ->args([service_closure('Base\Service\SettingBagInterface')]);
+    }
     Declarations::group($builder, 'core');
 
     // Tracks config/routes_paths.yaml (the Base\Attributes\Attribute\Route
@@ -247,7 +251,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ->args([[
             'base.service' => new Reference('base.service'),
             'setting_bag' => new Reference('setting_bag'),
-            'doctrine' => new Reference('doctrine'),
+            'doctrine' => new Reference('doctrine', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
             'base.database.metadata_manipulator' => new Reference('base.database.metadata_manipulator'),
             'security.token_storage' => new Reference('security.token_storage'),
             'request_stack' => new Reference('request_stack'),
@@ -356,7 +360,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
             service('security.firewall.map'),
             service('twig'),
             service('slugger'),
-            service('doctrine'),
+            service('doctrine')->nullOnInvalid(),
             service('security.authorization_checker'),
             service('security.token_storage'),
             service('security.csrf.token_manager'),
@@ -401,7 +405,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // Doctrine's over the same entity manager on doctrine, omnibridge/eloquent's on eloquent, so that a command reads and
     // writes where the site does. The commands named after Doctrine (doctrine:schema:charset, doctrine:array:upgrade,
     // doctrine:database:import, base:mapping) use the entity manager itself, as before.
-    $services->set('Base\Console\Command')->public(true)->args([service('localizer'), service('translator'), service('doctrine.orm.entity_manager'), service('parameter_bag')])
+    $services->set('Base\Console\Command')->public(true)->args([service('localizer'), service('translator'), service('doctrine.orm.entity_manager')->nullOnInvalid(), service('parameter_bag')])
         ->call('setUnitOfWork', [service('Omnibridge\Persistence\UnitOfWork')->ignoreOnInvalid()]);
 
     $commandServices = [
@@ -422,6 +426,17 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         'Base\Console\Command\TranslationEntitiesCommand',
         'Base\Console\Command\TranslationEnumsCommand',
     ];
+
+    // The commands named after Doctrine read Doctrine's metadata or DBAL by nature: only where Doctrine is there (plan
+    // "omnibase agnostic", step B3).
+    if (!Persistence::hasDoctrine($builder)) {
+        $commandServices = array_values(array_diff($commandServices, [
+            'Base\Console\Command\DoctrineSchemaCharsetCommand',
+            'Base\Console\Command\DoctrineArrayUpgradeCommand',
+            'Base\Console\Command\BaseMappingCommand',
+            'Base\Console\Command\EntityDiscriminatorCommand',
+        ]));
+    }
 
     // The TimeMachine (the backups) and its commands, only where glitchr/backup-manager is
     // installed, a suggestion since 4.0: Base\Service\TimeMachine extends its Manager, and a
@@ -483,7 +498,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // description, where the core describes them with no persistence (5.x) and omnisense/omnibridge writes them.
     if (class_exists(\Base\Database\Schema\EntitySchema::class) && class_exists(\Omnibridge\Schema\Database\SchemaCreator::class)) {
         $services->set(\Omnibridge\Symfony\Omnibase\Console\Command\SchemaCreateCommand::class)
-            ->args([service('doctrine.orm.entity_manager'), '%kernel.project_dir%'])
+            ->args([service('doctrine.orm.entity_manager')->nullOnInvalid(), '%kernel.project_dir%', service('omnibridge.eloquent.connection')->nullOnInvalid()])
             ->tag('console.command');
     }
 
@@ -527,12 +542,15 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ->tag('console.command')
         ->args([new Reference('base.database.metadata_manipulator')]);
 
-    $services->set('Base\Console\Command\DoctrineDatabaseImportCommand')
-        ->parent('Base\Console\Command')
-        ->tag('console.command')
-        ->args([
-            new Reference('base.database.entity_hydrator'),
-            new Reference('base.database.metadata_manipulator'),
-            new Reference('base.notifier'),
-        ]);
+    // doctrine:database:import, on Doctrine's metadata: only where Doctrine is there (plan "omnibase agnostic", step B3).
+    if (Persistence::hasDoctrine($builder)) {
+        $services->set('Base\Console\Command\DoctrineDatabaseImportCommand')
+            ->parent('Base\Console\Command')
+            ->tag('console.command')
+            ->args([
+                new Reference('base.database.entity_hydrator'),
+                new Reference('base.database.metadata_manipulator'),
+                new Reference('base.notifier'),
+            ]);
+    }
 };

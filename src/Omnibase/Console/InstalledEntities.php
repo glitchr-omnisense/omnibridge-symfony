@@ -2,6 +2,7 @@
 
 namespace Omnibridge\Symfony\Omnibase\Console;
 
+use Base\Database\Schema\EntitySchema;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Events;
@@ -52,6 +53,28 @@ final class InstalledEntities
         }
 
         return ['paths' => array_values(array_unique($paths)), 'project_dir' => $projectDir, 'resolve_target_entities' => $targets, 'types' => $types];
+    }
+
+    /**
+     * The database omnibridge:schema:create writes to and EntitySchema's options: Doctrine's connection and configuration
+     * where Doctrine is there, else omnibridge/eloquent's connection (an Illuminate\Database\Connection) and the core's and
+     * the application's entity folders (plan "omnibase agnostic", step B3: Doctrine a suggestion of this bridge); null
+     * when neither is there.
+     *
+     * @return array{options: array<string, mixed>, pdo: mixed, table_options: array<string, mixed>}|null
+     */
+    public static function database(?EntityManagerInterface $entityManager, ?object $connection, string $projectDir): ?array
+    {
+        if (null !== $entityManager) {
+            $dbal = $entityManager->getConnection();
+
+            return ['options' => self::options($entityManager, $projectDir), 'pdo' => $dbal->getNativeConnection(), 'table_options' => $dbal->getParams()['defaultTableOptions'] ?? []];
+        }
+        if (null !== $connection && method_exists($connection, 'getPdo')) {
+            return ['options' => ['project_dir' => $projectDir, 'paths' => EntitySchema::directories($projectDir)], 'pdo' => $connection->getPdo(), 'table_options' => []];
+        }
+
+        return null;
     }
 
     /**

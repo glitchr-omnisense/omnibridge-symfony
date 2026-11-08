@@ -31,7 +31,7 @@ class CropperType extends AbstractType implements DataMapperInterface
     /**
      * @var EntityManagerInterface
      */
-    protected EntityManagerInterface $entityManager;
+    protected ?EntityManagerInterface $entityManager;
 
     /**
      * @var ParameterBagInterface
@@ -48,7 +48,7 @@ class CropperType extends AbstractType implements DataMapperInterface
         return 'cropper';
     }
 
-    public function __construct(FormFactory $formFactory, EntityManagerInterface $entityManager, ParameterBagInterface $parameterBag)
+    public function __construct(FormFactory $formFactory, ?EntityManagerInterface $entityManager, ParameterBagInterface $parameterBag)
     {
         $this->formFactory = $formFactory;
         $this->entityManager = $entityManager;
@@ -220,8 +220,7 @@ class CropperType extends AbstractType implements DataMapperInterface
             return;
         }
 
-        $classMetadata = $this->entityManager->getClassMetadata(get_class($viewData));
-        $fieldNames = $classMetadata->getFieldNames();
+        $fieldNames = $this->fieldNames($viewData);
         $fieldNames[] = "is_normalized"; // Include normalization information
         foreach (iterator_to_array($forms) as $formName => $form) {
             
@@ -240,8 +239,7 @@ class CropperType extends AbstractType implements DataMapperInterface
      */
     public function mapFormsToData(Traversable $forms, &$viewData): void
     {
-        $classMetadata = $this->entityManager->getClassMetadata(get_class($viewData));
-        $fieldNames = $classMetadata->getFieldNames();
+        $fieldNames = $this->fieldNames($viewData);
 
         foreach (iterator_to_array($forms) as $formName => $form) {
 
@@ -251,5 +249,16 @@ class CropperType extends AbstractType implements DataMapperInterface
 
             $this->propertyAccessor->setValue($viewData, $formName, $form->getData());
         }
+    }
+
+    /**
+     * The crop's fields, from its entity's shape (plan "omnibase agnostic", step B3: whatever the persistence; it read
+     * Doctrine's metadata).
+     *
+     * @return list<string>
+     */
+    private function fieldNames(object $viewData): array
+    {
+        return \Base\Attributes\AbstractAttribute::getClassMetadataManipulator()?->getShape($viewData)?->fieldNames() ?? [];
     }
 }

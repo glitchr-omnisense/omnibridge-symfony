@@ -3,7 +3,7 @@
 namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
 use Base\Admin\Controller\AbstractCrudController;
-use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
+use Omnibridge\Symfony\Omnibase\Database\MetadataManipulator as ClassMetadataManipulator;
 use Base\Enum\UserRole;
 use Base\Database\Repository\Repositories;
 use Base\Field\Behaviour\Select;
@@ -53,6 +53,11 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationChecker;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Traversable;
+
+// The alias this class is typed on (the core's MetadataManipulator on 5.x, Doctrine's on 4.x), defined when this file
+// is loaded: a type check never autoloads, and BaseBundle.php, which defines it too, is not every application's
+// (a 4.x one registers the core's Base\BaseBundle; plan "omnibase agnostic", step B3).
+class_exists(ClassMetadataManipulator::class);
 
 class SelectType extends AbstractType implements DataMapperInterface
 {

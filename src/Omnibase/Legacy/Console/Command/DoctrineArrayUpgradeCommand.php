@@ -17,7 +17,7 @@ class DoctrineArrayUpgradeCommand extends Command
     public function __construct(
         LocalizerInterface       $localizer,
         TranslatorInterface      $translator,
-        EntityManagerInterface   $entityManager,
+        ?EntityManagerInterface  $entityManager,
         ParameterBagInterface    $parameterBag
     )
     {

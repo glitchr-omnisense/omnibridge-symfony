@@ -40,8 +40,40 @@ final class Persistence
         return Persistences::choose(\is_string($configured) && '' !== $configured ? $configured : null, self::OPTION);
     }
 
+    /** The repositories the core's declarations name by their class (no interface yet), by the entity they read. */
+    public const REPOSITORIES_BY_CLASS = [
+        'Base\Repository\Layout\TextOverrideRepository' => 'Base\Entity\Layout\TextOverride',
+    ];
+
     /** omnisense/omnibridge's Lifecycle\Listeners::TAG (by value: a site whose omnisense/omnibridge predates it compiles too). */
     public const LIFECYCLE_LISTENER = 'omnibridge.lifecycle_listener';
+
+    /** DoctrineBundle's class, by value: it need not be installed. */
+    public const DOCTRINE_BUNDLE = 'Doctrine\Bundle\DoctrineBundle\DoctrineBundle';
+
+    /**
+     * Whether Doctrine's wiring is declared (plan "omnibase agnostic", step B3: Doctrine a suggestion of this bridge):
+     * omnibridge/doctrine installed (Persistences::isInstalled('doctrine')) and DoctrineBundle registered - its
+     * listeners, filters, types, the Doctrine-named commands, the services naming `doctrine.*`. A site whose
+     * omnisense/omnibridge predates the persistences (a 4.x site's lock) has Doctrine, as before.
+     */
+    public static function hasDoctrine(ContainerBuilder $builder): bool
+    {
+        if (!class_exists(Persistences::class)) {
+            return true;
+        }
+
+        if (!Persistences::isInstalled(Persistences::DOCTRINE)) {
+            return false;
+        }
+
+        // In an extension's load(), the builder is Symfony's merge builder, which registers that extension alone:
+        // DoctrineBundle is looked for among the kernel's bundles, and among the extensions where the builder is the
+        // kernel's (a bundle's build(), a compiler pass).
+        $bundles = $builder->hasParameter('kernel.bundles') ? $builder->getParameter('kernel.bundles') : [];
+
+        return \in_array(self::DOCTRINE_BUNDLE, $bundles, true) || $builder->hasExtension('doctrine');
+    }
 
     public static function register(ContainerBuilder $builder, ?string $persistence): void
     {
@@ -93,6 +125,18 @@ final class Persistence
             $builder->setDefinition($id, (new Definition($id))->setFactory([new Reference($persistence), $method])->setPublic(true));
             foreach ($contracts as $contract) {
                 $builder->setAlias($contract, new Alias($id, true));
+            }
+        }
+
+        // Without Doctrine (plan "omnibase agnostic", step B3), the repositories the core's declarations still name by
+        // their class are Eloquent's of the same entity: what Doctrine's repository of that id answered with Doctrine
+        // beside.
+        if (!self::hasDoctrine($builder)) {
+            foreach (self::REPOSITORIES_BY_CLASS as $id => $entity) {
+                $builder->setDefinition($id, (new Definition('Base\Database\Repository\Entities'))
+                    ->setFactory([new Reference('Omnibridge\Eloquent\Omnibase\EloquentRepositories'), 'of'])
+                    ->setArguments([$entity])
+                    ->setPublic(true));
             }
         }
 

@@ -3,7 +3,7 @@
 namespace Omnibridge\Symfony\Omnibase\Form\Type;
 
 use Base\Database\Attribute\Uploader;
-use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
+use Omnibridge\Symfony\Omnibase\Database\MetadataManipulator as ClassMetadataManipulator;
 use Base\Entity\Layout\Setting;
 use Base\Entity\Layout\SettingIntl;
 use Omnibridge\Symfony\Omnibase\Field\Type\AvatarType;
@@ -25,6 +25,11 @@ use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\Util\StringUtil;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+
+// The alias this class is typed on (the core's MetadataManipulator on 5.x, Doctrine's on 4.x), defined when this file
+// is loaded: a type check never autoloads, and BaseBundle.php, which defines it too, is not every application's
+// (a 4.x one registers the core's Base\BaseBundle; plan "omnibase agnostic", step B3).
+class_exists(ClassMetadataManipulator::class);
 
 class LayoutSettingListType extends AbstractType implements DataMapperInterface
 {

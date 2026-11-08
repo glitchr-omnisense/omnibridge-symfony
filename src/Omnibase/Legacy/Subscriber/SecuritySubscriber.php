@@ -57,7 +57,8 @@ class SecuritySubscriber implements EventSubscriberInterface
     /**
      * @var UserRepository
      */
-    protected UserRepository $userRepository;
+    /** Doctrine's App\Repository\UserRepository on 4.x; the users' repository of the persistence chosen on 5.x (step B3). */
+    protected object $userRepository;
 
     /**
      * @var AuthorizationChecker
@@ -100,7 +101,7 @@ class SecuritySubscriber implements EventSubscriberInterface
     protected LocalizerInterface $localizer;
 
     public function __construct(
-        UserRepository               $userRepository,
+        object                       $userRepository,
         AuthorizationChecker         $authorizationChecker,
         TokenStorageInterface        $tokenStorage,
         RequestStack                 $requestStack,

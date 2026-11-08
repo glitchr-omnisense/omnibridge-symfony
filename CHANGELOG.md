@@ -2,6 +2,38 @@
 
 ## [Unreleased]
 
+### Changed: Doctrine a suggestion (omnisense/omnibase's plan "omnibase agnostic", step B3)
+
+- composer.json: omnibridge/doctrine, doctrine/doctrine-bundle and symfony/doctrine-bridge move from `require` to
+  `suggest`. A site installs omnibridge/eloquent alone: its kernel compiles, lints in dev and prod, reads and writes
+  through Eloquent with omnibase's behaviours, doctrine/orm not installed (only doctrine/persistence, which the core's
+  entity dispatchers take their event arguments from).
+- Doctrine's wiring is declared only where it is there (`DependencyInjection\Persistence::hasDoctrine()`:
+  `Persistences::isInstalled('doctrine')` and DoctrineBundle registered): its listeners and subscribers, the DBAL types,
+  the naming strategy and metadata factory, Doctrine's unit of work, backend and repositories, the Doctrine-named
+  commands (doctrine:schema:charset, doctrine:array:upgrade, doctrine:database:import, base:mapping,
+  entity:discriminator); the types and filters registered at boot with Doctrine only. Without Doctrine,
+  `base.database.metadata_manipulator` is the core's `MetadataManipulator` (on the persistence's shapes) and the
+  repositories the core still names by class (`Base\Repository\Layout\TextOverrideRepository`) are Eloquent's.
+- The form and field types, FormFactory, the form extensions and SymfonyBaseService are typed on
+  `Omnibase\Database\MetadataManipulator`: the core's MetadataManipulator on 5.x (Doctrine's manipulator extends it),
+  Doctrine's on 4.x or with an omnibridge/doctrine older than step E3. CropperType reads its fields from the entity's
+  shape. `Console\Command` and the legacy commands take an optional entity manager (`getEntityManager()` refused aloud
+  without Doctrine); omnibridge:schema:create runs on omnibridge/eloquent's connection without Doctrine.
+  SecuritySubscriber takes the users' repository by its interface (`Base\Repository\Users`) on 5.x.
+- `hasDoctrine()` looks for DoctrineBundle among the kernel's bundles (`kernel.bundles`): in an extension's `load()` the
+  builder is Symfony's merge builder, which registers that extension alone, so `hasExtension('doctrine')` answered false
+  on every site with Doctrine (its naming strategy then undeclared: "doctrine.orm.default_configuration has a dependency
+  on a non-existent service").
+- Each class typed on `Omnibase\Database\MetadataManipulator` defines the alias when its file is loaded, as BaseBundle.php
+  does: a 4.x application registers the core's `Base\BaseBundle`, whose FormFactory was otherwise refused Doctrine's
+  manipulator (a type check never autoloads). omnibridge:schema:create's choice of database (Doctrine's connection or
+  omnibridge/eloquent's) is `Console\InstalledEntities::database()`'s: the command stays of an adapter's size.
+- HotParameterBagSubscriber leaves the parameters as configured on Eloquent's `QueryException` (or a `PDOException`) as
+  it does on Doctrine's: omnibridge:schema:create could not start on an empty database without Doctrine.
+- What still asks Doctrine's manipulator for Doctrine's own objects (`getClassMetadata()`, `getMapping()`,
+  `getEntityManager()` in the association, select, file and translation types) is reached on Doctrine only.
+
 ### Added: the packages' listeners of the writes on eloquent (omnisense/omnibase's plan "omnibase agnostic", step B2)
 
 - On `base.persistence: eloquent`, the services tagged `omnibridge.lifecycle_listener` (omnisense/omnibridge's

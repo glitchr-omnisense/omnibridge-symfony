@@ -1,9 +1,10 @@
 <?php
 
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 
-return static function (ContainerConfigurator $container): void {
+return static function (ContainerConfigurator $container, ContainerBuilder $builder): void {
     $services = $container->services();
 
     $services->defaults()
@@ -28,9 +29,15 @@ return static function (ContainerConfigurator $container): void {
     $services->alias('Base\Service\HotParameterBagInterface', 'parameter_bag.hot');
 
     // Database
-    $services->alias('doctrine.orm.naming_strategy.camel', 'Omnibridge\Doctrine\Omnibase\Database\Mapping\NamingStrategy');
-    $services->alias('base.database.metadata_factory', 'Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataFactory');
-    $services->alias('base.database.metadata_manipulator', 'Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator');
+    // Doctrine's where it is there; else the mapping is the core's MetadataManipulator, on the persistence's shapes (plan
+    // "omnibase agnostic", steps E3 and B3).
+    if (\Omnibridge\Symfony\Omnibase\DependencyInjection\Persistence::hasDoctrine($builder)) {
+        $services->alias('doctrine.orm.naming_strategy.camel', 'Omnibridge\Doctrine\Omnibase\Database\Mapping\NamingStrategy');
+        $services->alias('base.database.metadata_factory', 'Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataFactory');
+        $services->alias('base.database.metadata_manipulator', 'Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator');
+    } else {
+        $services->alias('base.database.metadata_manipulator', 'Base\Database\Mapping\MetadataManipulator');
+    }
 
     // Form
     $services->alias('form.proxy', 'Base\Form\FormProxy');

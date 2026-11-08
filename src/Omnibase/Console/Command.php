@@ -45,12 +45,18 @@ class Command extends SymfonyCommand
      */
     protected PropertyAccessor $propertyAccessor;
 
-    public function __construct(LocalizerInterface $localizer, TranslatorInterface $translator, EntityManagerInterface $entityManager, ParameterBagInterface $parameterBag)
+    /**
+     * The entity manager is Doctrine's where it is there (null without Doctrine, plan "omnibase agnostic", step B3: the
+     * unit of work is then the persistence's, given by setUnitOfWork()).
+     */
+    public function __construct(LocalizerInterface $localizer, TranslatorInterface $translator, ?EntityManagerInterface $entityManager, ParameterBagInterface $parameterBag)
     {
         $this->localizer = $localizer;
         $this->translator = $translator;
         $this->entityManager = $entityManager;
-        $this->unitOfWork = UnitOfWorks::of($entityManager);
+        if (null !== $entityManager) {
+            $this->unitOfWork = UnitOfWorks::of($entityManager);
+        }
         $this->parameterBag = $parameterBag;
 
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
@@ -83,7 +89,7 @@ class Command extends SymfonyCommand
 
     protected function getEntityManager(): EntityManagerInterface
     {
-        return $this->entityManager;
+        return $this->entityManager ?? throw new \LogicException(sprintf('The command "%s" asks Doctrine\'s entity manager, and Doctrine is not installed here (omnibridge/doctrine): it runs on Doctrine only.', $this->getName()));
     }
 
     protected function getLocalizer(): LocalizerInterface

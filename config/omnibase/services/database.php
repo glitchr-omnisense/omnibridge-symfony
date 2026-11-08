@@ -1,6 +1,7 @@
 <?php
 
 use Omnibridge\Symfony\Omnibase\DependencyInjection\Declarations;
+use Omnibridge\Symfony\Omnibase\DependencyInjection\Persistence;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use \Symfony\Component\DependencyInjection\ContainerInterface;
@@ -15,19 +16,26 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     $services->defaults()
         ->public(false);
 
+    // Doctrine's wiring only where Doctrine is there (plan "omnibase agnostic", step B3): omnibridge/doctrine installed and
+    // DoctrineBundle registered; otherwise the persistence chosen (omnibridge/eloquent, DependencyInjection\Persistence)
+    // answers the contracts, and the core's MetadataManipulator the mapping (step E3).
+    $doctrine = Persistence::hasDoctrine($builder);
+
     // Database services
-    $services->set('Omnibridge\Doctrine\Omnibase\Database\Mapping\NamingStrategy')->public();
-    $services->set('Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataFactory')->public();
+    if ($doctrine) {
+        $services->set('Omnibridge\Doctrine\Omnibase\Database\Mapping\NamingStrategy')->public();
+        $services->set('Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataFactory')->public();
 
-    // Base\Database\Entity\EntityHydrator is defined from Base\Services (config/services-list.php): on the unit
-    // of work and its persistence's shapes (plan "omnibase agnostic", step F5c, item 3).
+        // Base\Database\Entity\EntityHydrator is defined from Base\Services (config/services-list.php): on the unit
+        // of work and its persistence's shapes (plan "omnibase agnostic", step F5c, item 3).
 
-    $services->set('Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator')->public()
-        ->args([
-            new Reference('doctrine'),
-            new Reference('doctrine.orm.entity_manager'),
-        ])
-        ->bind('$cacheDir', '%kernel.cache_dir%');
+        $services->set('Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator')->public()
+            ->args([
+                new Reference('doctrine'),
+                new Reference('doctrine.orm.entity_manager'),
+            ])
+            ->bind('$cacheDir', '%kernel.cache_dir%');
+    }
 
     // The core's (Base\Services, group "database"; plan "omnibase agnostic", step F5e slice 4): the attribute reader
     // and the entities' extensions.
@@ -57,6 +65,10 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
             new Reference('base.service.maintenance'),
             new Reference('base.service.launcher'),
         ]);
+
+    if (!$doctrine) {
+        return;
+    }
 
     // The repositories by their interfaces (audit "lesringostars face au master plan", step R15):
     // what the code of a site and of the core type-hints, Doctrine's repository behind. The users'

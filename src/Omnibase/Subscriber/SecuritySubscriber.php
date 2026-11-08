@@ -56,7 +56,7 @@ if (!class_exists(Accounts::class)) {
     class SecuritySubscriber extends Legacy
     {
         public function __construct(
-            UserRepository $userRepository, AuthorizationChecker $authorizationChecker, TokenStorageInterface $tokenStorage,
+            \Base\Repository\Users $userRepository, AuthorizationChecker $authorizationChecker, TokenStorageInterface $tokenStorage,
             RequestStack $requestStack, ReferrerInterface $referrer, SettingBagInterface $settingBag, Localizer $localizer,
             AdvancedRouterInterface $router, ParameterBagInterface $parameterBag, MaintenanceProviderInterface $maintenanceProvider,
             LauncherInterface $launcher, ?Profiler $profiler = null, ?Tokens $tokens = null,

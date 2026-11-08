@@ -29,6 +29,11 @@ use Omnibridge\Symfony\Omnibase\DependencyInjection\Dumper\HtmlDumper;
 use Base\Service\Locator;
 use Base\Traits\SingletonTrait;
 
+// The mapping the form and field types are typed on, an alias (Database\MetadataManipulator: the core's on 5.x,
+// Doctrine's on 4.x; plan "omnibase agnostic", step B3) - defined before any service is made: a type check never
+// autoloads, so an alias not yet loaded would refuse the very object it names.
+class_exists(Database\MetadataManipulator::class);
+
 class BaseBundle extends AbstractBaseBundle
 {
     // Re-declaring the trait here (already present on AbstractBaseBundle)
@@ -456,8 +461,11 @@ class BaseBundle extends AbstractBaseBundle
             // what an entity manager built by hand is given as well: datetime and datetimetz the core's
             // DateTimeTypeUTC, array its ArrayType (backward compatibility, see doctrine:array:upgrade),
             // the UTC types, every enumeration of the core's src/Enum and of the application's.
-            Types::register([], [Types::coreEnumerationDirectory(), $this->getProjectDir() . "/src/Enum"]);
-            Configuration::enableFilters($this->container->get('doctrine.orm.entity_manager'), $this->getEnvironment());
+            // Where Doctrine is there (plan "omnibase agnostic", step B3): omnibridge/eloquent casts the same types itself.
+            if (class_exists(Types::class) && $this->container->has('doctrine.orm.entity_manager')) {
+                Types::register([], [Types::coreEnumerationDirectory(), $this->getProjectDir() . "/src/Enum"]);
+                Configuration::enableFilters($this->container->get('doctrine.orm.entity_manager'), $this->getEnvironment());
+            }
         }
 
         CacheClearCommand::$testFile ??= $this->getCacheDir().".txt";

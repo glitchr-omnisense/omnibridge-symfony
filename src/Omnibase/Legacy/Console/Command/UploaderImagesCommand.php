@@ -43,7 +43,7 @@ class UploaderImagesCommand extends UploaderEntitiesCommand
     public function __construct(
         LocalizerInterface     $localizer,
         TranslatorInterface    $translator,
-        EntityManagerInterface $entityManager,
+        ?EntityManagerInterface $entityManager,
         ParameterBagInterface  $parameterBag,
         MediaServiceInterface  $mediaService,
         MediaController        $mediaController

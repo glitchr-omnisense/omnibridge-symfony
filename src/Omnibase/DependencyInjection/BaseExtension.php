@@ -147,6 +147,12 @@ class BaseExtension extends AbstractBaseExtension implements PrependExtensionInt
      */
     private function prependDoctrineTypes(ContainerBuilder $builder): void
     {
+        // Doctrine a suggestion (plan "omnibase agnostic", step B3): its types declared where DoctrineBundle and
+        // omnibridge/doctrine are there.
+        if (!$builder->hasExtension('doctrine') || !class_exists(UtcDateTimeType::class)) {
+            return;
+        }
+
         // Moments kept in UTC whatever zone PHP was put in for the visitor
         // (docs/20-architecture/time.md): there for every bundle and application.
         $types = [

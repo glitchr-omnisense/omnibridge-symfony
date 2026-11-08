@@ -27,7 +27,7 @@ use Symfony\Component\Form\DataMapperInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 
 use Symfony\Component\Form\FormBuilderInterface;
-use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
+use Omnibridge\Symfony\Omnibase\Database\MetadataManipulator as ClassMetadataManipulator;
 
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Base\Entity\Layout\Attribute\Common\AbstractAttribute;
@@ -40,6 +40,11 @@ use Base\Entity\Layout\Attribute\Adapter\Common\AbstractScopeAdapter;
 use Doctrine\ORM\Mapping\InverseSideMapping;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Traversable;
+
+// The alias this class is typed on (the core's MetadataManipulator on 5.x, Doctrine's on 4.x), defined when this file
+// is loaded: a type check never autoloads, and BaseBundle.php, which defines it too, is not every application's
+// (a 4.x one registers the core's Base\BaseBundle; plan "omnibase agnostic", step B3).
+class_exists(ClassMetadataManipulator::class);
 
 class AttributeType extends AbstractType implements DataMapperInterface
 {
