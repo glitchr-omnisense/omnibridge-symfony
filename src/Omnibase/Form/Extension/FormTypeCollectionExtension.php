@@ -3,7 +3,7 @@
 namespace Omnibridge\Symfony\Omnibase\Form\Extension;
 
 use Omnibridge\Symfony\Omnibase\Database\MetadataManipulator as ClassMetadataManipulator;
-use Doctrine\ORM\PersistentCollection;
+use Omnibridge\Symfony\Omnibase\Form\FormMapping;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 
 use Symfony\Component\Form\AbstractTypeExtension;
@@ -43,8 +43,8 @@ class FormTypeCollectionExtension extends AbstractTypeExtension
 
     public function browseView(FormView $view, FormInterface $form, array $options)
     {
-        if ($form->getData() instanceof PersistentCollection &&
-            $this->classMetadataManipulator->isCollectionOwner($form, $form->getData()) === false) {
+        if (FormMapping::isPersisted($form->getData()) &&
+            FormMapping::of($this->classMetadataManipulator)->isCollectionOwner($form, $form->getData()) === false) {
             $view->vars["required"] = false;
             $view->vars["disabled"] = true;
         }

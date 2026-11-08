@@ -3,6 +3,7 @@
 namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
 use Omnibridge\Symfony\Omnibase\Database\MetadataManipulator as ClassMetadataManipulator;
+use Omnibridge\Symfony\Omnibase\Form\FormMapping;
 use Base\Field\Behaviour\Slug;
 use Base\Service\Model\AutovalidateInterface;
 use Doctrine\Common\Collections\Collection;
@@ -61,8 +62,7 @@ final class SlugType extends AbstractType implements AutovalidateInterface
         // Make sure field is not rquired when slugis nullable
         $dataClass = $form->getParent()->getConfig()->getDataClass();
         if ($dataClass && $this->classMetadataManipulator->hasField($dataClass, $form->getName())) {
-            $fieldMapping = $this->classMetadataManipulator->getFieldMapping($dataClass, $form->getName());
-            $isNullable = $fieldMapping->nullable ?? false;
+            $isNullable = FormMapping::of($this->classMetadataManipulator)->nullable($dataClass, $form->getName());
             $view->vars["required"] = $options["required"] || !$isNullable;
         }
 

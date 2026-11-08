@@ -6,14 +6,14 @@ use Omnibridge\Symfony\Omnibase\Database\MetadataManipulator as ClassMetadataMan
 use Base\Database\Entity\EntityHydrator;
 use Base\Field\Behaviour\Association;
 use Omnibridge\Symfony\Omnibase\Form\FormFactory;
+use Omnibridge\Symfony\Omnibase\Form\FormMapping;
+use Base\Database\Attribute\Backend\Backends;
+use Base\Database\Backend\EntityCache;
 use Base\Service\Model\Autocomplete;
 use Base\Service\TranslatorInterface;
 use Base\Traits\BaseTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping\InverseSideMapping;
-use Doctrine\ORM\Mapping\OwningSideMapping;
-use Doctrine\ORM\PersistentCollection;
 use Doctrine\Persistence\Mapping\MappingException;
 use Exception;
 use RuntimeException;
@@ -31,7 +31,6 @@ use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-use Doctrine\ORM\Mapping\ToManyOwningSideMapping;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Traversable;
@@ -169,7 +168,7 @@ class AssociationType extends AbstractType implements DataMapperInterface
                     );
                 }
 
-                $fields = $this->classMetadataManipulator->getFields($dataClass, $options["fields"], $options["excluded_fields"]);
+                $fields = FormMapping::of($this->classMetadataManipulator)->fields($dataClass, $options["fields"], $options["excluded_fields"]);
                 if (!$options["autoload"]) {
                     $fields = array_filter($fields, fn($k) => array_key_exists($k, $options["fields"]), ARRAY_FILTER_USE_KEY);
                 }
@@ -182,7 +181,7 @@ class AssociationType extends AbstractType implements DataMapperInterface
                     $fieldType = $field['form_type'] ?? null;
                     unset($field['form_type']);
 
-                    $isNullable = $this->classMetadataManipulator->getMapping($dataClass, $fieldName)->nullable ?? false;
+                    $isNullable = FormMapping::of($this->classMetadataManipulator)->nullable($dataClass, $fieldName);
                     if (!array_key_exists("required", $field) && $isNullable) {
                         $field['required'] = !$isNullable;
                     }
@@ -283,8 +282,8 @@ class AssociationType extends AbstractType implements DataMapperInterface
     {
         $form = current(iterator_to_array($forms));
         $formParent = $form->getParent();
-        if ($formParent?->getData() instanceof PersistentCollection &&
-            $this->classMetadataManipulator->isCollectionOwner($formParent, $formParent?->getData()) === false) {
+        if (FormMapping::isPersisted($formParent?->getData()) &&
+            FormMapping::of($this->classMetadataManipulator)->isCollectionOwner($formParent, $formParent?->getData()) === false) {
             return;
         }
 
@@ -299,8 +298,7 @@ class AssociationType extends AbstractType implements DataMapperInterface
         }
 
         if (!$options["multiple"] && $this->classMetadataManipulator->isEntity($options["class"])) {
-            $classMetadata = $this->classMetadataManipulator->getClassMetadata($options["class"]);
-            if (!$classMetadata) {
+            if (null === $this->classMetadataManipulator->getShape($options["class"])) {
                 throw new Exception("Entity \"" . $options["class"] . "\" not found.");
             }
 
@@ -323,59 +321,41 @@ class AssociationType extends AbstractType implements DataMapperInterface
                 $aggregateModel
             );
 
-        } elseif ($viewData instanceof PersistentCollection) {
+        } elseif (null !== $collection = FormMapping::of($this->classMetadataManipulator)->collection($viewData, $formParent)) {
 
-            $fieldName = $viewData->getMapping()->fieldName;
-            $isOwningSide = $viewData->getMapping() instanceof ToManyOwningSideMapping;
+            // A collection the persistence read: its owner and sides from the shapes (FormMapping), whichever persistence.
+            $mappedBy = $collection->mappedBy;
             if ($entries->containsKey("_collection")) {
                 $entries = $entries->get("_collection");
             }
 
-            $mapping = $viewData->getMapping();
-            if ($mapping instanceof InverseSideMapping) {
+            $oldData = $viewData->toArray();
+            if ($collection->isInverseSide()) {
 
-                $mappedBy = $mapping->mappedBy;
-                $oldData = $viewData->toArray();
-    
                 foreach (array_diff_object($oldData, $entries->toArray()) as $entry) {
                     $owningSide = $this->propertyAccessor->getValue($entry, $mappedBy);
                     if (!$owningSide instanceof Collection) {
                         $this->propertyAccessor->setValue($entry, $mappedBy, null);
-                    } elseif ($owningSide->contains($viewData->getOwner())) {
-                        $owningSide->removeElement($viewData->getOwner());
+                    } elseif ($owningSide->contains($collection->owner)) {
+                        $owningSide->removeElement($collection->owner);
                     }
                 }
             }
 
-            if ($this->classMetadataManipulator->getEntityManager()->getCache()) {
-
-                $mapping = $viewData->getMapping(); // Evict caches and collection caches.
-                foreach (array_unique_object(array_union($oldData, $entries->toArray())) as $data) {
-
-                    $this->classMetadataManipulator->getEntityManager()->getCache()->evictEntity(get_class($data), $data->getId());
-                    if ($mapping instanceof ToManyOwningSideMapping) {
-                        $this->classMetadataManipulator->getEntityManager()->getCache()->evictCollection(get_class($data), $mapping->inversedBy, $data->getId());
-                    }
-                    if (!$isOwningSide && $mappedBy) {
-                        $this->classMetadataManipulator->getEntityManager()->getCache()->evictCollection($mapping->targetEntity, $mappedBy, $viewData->getOwner());
-                    }
-                }
-            }
+            $this->evict($viewData, $collection, array_unique_object(array_union($oldData, $entries->toArray())));
 
             $viewData->clear();
 
             foreach ($entries as $entry) {
 
                 $viewData->add($entry);
-                $mapping = $viewData->getMapping();
-                if ($mapping instanceof InverseSideMapping) {
+                if ($collection->isInverseSide()) {
 
-                    $mappedBy = $mapping->mappedBy;
                     $owningSide = $this->propertyAccessor->getValue($entry, $mappedBy);
                     if (!$owningSide instanceof Collection) {
-                        $this->propertyAccessor->setValue($entry, $mappedBy, $viewData->getOwner());
-                    } elseif (!$owningSide->contains($viewData->getOwner())) {
-                        $owningSide->add($viewData->getOwner());
+                        $this->propertyAccessor->setValue($entry, $mappedBy, $collection->owner);
+                    } elseif (!$owningSide->contains($collection->owner)) {
+                        $owningSide->add($collection->owner);
                     }
                 }
             }
@@ -389,6 +369,34 @@ class AssociationType extends AbstractType implements DataMapperInterface
             }
         } else {
             $viewData = current(iterator_to_array($forms))->getViewData();
+        }
+    }
+
+    /**
+     * The entries' cached rows forgotten where the persistence keeps a cache of them (Base\Database\Backend\EntityCache:
+     * Doctrine's second-level cache; none on omnibridge/eloquent), and on Doctrine its cached collections too, which only
+     * Doctrine has.
+     *
+     * @param list<object> $entries
+     */
+    private function evict(mixed $viewData, \Omnibridge\Symfony\Omnibase\Form\CollectionMapping $collection, array $entries): void
+    {
+        $cache = Backends::of($this->entityHydrator->getUnitOfWork(), EntityCache::class);
+        if (!$cache->enabled()) {
+            return;
+        }
+
+        $regions = $viewData instanceof \Doctrine\ORM\PersistentCollection && method_exists($this->classMetadataManipulator, 'getEntityManager')
+            ? $this->classMetadataManipulator->getEntityManager()->getCache()
+            : null;
+        foreach ($entries as $data) {
+            $cache->evict(get_class($data), $data->getId());
+            if ($collection->owning) {
+                $regions?->evictCollection(get_class($data), $collection->inversedBy, $data->getId());
+            }
+            if (!$collection->owning && $collection->mappedBy) {
+                $regions?->evictCollection($collection->target, $collection->mappedBy, $collection->owner);
+            }
         }
     }
 }

@@ -2,6 +2,33 @@
 
 ## [Unreleased]
 
+### Changed: the form and field types read the mapping on the persistence's shapes (omnisense/omnibase's plan "omnibase agnostic", step B leftovers)
+
+- `Form\FormMapping` (new) answers what the association, select, file, translation, attribute and slug types, the form
+  extensions and FormGuessTrait asked of omnibridge/doctrine's ClassMetadataManipulator alone: the form fields a class's
+  mapping suggests (`fields()`, getFields()'s answer), a property's nullability (`nullable()`, getMapping()'s and
+  getFieldMapping()'s `nullable`), a to-many association's order (`orderBy()`), whether the closest entity owns a
+  collection (`isCollectionOwner()`), a persisted collection's owner and sides (`collection()`, a `CollectionMapping`: what
+  PersistentCollection::getMapping() and getOwner() gave). It reads the manipulator's neutral methods only (getShape(),
+  getFieldName(), getTypeOfField()...), so the same code runs on Doctrine and on omnibridge/eloquent; the core's
+  FormMappingTest compares its answers with Doctrine's manipulator's for every class Doctrine maps, on Doctrine's shapes and
+  on the Description. getClassMetadata() in the types became getShape(); the types call no method the core's
+  MetadataManipulator lacks.
+- A collection a persistence read is doctrine/collections' `AbstractLazyCollection` (`FormMapping::isPersisted()`):
+  Doctrine's PersistentCollection and omnibridge/eloquent's LazyCollection. Its owner and property are the collection's
+  own where it knows them (Doctrine's), else the holding form's (its parent's data, its property path), its sides the
+  owner's shape. On eloquent the association, select, file and attribute types now keep the inverse side of a to-many
+  association as on Doctrine (the entries' owning side set and unset), the translations drop an empty one, the form
+  processor dehydrates such a collection, and a collection's class is guessed as its entries' (it was LazyCollection's).
+- What only Doctrine has stays Doctrine's and is asked only of a Doctrine collection: the collection regions of the
+  second-level cache an association's entries are evicted from (the entries themselves through the core's EntityCache,
+  which omnibridge/eloquent answers with nothing to evict), and a translations collection's owner where no form holds it
+  (TranslationType with `multiple`).
+- getFields()'s field types are named by their classes (it imported their former names, Base\Field\Type\*). A to-many
+  association's order is read as the Description writes it (`ASC`, `DESC`), where Doctrine 3's SortDirection read as
+  "ASCENDING"/"DESCENDING" (guessOrderDirection()). FormGuessTrait's guessNullable() loses a statement with no effect
+  (a mapping's `allow_null`, read and dropped).
+
 ### Changed: Doctrine a suggestion (omnisense/omnibase's plan "omnibase agnostic", step B3)
 
 - composer.json: omnibridge/doctrine, doctrine/doctrine-bundle and symfony/doctrine-bridge move from `require` to

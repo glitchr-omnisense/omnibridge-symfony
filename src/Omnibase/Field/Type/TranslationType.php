@@ -3,6 +3,7 @@
 namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
 use Omnibridge\Symfony\Omnibase\Database\MetadataManipulator as ClassMetadataManipulator;
+use Omnibridge\Symfony\Omnibase\Form\FormMapping;
 use Base\Database\Entity\Extension\TranslatableInterface;
 use Base\Database\Entity\Extension\TranslationInterface;
 
@@ -10,7 +11,6 @@ use Base\Field\Behaviour\Translation;
 use Base\Service\LocalizerInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\PersistentCollection;
 use Exception;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\DataMapperInterface;
@@ -158,7 +158,7 @@ class TranslationType extends AbstractType implements DataMapperInterface
 
             foreach ($data as $key => $array) {
                 foreach ($array as $locale => $translation) {
-                    if ($array instanceof PersistentCollection) {
+                    if (FormMapping::isPersisted($array)) {
                         if (!$translation instanceof TranslationInterface) {
                             $data[$key]->removeElement($translation);
                         } elseif ($translation->isEmpty()) {
@@ -220,16 +220,16 @@ class TranslationType extends AbstractType implements DataMapperInterface
     public function getTranslationFields(string $translationClass, array $options): array
     {
         // Check excluded fields exists.. (for dev sanity)
-        $classMetadata = $this->classMetadataManipulator->getClassMetadata($translationClass);
+        $shape = $this->classMetadataManipulator->getShape($translationClass) ?? throw new \InvalidArgumentException("Entity expected, '" . $translationClass . "' is not an entity.");
         $excludedFields = $options["excluded_fields"] ?? [];
         foreach ($excludedFields as $field) {
-            if (!property_exists($classMetadata->getName(), $field)) {
+            if (!property_exists($shape->className(), $field)) {
                 throw new Exception("Field \"" . $field . "\" requested for exclusion doesn't exist in \"" . $translationClass . "\"");
             }
         }
 
         // Prepare raw fields
-        $fields = $this->classMetadataManipulator->getFields($translationClass, $options["fields"], $options["excluded_fields"]);
+        $fields = FormMapping::of($this->classMetadataManipulator)->fields($translationClass, $options["fields"], $options["excluded_fields"]);
         if (!$options["autoload"]) {
             $fields = array_filter($fields, fn($k) => array_key_exists($k, $options["fields"]), ARRAY_FILTER_USE_KEY);
         }
@@ -354,8 +354,10 @@ class TranslationType extends AbstractType implements DataMapperInterface
 
                     $translation->setLocale($locale);
 
-                    if ($viewData[$key] instanceof PersistentCollection) {
-                        $translatable = $viewData[$key]->getOwner();
+                    // The owner of a collection the persistence read, where it is known without the form (Doctrine's
+                    // collection names it; FormMapping).
+                    if (null !== $collection = FormMapping::of($this->classMetadataManipulator)->collection($viewData[$key])) {
+                        $translatable = $collection->owner;
                         if ($translatable instanceof TranslatableInterface) {
                             $translation->setTranslatable($translatable);
                         }

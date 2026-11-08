@@ -9,11 +9,11 @@ use Omnibridge\Symfony\Omnibase\Database\MetadataManipulator as ClassMetadataMan
 use Base\Database\Entity\EntityHydrator;
 use Base\Enum\UserRole;
 use Omnibridge\Symfony\Omnibase\Form\FormFactory;
+use Omnibridge\Symfony\Omnibase\Form\FormMapping;
 use Base\Service\FileService;
 use Base\Service\MediaService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\PersistentCollection;
 use Doctrine\Persistence\Mapping\MappingException;
 use Base\Admin\Config\Action;
 use Base\Routing\AdminUrlGeneratorInterface;
@@ -146,7 +146,7 @@ class AssociationFileType extends AbstractType implements DataMapperInterface
 
         $parentForm = $form->getParent();
         $dataClass = $parentForm ? $this->formFactory->guessClass($parentForm, $parentForm->getConfig()->getOptions()) : null;
-        $isNullable = $dataClass ? $this->classMetadataManipulator->getMapping($dataClass, $form->getName())["nullable"] ?? false : false;
+        $isNullable = $dataClass ? FormMapping::of($this->classMetadataManipulator)->nullable($dataClass, $form->getName()) : false;
         $crudController = AbstractCrudController::getCrudControllerFqcn($options["class"]);
 
         $href = null;
@@ -184,7 +184,7 @@ class AssociationFileType extends AbstractType implements DataMapperInterface
 
             $parentForm = $form->getParent();
             $dataClass = $parentForm ? $this->formFactory->guessClass($parentForm, $parentForm->getConfig()->getOptions()) : null;
-            $isNullable = $dataClass ? $this->classMetadataManipulator->getMapping($dataClass, $form->getName())["nullable"] ?? false : false;
+            $isNullable = $dataClass ? FormMapping::of($this->classMetadataManipulator)->nullable($dataClass, $form->getName()) : false;
 
             // The upload field's options and the related records' files: the neutral behaviour's.
             $form->add($baseName, $options["form_type"], AssociationFile::childOptions($options, !$isNullable));
@@ -210,8 +210,8 @@ class AssociationFileType extends AbstractType implements DataMapperInterface
     public function mapFormsToData(Traversable $forms, &$viewData): void
     {
         $parentForm = current(iterator_to_array($forms))->getParent();
-        if ($parentForm?->getData() instanceof PersistentCollection &&
-            $this->classMetadataManipulator->isCollectionOwner($parentForm, $parentForm?->getData()) === false) {
+        if (FormMapping::isPersisted($parentForm?->getData()) &&
+            FormMapping::of($this->classMetadataManipulator)->isCollectionOwner($parentForm, $parentForm?->getData()) === false) {
             return;
         }
 
@@ -221,8 +221,7 @@ class AssociationFileType extends AbstractType implements DataMapperInterface
         $options["data_class"] = $options["data_class"] ?? $this->formFactory->guessClass($parentForm, $options);
         $options["multiple"] = $options["multiple"] ?? $this->formFactory->guessMultiple($parentForm, $options);
 
-        $classMetadata = $this->classMetadataManipulator->getClassMetadata($options["data_class"]);
-        if (!$classMetadata) {
+        if (null === $this->classMetadataManipulator->getShape($options["data_class"])) {
             throw new Exception("Entity \"" . $options['data_class'] . "\" not found.");
         }
 
@@ -233,10 +232,10 @@ class AssociationFileType extends AbstractType implements DataMapperInterface
             $newData = new ArrayCollection(AssociationFile::list($records));
 
             if ($options["multiple"]) {
-                if ($viewData instanceof PersistentCollection) {
-                    $mappedBy = $viewData->getMapping()["mappedBy"];
-                    $fieldName = $viewData->getMapping()["fieldName"];
-                    $isOwningSide = $viewData->getMapping()["isOwningSide"];
+                if (null !== $collection = FormMapping::of($this->classMetadataManipulator)->collection($viewData, $parentForm)) {
+                    // A collection the persistence read: its owner and sides from the shapes (FormMapping).
+                    $mappedBy = $collection->mappedBy;
+                    $isOwningSide = $collection->owning;
 
                     if (!$isOwningSide) {
                         foreach ($viewData as $entry) {
@@ -248,7 +247,7 @@ class AssociationFileType extends AbstractType implements DataMapperInterface
                     foreach ($newData as $entry) {
                         $viewData->add($entry);
                         if (!$isOwningSide) {
-                            $this->propertyAccessor->setValue($entry, $mappedBy, $viewData->getOwner());
+                            $this->propertyAccessor->setValue($entry, $mappedBy, $collection->owner);
                         }
                     }
                 } else {

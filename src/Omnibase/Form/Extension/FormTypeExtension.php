@@ -3,6 +3,7 @@
 namespace Omnibridge\Symfony\Omnibase\Form\Extension;
 
 use Omnibridge\Symfony\Omnibase\Database\MetadataManipulator as ClassMetadataManipulator;
+use Omnibridge\Symfony\Omnibase\Form\FormMapping;
 use Base\Enum\UserRole;
 use Base\Form\Common\FormModelInterface;
 use Omnibridge\Symfony\Omnibase\Form\FormFactory;
@@ -253,15 +254,15 @@ class FormTypeExtension extends AbstractTypeExtension
     {
         $dataClass = $options['class'] ?? $form->getConfig()->getDataClass();
         if ($this->classMetadataManipulator->isEntity($dataClass)) {
-            $classMetadata = $this->classMetadataManipulator->getClassMetadata($dataClass);
-            foreach ($classMetadata->getFieldNames() as $fieldName) {
+            $shape = $this->classMetadataManipulator->getShape($dataClass);
+            foreach ($shape->fieldNames() as $fieldName) {
                 $childView = $view->children[$fieldName] ?? null;
                 if ($childView) {
                     $childView->vars['is_dbcolumn'] = true;
                 }
             }
 
-            foreach ($classMetadata->getAssociationNames() as $fieldName) {
+            foreach ($shape->associationNames() as $fieldName) {
                 $childView = $view->children[$fieldName] ?? null;
                 if ($childView) {
                     $childView->vars['is_dbcolumn'] = true;
@@ -274,12 +275,12 @@ class FormTypeExtension extends AbstractTypeExtension
     {
         $dataClass = $options['class'] ?? $form->getConfig()->getDataClass();
         if ($this->classMetadataManipulator->isEntity($dataClass)) {
-            $classMetadata = $this->classMetadataManipulator->getClassMetadata($dataClass);
+            $shape = $this->classMetadataManipulator->getShape($dataClass);
             foreach ($view->children as $childView) { // Alias is marked by default and remove if field found..
                 $childView->vars['is_alias'] = true;
             }
 
-            foreach ($classMetadata->getFieldNames() as $fieldName) {
+            foreach ($shape->fieldNames() as $fieldName) {
                 $childView = $view->children[$fieldName] ?? null;
                 if ($childView) {
                     $childView->vars['is_dbcolumn'] = true;
@@ -288,7 +289,7 @@ class FormTypeExtension extends AbstractTypeExtension
                 unset($childView->vars['is_alias']);
             }
 
-            foreach ($classMetadata->getAssociationNames() as $fieldName) {
+            foreach ($shape->associationNames() as $fieldName) {
                 $childView = $view->children[$fieldName] ?? null;
                 if ($childView) {
                     $childView->vars['is_dbcolumn'] = true;
@@ -352,7 +353,7 @@ class FormTypeExtension extends AbstractTypeExtension
         if ($this->formFactory->guessMultiple($form, $options)) {
             $view->vars['is_multiple'] = true;
         }
-        if (false === $this->classMetadataManipulator->isCollectionOwner($form)) {
+        if (false === FormMapping::of($this->classMetadataManipulator)->isCollectionOwner($form)) {
             $view->vars['is_inherited'] = true;
         }
         if ($this->formFactory->guessOrderDirection($form, $options)) {

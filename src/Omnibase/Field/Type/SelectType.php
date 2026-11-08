@@ -11,6 +11,7 @@ use Base\Field\Search\RemoteSearch;
 use Omnibridge\Runtime;
 use Base\Form\Common\NativeEnum;
 use Omnibridge\Symfony\Omnibase\Form\FormFactory;
+use Omnibridge\Symfony\Omnibase\Form\FormMapping;
 use Base\Service\LocalizerInterface;
 use Base\Service\MediaServiceInterface;
 use Base\Service\Model\Autocomplete;
@@ -21,9 +22,6 @@ use Base\Service\Translator;
 use Base\Service\TranslatorInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping\InverseSideMapping;
-use Doctrine\ORM\Mapping\OwningSideMapping;
-use Doctrine\ORM\PersistentCollection;
 use Doctrine\Persistence\Mapping\MappingException;
 use Base\Admin\Config\Action;
 use Base\Routing\AdminUrlGeneratorInterface;
@@ -31,7 +29,6 @@ use Exception;
 use Generator;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Doctrine\ORM\Mapping\ToManyOwningSideMapping;
 
 use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\FormInterface;
@@ -641,7 +638,7 @@ class SelectType extends AbstractType implements DataMapperInterface
     public function mapFormsToData(Traversable $forms, &$viewData): void
     {
         $choiceType = current(iterator_to_array($forms));
-        if ($this->classMetadataManipulator->isCollectionOwner($choiceType) === false) {
+        if (FormMapping::of($this->classMetadataManipulator)->isCollectionOwner($choiceType) === false) {
             return;
         }
 
@@ -712,27 +709,28 @@ class SelectType extends AbstractType implements DataMapperInterface
         $options["multiple"] = $multiple !== null ? $multiple : null;
         $options["multiple"] = $this->formFactory->guessMultiple($choiceType->getParent(), $options);
 
-        if ($viewData instanceof PersistentCollection) {
+        if (null !== $collection = FormMapping::of($this->classMetadataManipulator)->collection($viewData, $choiceType->getParent())) {
 
-            $isOwningSide = $viewData->getMapping() instanceof ToManyOwningSideMapping;
+            // A collection the persistence read: its owner and sides from the shapes (FormMapping), whichever persistence.
+            $isOwningSide = $collection->owning;
             $oldData = $viewData->toArray();
 
-            $mapping = $viewData->getMapping();
             if (!is_array($dataChoices)) {
                 $dataChoices = [$dataChoices];
             }
 
-            $mapping = $viewData->getMapping();
-            if ($mapping instanceof InverseSideMapping) {
+            // The entries' side is set back only once a removed one named it, as before (mappedBy read in that loop).
+            $mappedBy = null;
+            if ($collection->isInverseSide()) {
                 
                 foreach (array_diff_object($oldData, $dataChoices) as $entry) {
 
-                    $mappedBy = $mapping->mappedBy;
+                    $mappedBy = $collection->mappedBy;
                     $owningSide = $this->propertyAccessor->getValue($entry, $mappedBy);
                     if (!$owningSide instanceof Collection) {
                         $this->propertyAccessor->setValue($entry, $mappedBy, null);
-                    } elseif ($owningSide->contains($viewData->getOwner())) {
-                        $owningSide->removeElement($viewData->getOwner());
+                    } elseif ($owningSide->contains($collection->owner)) {
+                        $owningSide->removeElement($collection->owner);
                     }
                 }
             }
@@ -748,9 +746,9 @@ class SelectType extends AbstractType implements DataMapperInterface
 
                         $owningSide = $this->propertyAccessor->getValue($entry, $mappedBy);
                         if (!$owningSide instanceof Collection) {
-                            $this->propertyAccessor->setValue($entry, $mappedBy, $viewData->getOwner());
-                        } elseif (!$owningSide->contains($viewData->getOwner())) {
-                            $owningSide->add($viewData->getOwner());
+                            $this->propertyAccessor->setValue($entry, $mappedBy, $collection->owner);
+                        } elseif (!$owningSide->contains($collection->owner)) {
+                            $owningSide->add($collection->owner);
                         }
                     }
                 }

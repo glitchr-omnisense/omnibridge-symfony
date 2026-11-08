@@ -8,7 +8,7 @@ use Base\Database\Attribute\OrderColumn;
 use Base\Form\Common\NativeEnum;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\PersistentCollection;
+use Omnibridge\Symfony\Omnibase\Form\FormMapping;
 use Doctrine\Persistence\Mapping\MappingException;
 use Symfony\Component\Form\ChoiceList\Loader\ChoiceLoaderInterface;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -73,8 +73,10 @@ trait FormGuessTrait
                     break;
 
                 case FormGuessInterface::GUESS_FROM_DATA:
-                    if ($data instanceof PersistentCollection) {
-                        $class = $data->getTypeClass()->getName();
+                    // A collection the persistence read: its entries' class, from the shapes (FormMapping); one whose
+                    // owner is not known, none (as a collection the application made).
+                    if (FormMapping::isPersisted($data)) {
+                        $class = FormMapping::of($this->classMetadataManipulator)->collection($data, $form)?->target;
                     } elseif ($data instanceof ArrayCollection || is_array($data)) {
                         $class = null;
                     } else {
@@ -235,11 +237,6 @@ trait FormGuessTrait
                 $options = $options ?? $form->getConfig()->getOptions();
                 $target = $options['class'] ?? $options['data_class'] ?? $options['abstract_class'] ?? null;
             }
-
-            if ($this->classMetadataManipulator->isEntity($target)) {
-                $targetField = $form->getName();
-                    $this->classMetadataManipulator->getMapping($target, $targetField)['allow_null'] ?? false;
-            }
         }
 
         return $options['allow_null'] ?? false;
@@ -359,10 +356,10 @@ trait FormGuessTrait
 
             // Try to guess from Doctrine OrderBy mapping if attribute not found
             if (!$order && $this->classMetadataManipulator && $this->classMetadataManipulator->isEntity($target)) {
-                $mapping = $this->classMetadataManipulator->getMapping($target, $form->getName());
-                if (isset($mapping->orderBy) && is_array($mapping->orderBy)) {
+                $orderBy = FormMapping::of($this->classMetadataManipulator)->orderBy($target, $form->getName());
+                if (is_array($orderBy)) {
                     // Get the first order direction for this field
-                    $orderDirections = array_values($mapping->orderBy);
+                    $orderDirections = array_values($orderBy);
                     if (count($orderDirections)) {
                         // A string ('ASC'), or an enum (Doctrine's Order / SortDirection) depending on the mapping driver
                         $direction = $orderDirections[0];

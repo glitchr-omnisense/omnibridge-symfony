@@ -3,6 +3,7 @@
 namespace Omnibridge\Symfony\Omnibase\Field\Type;
 
 use Omnibridge\Symfony\Omnibase\Form\FormFactory;
+use Omnibridge\Symfony\Omnibase\Form\FormMapping;
 
 use Doctrine\Persistence\Mapping\MappingException;
 use Exception;
@@ -15,7 +16,6 @@ use Base\Entity\Layout\Attribute\Common\AbstractScope;
 
 use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\FormEvent;
-use Doctrine\ORM\PersistentCollection;
 use Symfony\Component\Form\FormEvents;
 use Base\Database\Entity\Extension\TranslatableInterface;
 use Symfony\Component\Form\AbstractType;
@@ -37,7 +37,6 @@ use Base\Entity\Layout\Attribute\Adapter\Common\AbstractActionAdapter;
 use Base\Entity\Layout\Attribute\Adapter\Common\AbstractRuleAdapter;
 use Base\Entity\Layout\Attribute\Adapter\Common\AbstractScopeAdapter;
 
-use Doctrine\ORM\Mapping\InverseSideMapping;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Traversable;
 
@@ -221,7 +220,7 @@ class AttributeType extends AbstractType implements DataMapperInterface
         $forms = iterator_to_array($forms);
         $choiceForm = $forms["choice"];
 
-        if ($viewData instanceof PersistentCollection) {
+        if (FormMapping::isPersisted($viewData)) {
             $choiceForm->setData($viewData->map(fn($e) => $e->getAdapter()));
             foreach ($viewData as $attribute) {
                 $key = array_search_user($forms, fn(string $k, $_) => str_starts_with($k, $attribute->getAdapter()->getCode()));
@@ -295,11 +294,13 @@ class AttributeType extends AbstractType implements DataMapperInterface
                 }
             }
 
-            if ($viewData instanceof PersistentCollection && $viewData->getMapping() instanceof InverseSideMapping) {
+            // A collection the persistence read, on its inverse side: each entry's side set to its owner (FormMapping).
+            $collection = FormMapping::of($this->classMetadataManipulator)->collection($viewData, ($first = current(iterator_to_array($forms))) ? $first->getParent() : null);
+            if (null !== $collection && $collection->isInverseSide()) {
 
-                $mappedBy = $viewData->getMapping()["mappedBy"];
+                $mappedBy = $collection->mappedBy;
                 foreach ($viewData as $entry) {
-                    $this->propertyAccessor->setValue($entry, $mappedBy, $viewData->getOwner());
+                    $this->propertyAccessor->setValue($entry, $mappedBy, $collection->owner);
                 }
             }
         }
