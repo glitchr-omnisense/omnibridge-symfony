@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Fixed: `use_model` finds the core's models of the moved form types (omnisense/omnibase's plan "omnibase agnostic", step S)
+- omnibase's form types moved to this bridge (`Omnibridge\Symfony\Omnibase\Form\Type\*`) and their models stayed in
+  the core (`Base\Form\Model\*`), but the option `use_model` named the model beside the type: a page asking ContactType
+  by its new name (a site's contact page over `Controller\Client\ContactController`) answered 500, "Form model
+  Omnibridge\Symfony\Omnibase\Form\Model\ContactModel not found"; likewise every type whose `getModelClass()` is
+  `Form\Common\AbstractType`'s or `SecurityLoginType`'s, whatever name it was asked by. `Form\Common\FormModels::resolve()`
+  (new) answers the model named beside the type where it exists, else the core's class of the same name where the type is
+  this bridge's and the core has it; `getModelClass()` and the form factory's default go through it. A site's model beside
+  its own type is found as before; the former names (`Base\Form\Type\*`) found the core's models already.
+  tests/FormModelsTest (in `bare` too); the core's tests/Form/ContactFormModelHttpTest shows and sends the contact form by
+  the new name.
+
 ### Fixed: PhpSpreadsheet's cache warmer only with phpoffice/phpspreadsheet (omnisense/omnibase's plan "omnibase agnostic", step S)
 - omnibase's cache warmers are declared from `Omnibase\DependencyInjection\CacheWarmers::declarations()`, which
   declares `Base\Cache\Warmer\SpreadsheetCacheWarmer` only where phpoffice/phpspreadsheet is installed: the core only

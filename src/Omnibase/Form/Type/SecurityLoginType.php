@@ -4,6 +4,7 @@ namespace Omnibridge\Symfony\Omnibase\Form\Type;
 
 use Base\Form\Definition\AccountForms;
 use Base\Form\Definition\FormDefinition;
+use Omnibridge\Symfony\Omnibase\Form\Common\FormModels;
 use Omnibridge\Symfony\Omnibase\Form\Common\FormTypeInterface;
 use Omnibridge\Symfony\Omnibase\Form\DefinitionType;
 use Symfony\Component\Form\FormInterface;
@@ -15,7 +16,7 @@ class SecurityLoginType extends DefinitionType implements FormTypeInterface
 {
     public static function getModelClass(): string
     {
-        return str_replace("Type", "Model", static::class);
+        return FormModels::resolve(str_replace("Type", "Model", static::class));
     }
 
     public function getBlockPrefix(): string

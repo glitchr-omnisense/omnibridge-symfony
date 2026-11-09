@@ -5,6 +5,7 @@ namespace Omnibridge\Symfony\Omnibase\Form;
 use Base\Database\Entity\EntityHydratorInterface;
 use Omnibridge\Symfony\Omnibase\Database\MetadataManipulator as ClassMetadataManipulator;
 use Base\Form\Common\FormModelInterface;
+use Omnibridge\Symfony\Omnibase\Form\Common\FormModels;
 use Omnibridge\Symfony\Omnibase\Form\Common\FormTypeInterface;
 use Omnibridge\Symfony\Omnibase\Form\Traits\FormGuessTrait;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -74,7 +75,9 @@ class FormFactory extends SymfonyFormFactory implements FormFactoryInterface
             }
             //else if(class_implements_interface($type, SymfonyFormTypeInterface::class))
 
-            $formModelClass ??= str_replace("\\Type\\", "\\Model\\", str_rstrip($type, "Type") . "Model");
+            // Beside the type by name, else in the core's namespace for omnibase's types, which moved to this bridge
+            // while their models stayed in the core (Omnibridge\Symfony\Omnibase\Form\Type\ContactType's Base\Form\Model\ContactModel).
+            $formModelClass ??= FormModels::resolve(str_replace("\\Type\\", "\\Model\\", str_rstrip($type, "Type") . "Model"));
             if (!class_exists($formModelClass)) {
                 throw new Exception("Form model \"$formModelClass\" not found. Please disable option `use_model` if you don't want to use DTO model scheme");
             }

@@ -6,6 +6,6 @@ abstract class AbstractType extends \Symfony\Component\Form\AbstractType impleme
 {
     public static function getModelClass(): string
     {
-        return str_replace("Type", "Model", static::class);
+        return FormModels::resolve(str_replace("Type", "Model", static::class));
     }
 }
