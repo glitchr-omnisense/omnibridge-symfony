@@ -28,7 +28,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  *     $this->createForm(ContactType::class, $model, ['guard' => ['action' => 'contact', 'min_delay' => 5]]);
  *
  * It adds a trap (guard_website), the stamp of the time the form was shown
- * (guard_opened) and - with glitchr/omnishield and a captcha configured - the
+ * (guard_opened) and - with omnisense/omnishield and a captcha configured - the
  * captcha (guard_captcha); after the submission it refuses a trap filled, a
  * form sent too fast, a sender the lists know. The captcha is checked by the
  * guard, on its field - shown and asked only once the visitor's tries of this
@@ -266,7 +266,7 @@ class FormTypeGuardExtension extends AbstractTypeExtension
     }
 
     /**
-     * A widget's markup between two pieces of markup. glitchr/omnishield's field prints it when the
+     * A widget's markup between two pieces of markup. omnisense/omnishield's field prints it when the
      * page shows it (Omnishield\WidgetHtml): wrapped as it is, so that this view - built, then perhaps
      * thrown away, as FormProcessor::handleRequest() makes one to collect the page's assets - does
      * not take the provider's script away from the one the page shows. An older omnishield's string

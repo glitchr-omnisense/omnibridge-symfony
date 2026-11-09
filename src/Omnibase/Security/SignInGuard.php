@@ -26,7 +26,7 @@ use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
  * Only the site's own sign-in form (security_login): not the rescue door, not
  * the demonstration's one click. Nothing where glitchr/ux-google's reCAPTCHA
  * already guards the sign-in (google.recaptcha.enable), nor without
- * glitchr/omnishield and a captcha.
+ * omnisense/omnishield and a captcha.
  */
 class SignInGuard extends SignInCaptcha implements EventSubscriberInterface
 {

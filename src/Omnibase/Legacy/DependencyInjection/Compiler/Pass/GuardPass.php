@@ -9,7 +9,7 @@ use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
- * Base\Service\FormGuard's default captcha is glitchr/omnishield's
+ * Base\Service\FormGuard's default captcha is omnisense/omnishield's
  * (omnishield.challenge.gateway) - a parameter that exists only when
  * omnishield's bundle is registered: read here, once every extension has
  * loaded, rather than named in the service's definition. So is

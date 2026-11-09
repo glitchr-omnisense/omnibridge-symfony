@@ -799,7 +799,7 @@ class BaseConfiguration extends AbstractBaseConfiguration
             // The forms' guard (Base\Service\FormGuard, the option `guard` of a form; docs/20-architecture/guard.md).
             ->arrayNode('guard')->addDefaultsIfNotSet()
                 ->children()
-                    ->scalarNode('challenge')->defaultNull()->info('The captcha: a gateway of omnishield.gateways. Null: omnishield.challenge.gateway when glitchr/omnishield is installed; false: none.')->end()
+                    ->scalarNode('challenge')->defaultNull()->info('The captcha: a gateway of omnishield.gateways. Null: omnishield.challenge.gateway when omnisense/omnishield is installed; false: none.')->end()
                     ->scalarNode('fallback')->defaultNull()->info('The captcha shown to a visitor who refused the third party the captcha reaches (consent): a gateway that reaches nobody, ALTCHA.')->end()
                     ->arrayNode('reputation')->scalarPrototype()->end()->defaultValue([])->info('The lists asked about whoever submits (IP address, e-mail, name): gateways of omnishield.gateways - disposable, stopforumspam.')->end()
                     ->scalarNode('classifier')->defaultNull()->info('The classifier of what is written (SpamChecker): a gateway of omnishield.gateways. Null: Akismet with the key api.spam.akismet (base.spam.akismet) when omnishield/akismet is installed.')->end()
@@ -810,7 +810,7 @@ class BaseConfiguration extends AbstractBaseConfiguration
                 ->end()
             ->end()
 
-            // Documents signed through glitchr/omnisign (Base\Service\Signatures): only with that family.
+            // Documents signed through omnisense/omnisign (Base\Service\Signatures): only with that family.
             ->arrayNode('signatures')->addDefaultsIfNotSet()
                 ->children()
                     ->scalarNode('gateway')->defaultNull()->info('The gateway envelopes go through: one of omnisign.gateways. Null: the only one configured.')->end()

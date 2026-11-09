@@ -10,7 +10,7 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
  * The shared bricks (docs/40-commons): written once, used by the omnibase/* bundles and the applications instead of
  * their own copies. The services are the core's declaration (Base\Services, group "commons"; plan "omnibase agnostic",
  * step F5e slice 4): the opening hours, the calendars, the invitations, the download links, the QR codes, the form and
- * comment guards, the signatures (glitchr/omnisign, where installed), the embeds, the texts rewritten in the back office.
+ * comment guards, the signatures (omnisense/omnisign, where installed), the embeds, the texts rewritten in the back office.
  * Below, what is this bridge's.
  */
 return static function (ContainerConfigurator $container, ContainerBuilder $builder): void {
