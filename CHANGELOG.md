@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### Added: `Policy\RateLimiter`, omnisense/contracts' rate limiter over Symfony's
+- `Omnibridge\Symfony\Policy\RateLimiter` implements omnisense/contracts' `Policy\RateLimiterInterface` (the
+  limiter a `PolicyGuard` counts a provider's usage policy with, the third argument of a family's registry) over
+  symfony/rate-limiter: each limit of the policy is a `fixed_window` `RateLimiterFactory` of its own (its maximum,
+  its window in seconds) over the application's `StorageInterface` (a `CacheStorage` on a shared pool: every process
+  counts together) and its `LockFactory` when one is given. `allowance()` looks at the window without counting
+  (`consume(0)`), `hit()` counts one call, a limit of 0 lets nothing through. A provider's wait (`block()`,
+  `blocked()`: a 429's `Retry-After`, a `RateLimit` field with nothing left) is a `Policy\Block` state in the same
+  storage.
+- omnisense/contracts and symfony/rate-limiter are suggested and in `require-dev` (with symfony/lock), not required:
+  unless both are installed, `Policy\`'s files declare nothing (`class_exists(Policy\RateLimiter::class)` is
+  false, nothing fails to load). No service is registered: the container wiring comes with a family's Symfony
+  wiring.
+- Tests: `Policy\RateLimiterTest` (two limiters over one storage count together, an application's cache pool, a
+  wait kept in the storage, a limit of 0); `Policy\WithoutPolicyPackagesTest` (in `bare` too, which now installs
+  neither package).
+
 ## [1.0.0] - 2026-11-10
 
 ### Changed: omnibase's BaseBundle needs less of its host

@@ -224,6 +224,22 @@ public function __construct(private readonly Drives $drives) {}
 $this->drives->get('local.uploads')->write('avatars/1.png', $bytes);
 ```
 
+## Usage policies' limits: `Omnibridge\Symfony\Policy\` (omnisense/contracts)
+
+Where omnisense/contracts and symfony/rate-limiter are installed (both suggested; symfony/lock
+optional), `Policy\RateLimiter` is omnisense/contracts' `RateLimiterInterface` over Symfony's
+rate limiter: each limit of a provider's usage policy (its `policy.json`, tightened by the site)
+is a `fixed_window` limiter of its own over the application's storage, and a provider's waits
+(a 429's `Retry-After`) are kept there too (`Policy\Block`). On a `CacheStorage` over a shared
+pool, every process counts together. Without the two packages, `Policy\`'s files declare
+nothing (`class_exists(RateLimiter::class)` is false). No service is registered: the site, or
+a family's Symfony wiring, makes it and hands it to the family's registry.
+
+```php
+$limiter = new RateLimiter(new CacheStorage($cachePool), $lockFactory);
+$registry = new Omnitravel\Registry($factories, $config, $limiter);
+```
+
 ## The schema created from the description: `omnibridge:schema:create`
 
 With omnisense/omnibase 5.0, `config/omnibase/services/core.php` registers `omnibridge:schema:create`
@@ -273,8 +289,10 @@ Google, the return address on the host of each request under one container);
 `MapTest`, a kernel drawing its map through omnimap (OpenStreetMap's tiles answered
 here: the picture made once, a tile served as WebP and written in the public folder,
 the metadata, an administrator's capture and deletion with the page's tokens, a
-visitor refused). `docker compose run --rm bare`: without omniauth installed, a kernel
-compiles and has nothing of `Auth\`.
+visitor refused); `Policy\RateLimiterTest`, a policy's limits counted by two limiters over one
+storage. `docker compose run --rm bare`: without omniauth, omnimap, omnidrive, omnisense/contracts
+and symfony/rate-limiter installed, a kernel compiles, has nothing of `Auth\` and `Policy\`
+declares nothing.
 
 ## Licence
 

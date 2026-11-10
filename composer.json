@@ -49,6 +49,7 @@
         "omnimap/google": "^1.0@dev",
         "omnimap/maplibre": "^1.0@dev",
         "omnimap/openstreetmap": "^1.0@dev",
+        "omnisense/contracts": "^1.0@dev",
         "omnisense/omniauth": "1.x-dev",
         "omnisense/omnidrive": "^1.0@dev",
         "omnisense/omnimap": "^1.0@dev",
@@ -56,6 +57,8 @@
         "symfony/browser-kit": "^6.0|^7.0|^8.0",
         "symfony/clock": "^6.2|^7.0|^8.0",
         "symfony/http-client": "^6.4|^7.0|^8.0",
+        "symfony/lock": "^7.0|^8.0",
+        "symfony/rate-limiter": "^7.0|^8.0",
         "symfony/translation": "^6.0|^7.0|^8.0"
     },
     "suggest": {
@@ -71,7 +74,9 @@
         "omnibridge/static": "Static\\BuildCommand: bin/console omnibridge:static:build, omnibridge/static's export of the site a static.php declares, rendered by this kernel",
         "omnisense/omnidrive": "Omnidrive\\Drives: the storages of league/flysystem-bundle's configuration (the services tagged flysystem.storage) as omnidrive's drives, by their names",
         "symfony/monolog-bundle": "Monolog's handlers and channels, MonologBundle registered by the application (^3.8|^4.0): omnibase's services log through psr/log's LoggerInterface, whatever answers it, and none needs MonologBundle's services with omnisense/omnibase 5.0 (SpamChecker makes monolog.http_client's client itself where it is not there); with it, the demo environment's messages go to the channel `demo`",
-        "symfony/asset": "RouterUrls::asset() through the application's asset packages (assets.packages); without it, the path as it is"
+        "symfony/asset": "RouterUrls::asset() through the application's asset packages (assets.packages); without it, the path as it is",
+        "omnisense/contracts": "Omnibridge\\Symfony\\Policy\\RateLimiter: omnisense/contracts' RateLimiterInterface (the usage policies' limits and waits of the omni families' providers) over symfony/rate-limiter, with it",
+        "symfony/rate-limiter": "Omnibridge\\Symfony\\Policy\\RateLimiter: a provider policy's limits counted by Symfony's rate limiter, each a fixed window over the application's storage (a CacheStorage on a shared pool: every process counts together), with omnisense/contracts; symfony/lock keeps two processes from counting one window at once"
     },
     "autoload": {
         "psr-4": {
