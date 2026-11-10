@@ -33,7 +33,8 @@ class AutocompleteController extends AbstractController
         private readonly RequestStack $requestStack,
         protected readonly UnitOfWork $unitOfWork,
         protected readonly RemoteSearch $search,
-        protected readonly ExchangeRate $exchangeRate,
+        // Null without symfony/http-client (the core suggests it): no rate is asked, the forex route answers 404.
+        protected readonly ?ExchangeRate $exchangeRate,
         protected readonly ?Profiler $profiler = null,
         protected readonly ?ManagerRegistry $doctrine = null,
     ) {
@@ -53,6 +54,9 @@ class AutocompleteController extends AbstractController
     public function Forex(string $source, string $target, string $data): Response
     {
         $this->quiet();
+        if (null === $this->exchangeRate) {
+            return new JsonResponse(['error' => 'No exchange rates here: symfony/http-client is not installed.'], Response::HTTP_NOT_FOUND);
+        }
         $json = $this->exchangeRate->rate($source, $target, $data);
 
         return new JsonResponse($json->data, $json->status);

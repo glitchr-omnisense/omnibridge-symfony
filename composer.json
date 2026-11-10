@@ -27,7 +27,6 @@
         "symfony/http-foundation": "^6.0|^7.0|^8.0",
         "symfony/http-kernel": "^6.1|^7.0|^8.0",
         "symfony/messenger": "^6.0|^7.0|^8.0",
-        "symfony/monolog-bundle": "^3.8|^4.0",
         "symfony/process": "^6.0|^7.0|^8.0",
         "symfony/routing": "^6.0|^7.0|^8.0",
         "symfony/security-bundle": "^6.0|^7.0|^8.0",
@@ -71,6 +70,7 @@
         "omnisense/omnimap": "Omnibridge\\Symfony\\Map\\: maps through omnimap (config/packages/omnimap.yaml) - its providers over the application's HTTP client and cache pool, the map cache over a storage service of the application's, the cache's routes (type \"omnimap\") and controller, omnibridge/twig's MapExtension (omnimap(), omnimap_export(), omnimap_suppress()); omnimap/google, omnimap/openstreetmap and omnimap/maplibre registered when installed",
         "omnibridge/static": "Static\\BuildCommand: bin/console omnibridge:static:build, omnibridge/static's export of the site a static.php declares, rendered by this kernel",
         "omnisense/omnidrive": "Omnidrive\\Drives: the storages of league/flysystem-bundle's configuration (the services tagged flysystem.storage) as omnidrive's drives, by their names",
+        "symfony/monolog-bundle": "Monolog's handlers and channels, MonologBundle registered by the application (^3.8|^4.0): omnibase's services log through psr/log's LoggerInterface, whatever answers it, and none needs MonologBundle's services with omnisense/omnibase 5.0 (SpamChecker makes monolog.http_client's client itself where it is not there); with it, the demo environment's messages go to the channel `demo`",
         "symfony/asset": "RouterUrls::asset() through the application's asset packages (assets.packages); without it, the path as it is"
     },
     "autoload": {

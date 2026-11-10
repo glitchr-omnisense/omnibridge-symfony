@@ -121,11 +121,13 @@ Symfony draws of every kind, and `Omnibase\Form\Conformance\SymfonyHost` runs om
 ## The framework packages
 
 composer.json requires what omnibase's Symfony side needs, so that the core does not: PHP 8.2 or
-later, omnisense/omnibridge and omnibridge/twig 1.x, Symfony 6, 7 or 8 (config, console,
-dependency-injection, doctrine-bridge, dotenv, error-handler, form, framework-bundle,
-http-foundation, http-kernel, messenger, routing, security-bundle, security-core, security-csrf,
-security-http, twig-bridge, twig-bundle), doctrine/doctrine-bundle 2 or 3, symfony/monolog-bundle 3.8
-or 4, twig/extra-bundle 3. The suite runs on Symfony 8.1 and PHP 8.4.
+later, omnisense/omnibridge and omnibridge/twig 1.x, Symfony 6, 7 or 8 (asset, cache, config, console,
+dependency-injection, dotenv, error-handler, event-dispatcher, expression-language, form,
+framework-bundle, http-foundation, http-kernel, messenger, process, routing, security-bundle,
+security-core, security-csrf, security-http, twig-bridge, twig-bundle, validator, var-dumper,
+workflow), twig/extra-bundle 3. Doctrine (omnibridge/doctrine, doctrine/doctrine-bundle 2 or 3,
+symfony/doctrine-bridge) and symfony/monolog-bundle 3.8 or 4 are suggestions: an application that
+registers DoctrineBundle or MonologBundle requires it. The suite runs on Symfony 8.1 and PHP 8.4.
 
 ## How this manual is organised
 

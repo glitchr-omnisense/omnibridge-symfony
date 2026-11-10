@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Changed: omnibase's BaseBundle needs less of its host
+- symfony/monolog-bundle moves from `require` to `suggest`: nothing of omnibase's Symfony host needs MonologBundle's
+  services with omnisense/omnibase 5.0 (its SpamChecker made `monolog.http_client`'s client itself); omnibase logs
+  through psr/log's `LoggerInterface`, whatever answers it. An application that registers MonologBundle requires it
+  (every site and the core's harness do).
+- `Omnibase\DependencyInjection\Compiler\Pass\DefaultCachePoolPass`: omnibase's cache pool `cache.adapter` (the router,
+  the setting bag, the code caches) made on the application's default adapter where it configures none, as
+  `framework.cache.pools.cache.adapter: ~` would; a configured pool is kept. A host without it did not compile.
+- `Controller\UX\AutocompleteController` takes the exchange rates' service where there is one (the core declares it only
+  with symfony/http-client's PSR-18 client); without it the forex route answers 404 instead of the container not
+  compiling. Controllers' arguments take the "?" prefix of an optional service, as the subscribers' did.
+- With omnisense/omnibase 5.0's own part (SpamChecker's client, the storages' defaults, the Twig loader on the folders
+  there are), omnibridge/parity's Symfony host boots with FrameworkBundle, TwigBundle, SecurityBundle (one firewall),
+  DoctrineBundle (the reference application's) and BaseBundle alone: no MonologBundle, league/flysystem-bundle,
+  florianv/swap, symfony/http-client, cache pool, base.yaml nor empty folders. Still needed: SecurityBundle registered
+  (omnibase's host is built on Symfony's security) and sessions (its forms' CSRF tokens).
+- Tests: DefaultCachePoolPassTest (in `bare` too).
+
 ### Fixed: 405 Method Not Allowed for a method the route does not allow
 - omnibase's matcher (`Omnibase\Routing\Matcher\AdvancedUrlMatcher`) caught every exception of Symfony's matcher and
   retried the address with a trailing slash, so a request whose path matched a route its method does not allow (GET on a

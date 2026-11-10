@@ -49,7 +49,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         'Omnibridge\Symfony\Omnibase\Controller\Client\ContactController' => ['form.proxy', 'Base\Notifier\ContactMessage'],
         'Omnibridge\Symfony\Omnibase\Controller\LocalizerController' => ['advanced_router', 'Base\Request\LocaleSwitch', 'Base\Request\TimezoneSwitch'],
         'Omnibridge\Symfony\Omnibase\Controller\UX\MediaController' => ['request_stack', 'flysystem', 'base.service.image', 'Base\Repository\Layout\ImageCrops'],
-        'Omnibridge\Symfony\Omnibase\Controller\UX\AutocompleteController' => ['request_stack', 'Omnibridge\Persistence\UnitOfWork', 'Base\Field\Search\RemoteSearch', 'Base\Field\Search\ExchangeRate'],
+        'Omnibridge\Symfony\Omnibase\Controller\UX\AutocompleteController' => ['request_stack', 'Omnibridge\Persistence\UnitOfWork', 'Base\Field\Search\RemoteSearch', '?Base\Field\Search\ExchangeRate'],
         'Omnibridge\Symfony\Omnibase\Controller\WidgetController' => ['Base\Request\AttachmentDownload'],
         // The field's validation while a form is filled: never registered (constructor arguments, no service), so
         // /ux/validation answered 500 (plan "omnibase agnostic", step F5e slice 5b).
@@ -62,13 +62,17 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         'Omnibridge\Symfony\Omnibase\Controller\Client\NotificationController' => ['Base\Notifier\NotificationCenter'],
     ];
 
+    // A service named with a leading "?" is a suggested package's (the exchange rates: symfony/http-client's PSR-18
+    // client; glitchr/ux-google's ga.service, symfony/webpack-encore-bundle's entry point lookup): null without it.
+    $optional = static fn (string $id) => str_starts_with($id, '?') ? service(substr($id, 1))->nullOnInvalid() : service($id);
+
     foreach ($controllers as $id => $args) {
         $definition = $services->set($id)
             ->tag('controller.service_arguments')
             ->tag('container.service_subscriber')
             ->call('setContainer', [service('Psr\Container\ContainerInterface')]);
         foreach ($args as $i => $arg) {
-            $definition->arg($i, service($arg));
+            $definition->arg($i, $optional($arg));
         }
         if ($id === 'Omnibridge\Symfony\Omnibase\Controller\UX\MediaController') {
             $definition->arg(4, new Reference('profiler', ContainerInterface::NULL_ON_INVALID_REFERENCE));
@@ -98,10 +102,6 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         'Base\Subscriber\AnalyticsSubscriber' => ['security.token_storage', 'advanced_router', 'translator', 'twig', 'Base\Repository\Users', '?ga.service'],
         'Base\Subscriber\PageViewSubscriber' => ['Base\Service\Analytics', 'Symfony\Bundle\SecurityBundle\Security', '$excludedPrefixes' => ['/admin', '/_', '/api']],
     ];
-
-    // A service named with a leading "?" is a suggested bundle's (glitchr/ux-google's
-    // ga.service, symfony/webpack-encore-bundle's entry point lookup): null without it.
-    $optional = static fn (string $id) => str_starts_with($id, '?') ? service(substr($id, 1))->nullOnInvalid() : service($id);
 
     foreach ($subscribers as $id => $args) {
         $definition = $services->set($id)
