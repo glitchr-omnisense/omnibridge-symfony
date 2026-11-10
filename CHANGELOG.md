@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-10
+
 ### Changed: omnibase's BaseBundle needs less of its host
 - symfony/monolog-bundle moves from `require` to `suggest`: nothing of omnibase's Symfony host needs MonologBundle's
   services with omnisense/omnibase 5.0 (its SpamChecker made `monolog.http_client`'s client itself); omnibase logs
