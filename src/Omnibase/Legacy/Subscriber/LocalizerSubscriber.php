@@ -51,6 +51,25 @@ class LocalizerSubscriber implements EventSubscriberInterface
         $this->tokenStorage = $tokenStorage;
     }
 
+    /**
+     * A signed-in member's own language: the one their account holds, null for an account that holds none.
+     * Base\Entity\User::getLocale() answers the page's for such an account (the localizer's current language: the
+     * site's, or in a long-lived worker the previous request's), which, read as the member's, came before LANG and
+     * the browser's: a member who never chose a language could not change the page's.
+     */
+    protected static function memberLocale(mixed $user): ?string
+    {
+        if (!$user instanceof BaseUser) {
+            return null;
+        }
+        if (!property_exists(BaseUser::class, 'locale')) {
+            return $user->getLocale();
+        }
+        $own = \Closure::bind(static fn (BaseUser $user): mixed => $user->locale, null, BaseUser::class)($user);
+
+        return \is_string($own) && '' !== $own ? $own : null;
+    }
+
     public static function getSubscribedEvents(): array
     {
         /*
@@ -187,7 +206,7 @@ class LocalizerSubscriber implements EventSubscriberInterface
 
         $token = $this->tokenStorage->getToken();
         $user = $token?->getUser();
-        $member = $user instanceof BaseUser ? $this->available($user->getLocale()) : null;
+        $member = $this->available(self::memberLocale($user));
 
         // Symfony's Request::create() puts "en-us,en;q=0.5" on every request it makes
         // that says nothing (a test client's, a sub-request's): no word from a browser.

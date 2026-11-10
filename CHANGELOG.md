@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Fixed: a member's own language is the one their account holds
+- `Omnibase\Subscriber\LocalizerSubscriber` (and its 4.x `Legacy\` order) gave omnibase's `Locale` rule
+  `Base\Entity\User::getLocale()`, which answers the page's language for an account that holds none (the localizer's
+  current one: the site's, or in a long-lived worker the previous request's). The rule puts the member's language
+  before `LANG` and the browser's, so such a member could not change the page's language. The member's language is now
+  the account's stored locale, none when it is empty (`Legacy\Subscriber\LocalizerSubscriber::memberLocale()`).
+
 ### Added: `Policy\RateLimiter`, omnisense/contracts' rate limiter over Symfony's
 - `Omnibridge\Symfony\Policy\RateLimiter` implements omnisense/contracts' `Policy\RateLimiterInterface` (the
   limiter a `PolicyGuard` counts a provider's usage policy with, the third argument of a family's registry) over

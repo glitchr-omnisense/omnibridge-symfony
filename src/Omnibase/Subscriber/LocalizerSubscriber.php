@@ -48,7 +48,7 @@ if (!class_exists(Locale::class)) {
             $token = $this->tokenStorage->getToken();
             $user = $token?->getUser();
             $browser = $rule->browser($request->headers->get('Accept-Language'), static fn (array $languages): ?string => $request->getPreferredLanguage($languages));
-            $locale = $rule->decide($address, $request->cookies->get(self::__LANG_IDENTIFIER__), $user instanceof BaseUser ? $user->getLocale() : null, $token instanceof SwitchUserToken, $browser, $this->localizer::getDefaultLocale() ?? $this->localizer->getLocale());
+            $locale = $rule->decide($address, $request->cookies->get(self::__LANG_IDENTIFIER__), self::memberLocale($user), $token instanceof SwitchUserToken, $browser, $this->localizer::getDefaultLocale() ?? $this->localizer->getLocale());
 
             $this->localizer->setLocale($locale, $request);
             if (class_exists(\Locale::class)) {
