@@ -11,7 +11,8 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 /**
  * omnisense/contracts and symfony/rate-limiter are only suggested: without them (`docker compose run --rm bare`, the
  * suite of this group in an install without them), a kernel of OmnibridgeBundle compiles and Policy\'s files load
- * and declare nothing. With them (the suite), they declare their classes.
+ * and declare nothing. With them (the suite), they declare their classes; RateLimiter needs omnisense/contracts'
+ * ConsumingRateLimiterInterface (5bac28b), and declares nothing over an older checkout.
  */
 #[Group('without-omniauth')]
 final class WithoutPolicyPackagesTest extends KernelTestCase
@@ -23,7 +24,7 @@ final class WithoutPolicyPackagesTest extends KernelTestCase
 
     public function testPolicyDeclaresItsClassesOnlyWithItsPackages(): void
     {
-        $contracts = interface_exists(\Omnisense\Contracts\Policy\RateLimiterInterface::class);
+        $contracts = interface_exists(\Omnisense\Contracts\Policy\ConsumingRateLimiterInterface::class);
         $symfony = class_exists(\Symfony\Component\RateLimiter\RateLimiterFactory::class);
 
         self::bootKernel();

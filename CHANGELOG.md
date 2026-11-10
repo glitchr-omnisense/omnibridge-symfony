@@ -19,6 +19,18 @@
   wait kept in the storage, a limit of 0); `Policy\WithoutPolicyPackagesTest` (in `bare` too, which now installs
   neither package).
 
+### Changed: `Policy\RateLimiter` on omnisense/contracts' round 2 (5bac28b)
+- A limit over several windows (`every`: Trakt's 500 every 5 minutes) is counted over its whole length,
+  `RateLimit::seconds()` (300 seconds), where `window->seconds()` counted it per minute.
+- `RateLimiter` implements `ConsumingRateLimiterInterface`: `consume($key, $limit, $amount)` counts a call's amount at
+  once (a cost of 3 quota units, 1,200 characters translated) with one `consume($amount)` of Symfony's limiter, one
+  round trip to the storage, where `PolicyGuard` called `hit()` once per unit. An amount over what the window has
+  left (characters billed, known after the call) spends what is left; `hit()` is `consume(1)`.
+- Needs omnisense/contracts at 5bac28b or later (still `^1.0@dev`, untagged): over an older checkout, without
+  `ConsumingRateLimiterInterface`, `Policy\RateLimiter` declares nothing, as without the package; the bridge loads.
+- Tests: `RateLimiterTest` (a 5-minute window, an amount counted in one write, a cost per operation, an amount over
+  what is left), `WithoutPolicyPackagesTest` on the new interface.
+
 ## [1.0.0] - 2026-11-10
 
 ### Changed: omnibase's BaseBundle needs less of its host
