@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Fixed: 405 Method Not Allowed for a method the route does not allow
+- omnibase's matcher (`Omnibase\Routing\Matcher\AdvancedUrlMatcher`) caught every exception of Symfony's matcher and
+  retried the address with a trailing slash, so a request whose path matched a route its method does not allow (GET on a
+  POST-only action) ended on the retry's `ResourceNotFoundException`: a 404, where Symfony and Laravel answer 405. The
+  matcher now rethrows the `MethodNotAllowedException` when the retry matches nothing, and the router listener answers
+  405 with `Allow` (the route's methods). Only for a request being matched (`matchRequest()`, the router listener's
+  call): `match()` asked about an address alone keeps answering "no route" for it, as its callers (the breadcrumbs, the
+  localizer, which catch `ResourceNotFoundException`) expect. The trailing-slash retry, the redirections and every other
+  answer are unchanged. omnibridge/parity's `method-not-allowed` difference is gone. tests/Routing/AdvancedUrlMatcherTest
+  (in `bare` too): three of its seven cases fail before.
+
 ### Fixed: `use_model` finds the core's models of the moved form types (omnisense/omnibase's plan "omnibase agnostic", step S)
 - omnibase's form types moved to this bridge (`Omnibridge\Symfony\Omnibase\Form\Type\*`) and their models stayed in
   the core (`Base\Form\Model\*`), but the option `use_model` named the model beside the type: a page asking ContactType

@@ -5,6 +5,8 @@ namespace Omnibridge\Symfony\Omnibase\Routing\Matcher;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\RedirectController;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Exception\MethodNotAllowedException;
+use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Matcher\CompiledUrlMatcher;
 use Symfony\Component\Routing\Matcher\RedirectableUrlMatcherInterface;
 use Symfony\Component\Routing\RequestContext;
@@ -237,14 +239,32 @@ class AdvancedUrlMatcher extends CompiledUrlMatcher implements RedirectableUrlMa
         // Prevent to match custom route with Symfony internal route.
         // NB: It breaks and gets infinite loop due to "_profiler*" route, if not set..
 
+        $methodNotAllowed = null;
         try {
             $match = parent::match($pathinfo);
+        } catch (MethodNotAllowedException $e) {
+            $methodNotAllowed = $e;
+            $match = [];
         } catch (Exception $e) {
             $match = [];
         }
 
         if (empty($match)) {
-            $match = parent::match($pathinfo."/");
+            try {
+                $match = parent::match($pathinfo."/");
+            } catch (ResourceNotFoundException $e) {
+                // The address matched a route the request's method does not allow, and the trailing-slash retry
+                // matches nothing: the request is answered 405 with the allowed methods (Allow), as Symfony's own
+                // matcher does, instead of the retry's 404. Only when the request itself is matched (matchRequest(),
+                // what the router listener calls: $this->request is set): match() called on an address, whatever
+                // method the context holds, keeps answering "no route" as before, since its callers (breadcrumbs,
+                // the localizer) ask for an address, not for a request's answer.
+                if (null !== $methodNotAllowed && null !== $this->request) {
+                    throw $methodNotAllowed;
+                }
+
+                throw $e;
+            }
         } elseif (($match["_controller"] ?? null) == RedirectController::class . "::urlRedirectAction") {
             $match = parent::match($match["path"]);
         }
