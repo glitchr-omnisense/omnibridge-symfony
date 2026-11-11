@@ -159,6 +159,7 @@ class BaseBundle extends AbstractBaseBundle
         self::$classes             = self::$classes             ?? self::$cache->getItem('base.classes')->get() ?? [];
         self::$aliasList           = self::$aliasList           ?? self::$cache->getItem('base.alias_list')->get() ?? [];
         self::$aliasRepositoryList = self::$aliasRepositoryList ?? self::$cache->getItem('base.alias_repository_list')->get() ?? [];
+        self::$aliasDeclared       = self::$aliasDeclared       ?? self::$cache->getItem('base.alias_declared')->get();
 
         // A pool file that exists but carries no aliases is not a warm cache,
         // it is a cache being (re)written by a concurrent request - seen live
@@ -237,11 +238,21 @@ class BaseBundle extends AbstractBaseBundle
             self::getAllClasses($this->getBundleDir() . "/src/Enum");
             self::getAllClasses($this->getProjectDir() . "/src/Enum");
             
+            // The class each alias stands for where it is not the name listed (a former name, an alias its
+            // file declares): what declares the alias once loaded (deferAlias()).
+            self::$aliasDeclared = [];
+            foreach ((self::$aliasList ?? []) + (self::$aliasRepositoryList ?? []) as $class => $alias) {
+                if ($class !== $declared = self::declaredName($class)) {
+                    self::$aliasDeclared[$class] = $declared;
+                }
+            }
+
             self::$cache->warmUp([
                 "base.files" => self::$files ?? [],
                 "base.classes" => self::$classes ?? [],
                 "base.alias_list" => self::$aliasList ?? [],
-                "base.alias_repository_list" => self::$aliasRepositoryList ?? []
+                "base.alias_repository_list" => self::$aliasRepositoryList ?? [],
+                "base.alias_declared" => self::$aliasDeclared,
             ]);
         }
 
@@ -274,21 +285,36 @@ class BaseBundle extends AbstractBaseBundle
     }
 
     /**
+     * The class each alias of the pool stands for, where it is not the name the pool lists:
+     * written with the pool, null for a pool written before it (whose aliases are declared at once).
+     *
+     * @var array<string, string>|null
+     */
+    protected static ?array $aliasDeclared = null;
+
+    /**
      * The pool's aliases. With debug, each one only once no autoloader finds
      * a file of the application for it (a class added since the pool was
      * written wins at once). Without debug the pool is the code's - written by
      * the scan of the cache:clear that came with it, for names no class
      * answered to - and that search, a file_exists() missed per alias, is
      * left out of the request: 8.7 ms of a page of lesringostars.
+     *
+     * Each one is declared when its class is loaded or the alias asked
+     * (deferAlias()), not here: declaring them all loaded every class of every
+     * bundle, 150 to 300 ms of each command and request.
      */
     private function declareAliases(): void
     {
         $lookup = !$this->container->hasParameter('kernel.debug') || (bool) $this->container->getParameter('kernel.debug');
-        foreach (self::$aliasList ?? [] as $class => $alias) {
-            self::declareAlias($class, $alias, $lookup);
-        }
-        foreach (self::$aliasRepositoryList ?? [] as $class => $alias) {
-            self::declareAlias($class, $alias, $lookup);
+        foreach ([self::$aliasList ?? [], self::$aliasRepositoryList ?? []] as $aliases) {
+            foreach ($aliases as $class => $alias) {
+                if (null === self::$aliasDeclared) {
+                    self::declareAlias($class, $alias, $lookup);
+                } else {
+                    self::deferAlias($class, $alias, self::$aliasDeclared[$class] ?? $class, $lookup);
+                }
+            }
         }
     }
 
@@ -339,6 +365,7 @@ class BaseBundle extends AbstractBaseBundle
         self::$classes = $cache->getItem('base.classes')->get() ?? [];
         self::$aliasList = $aliasList;
         self::$aliasRepositoryList = $aliasRepositoryList;
+        self::$aliasDeclared = $cache->getItem('base.alias_declared')->get();
         // an application's own class, not loaded yet, is never replaced (declareAlias)
         $this->declareAliases();
         return true;

@@ -323,12 +323,154 @@ abstract class AbstractBaseBundle extends Bundle
     }
 
     /**
+     * The aliases of the pool not declared yet, by lower-cased alias: [class, alias, lookup, the
+     * lower-cased names whose loading declares it]. See deferAlias().
+     *
+     * @var array<string, array{string, string, bool, list<string>}>
+     */
+    private static array $deferredAliases = [];
+
+    /** @var array<string, array<string, true>> the aliases waiting, by the lower-cased name of a class that declares them once loaded */
+    private static array $deferredBy = [];
+
+    /** @var array<string, true> the names deferredAutoloader() is loading */
+    private static array $deferredLoading = [];
+
+    private static ?\Closure $deferredAutoloader = null;
+
+    /**
+     * declareAlias() at the moment the alias can first be needed, instead of at boot: declaring an
+     * alias loads its class, and declaring the pool's at once loaded every class of every bundle on
+     * each request and each command (about a thousand files, 150 to 300 ms of a console start
+     * without opcache).
+     *
+     * An alias is needed as soon as its class is loaded (from then on an object of it can be met,
+     * and `instanceof` or a type written with the alias, which PHP checks without autoloading,
+     * answers as before only if the alias is declared) or when the alias itself is asked. Both
+     * reach the autoloader prepended here: the class $declared is (or $class, when it is a former
+     * name or an alias declared by its file), loaded through the other autoloaders, then its
+     * aliases declared; the alias asked, declared before any other autoloader is asked - as it
+     * would have been there already. A class already loaded (the parents of the bundles, a
+     * preloaded class) has its alias declared now. A class whose file is included without an autoloader (Doctrine's
+     * attribute driver listing its entities, a second class in one file) has its alias declared when it is asked.
+     */
+    protected static function deferAlias(string $class, string $alias, ?string $declared = null, bool $lookup = true): void
+    {
+        if (self::isDeclared($alias)) {
+            return;
+        }
+
+        $declared = ltrim($declared ?? $class, "\\");
+        if (self::isDeclared($declared) || self::isDeclared($class)) {
+            self::declareAlias($class, $alias, $lookup);
+
+            return;
+        }
+
+        $key = strtolower($alias);
+        $names = array_values(array_unique([strtolower(ltrim($class, "\\")), strtolower($declared)]));
+        self::$deferredAliases[$key] = [$class, $alias, $lookup, $names];
+        foreach ($names as $name) {
+            self::$deferredBy[$name][$key] = true;
+        }
+
+        if (null === self::$deferredAutoloader) {
+            self::$deferredAutoloader = static function (string $class): void {
+                $name = strtolower(ltrim($class, "\\"));
+
+                if (isset(self::$deferredBy[$name])) {
+                    // Re-entered through an autoloader that wraps this one (Symfony's DebugClassLoader).
+                    if (isset(self::$deferredLoading[$name])) {
+                        return;
+                    }
+
+                    self::$deferredLoading[$name] = true;
+                    try {
+                        foreach (spl_autoload_functions() as $autoloader) {
+                            if (self::isDeclared($class)) {
+                                break;
+                            }
+                            if ($autoloader !== self::$deferredAutoloader) {
+                                $autoloader($class);
+                            }
+                        }
+                    } finally {
+                        unset(self::$deferredLoading[$name]);
+                    }
+
+                    if (self::isDeclared($class)) {
+                        foreach (array_keys(self::$deferredBy[$name]) as $key) {
+                            self::declareDeferred($key);
+                        }
+                        foreach (array_keys(self::$deferredBy[$name]) as $key) {
+                            if (!isset(self::$deferredAliases[$key])) {
+                                unset(self::$deferredBy[$name][$key]);
+                            }
+                        }
+                        if (empty(self::$deferredBy[$name])) {
+                            unset(self::$deferredBy[$name]);
+                        }
+                    }
+
+                    return;
+                }
+
+                if (isset(self::$deferredAliases[$name])) {
+                    self::declareDeferred($name);
+                }
+            };
+
+            spl_autoload_register(self::$deferredAutoloader, true, true);
+        }
+    }
+
+    /**
+     * Declares the alias deferred under $key. Left waiting when its class cannot be loaded yet (it is
+     * the class being autoloaded: an alias its own file declares, loading the class it stands for).
+     */
+    private static function declareDeferred(string $key): void
+    {
+        if (!isset(self::$deferredAliases[$key])) {
+            return;
+        }
+
+        $deferred = self::$deferredAliases[$key];
+        unset(self::$deferredAliases[$key]);
+        [$class, $alias, $lookup] = $deferred;
+
+        if (self::isDeclared($alias)) {
+            return;
+        }
+
+        self::declareAlias($class, $alias, $lookup);
+
+        if (!self::isDeclared($class)) {
+            self::$deferredAliases[$key] = $deferred;
+        }
+    }
+
+    /**
+     * The aliases deferAlias() still waits for (their class not loaded, the alias not asked).
+     *
+     * @return array<string, string> each alias by the class it stands for
+     */
+    public static function getDeferredAliases(): array
+    {
+        return array_column(self::$deferredAliases, 1, 0);
+    }
+
+    private static function isDeclared(string $class): bool
+    {
+        return class_exists($class, false) || interface_exists($class, false) || trait_exists($class, false);
+    }
+
+    /**
      * The name $class is declared under: itself, or the class a former name stands for (a class moved
      * to omnibridge/doctrine at the plan "omnibase agnostic"'s step F3, aliased by
      * src/Resources/former-names.php) - so that an App\ alias of Base\Repository\UserRepository is
      * known as that class's.
      */
-    private static function declaredName(string $class): string
+    protected static function declaredName(string $class): string
     {
         $class = ltrim($class, "\\");
         try {

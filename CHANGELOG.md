@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Changed: the pool's class aliases are declared when first needed, not each at boot
+- `Omnibase\BaseBundle::boot()` declared every alias of its pool (`App\Entity\X` for `Base\Entity\X`, a plugin's
+  `Base\Entity\Marketplace\X`...), and `class_alias()` loads the class it aliases: every class of every bundle was
+  loaded on each request and each command, about a thousand files and 150 to 300 ms of a console start without
+  opcache (the omnibase harness: 895 aliases, 2,668 classes declared by the boot; 804 now).
+- Each alias is now declared when its class is loaded - by its name, as the parent or an interface of another, by
+  the former name its file aliases - or when the alias itself is asked, through an autoloader prepended for the
+  names waiting (`AbstractBaseBundle::deferAlias()`), and at once when its class is already loaded. `instanceof` and
+  the types written with an alias, which PHP checks without autoloading, answer as before: an object of the class
+  cannot exist before the class is loaded. The pool holds the class each alias stands for where it is not the name it
+  lists (`base.alias_declared`: a former name, an alias its file declares); a pool written before it (no
+  `cache:clear` since) declares its aliases at once, as before. A class whose file is included without an
+  autoloader (Doctrine's attribute driver listing every entity, a second class in one file) has its alias declared
+  when the alias is asked, as the convention's fallback already did.
+- Tests: `DeferredAliasesTest` (a class loaded, the alias asked, a parent and an interface loaded with another
+  class, a former name by either name, a class already loaded, an alias already taken, under the
+  `DebugClassLoader`).
+
 ### Fixed: a member's own language is the one their account holds
 - `Omnibase\Subscriber\LocalizerSubscriber` (and its 4.x `Legacy\` order) gave omnibase's `Locale` rule
   `Base\Entity\User::getLocale()`, which answers the page's language for an account that holds none (the localizer's
