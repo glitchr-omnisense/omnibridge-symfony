@@ -5,6 +5,7 @@ namespace Omnibridge\Symfony\Omnibase\DependencyInjection\Compiler\Pass;
 use Omnibridge\Doctrine\Omnibase\Configuration;
 use Omnibridge\Doctrine\Omnibase\MappingDriver;
 use Omnibridge\Doctrine\DeclarationDriver;
+use Omnibridge\Symfony\Omnibase\Cache\Warmer\DoctrineMetadataCacheWarmer;
 use Symfony\Component\DependencyInjection\Argument\ServiceClosureArgument;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -23,10 +24,15 @@ use Symfony\Component\DependencyInjection\Reference;
  *   Omnibridge\Schema\Declaration: the structure described outside Doctrine,
  *   audit R14), then in Base\Bridge\Doctrine\MappingDriver (the discriminator
  *   maps generated, the `resolveDiscriminator` event), given its entity
- *   manager lazily.
+ *   manager lazily;
+ * - DoctrineBundle's metadata cache warmer replaced by DoctrineMetadataCacheWarmer, which warms the metadata's PHP
+ *   file once metadata is loaded (it always is under omnibase by then).
  */
 class DoctrineConfigurationPass implements CompilerPassInterface
 {
+    /** DoctrineBundle's metadata cache warmer, which DoctrineMetadataCacheWarmer replaces (its arguments kept). */
+    public const DOCTRINE_METADATA_CACHE_WARMER = 'Doctrine\\Bundle\\DoctrineBundle\\CacheWarmer\\DoctrineMetadataCacheWarmer';
+
     public function process(ContainerBuilder $container): void
     {
         if (!$container->hasDefinition('doctrine.orm.configuration')) {
@@ -68,6 +74,13 @@ class DoctrineConfigurationPass implements CompilerPassInterface
                 $calls[$i] = [$method, [$driver]];
             }
             $configuration->setMethodCalls($calls);
+
+            // DoctrineBundle's metadata cache warmer (without debug), in a version that warms once metadata is loaded:
+            // under omnibase it always is by then, and DoctrineBundle's stopped cache:warmup and cache:clear.
+            $warmer = sprintf('doctrine.orm.%s_metadata_cache_warmer', $name);
+            if ($container->hasDefinition($warmer) && self::DOCTRINE_METADATA_CACHE_WARMER === $container->getDefinition($warmer)->getClass()) {
+                $container->getDefinition($warmer)->setClass(DoctrineMetadataCacheWarmer::class);
+            }
         }
     }
 }

@@ -16,6 +16,14 @@
   which the reader reads instead of the folders. Each folder is a resource of the container: in debug, a file added,
   changed or removed there rebuilds it, and the list with it. Nothing is done with a core without `discover()`.
 
+### Fixed: `cache:warmup` and `cache:clear` without debug
+- Both stopped on DoctrineBundle's metadata cache warmer ("DoctrineMetadataCacheWarmer must load metadata first"):
+  under omnibase the entity manager has always loaded metadata by then - the settings laid over the parameters at each
+  command's start (`HotParameterBagSubscriber`), the reader's and the manipulator's own warmers when the container is
+  built. `DoctrineConfigurationPass` puts `Cache\Warmer\DoctrineMetadataCacheWarmer` in its place, with its arguments:
+  where nothing is loaded it does what DoctrineBundle's does; where something is, a metadata factory of its own over
+  the same entity manager loads every class into the file.
+
 ### Changed: the pool's class aliases are declared when first needed, not each at boot
 - `Omnibase\BaseBundle::boot()` declared every alias of its pool (`App\Entity\X` for `Base\Entity\X`, a plugin's
   `Base\Entity\Marketplace\X`...), and `class_alias()` loads the class it aliases: every class of every bundle was
