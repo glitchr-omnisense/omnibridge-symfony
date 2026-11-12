@@ -425,13 +425,24 @@ class BaseBundle extends AbstractBaseBundle
 
         // Doctrine constructs SQLFilter classes (e.g. TrashFilter) itself, bypassing
         // the DI container entirely, so they can only reach AttributeReader through
-        // its getInstance() singleton. Nothing else on the console/command path
-        // (no Twig, no controller) necessarily asks the container for it first, so
-        // without this the singleton is still null the first time a filtered query
-        // runs. The constructor is metadata-free since the Attribute refactor, so
-        // constructing it here is cheap.
+        // its getInstance() singleton. A core whose list of attributes the container
+        // holds (AttributeReader::NAMES, AttributesPass) makes the container's reader
+        // when it is first asked, through the contracts' registry handed above: it is
+        // not made here, with the router, the entity manager and the rest it is given,
+        // for a command or a request that reads no attribute. A previous kernel's
+        // reader is forgotten, so that this container's is the one asked. An older
+        // core is given its reader here, as before.
         if ($this->container->has(AttributeReader::class)) {
-            $this->container->get(AttributeReader::class);
+            if (!\defined(AttributeReader::class.'::NAMES')) {
+                $this->container->get(AttributeReader::class);
+            } elseif (!$this->container->initialized(AttributeReader::class)) {
+                AttributeReader::setInstance(null);
+            }
+        }
+        // The router's matcher and generator are omnibase's once AdvancedRouter is made (it hands them to Symfony's
+        // router): made here, as the reader made it until now.
+        if ($this->container->has('advanced_router')) {
+            $this->container->get('advanced_router');
         }
 
         if (class_exists(\Symfony\Component\VarDumper\VarDumper::class)) {

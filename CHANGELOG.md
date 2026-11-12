@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Changed: the attribute reader is no longer made at each boot, and its list of attributes is compiled
+- `Omnibase\BaseBundle::boot()` asked the container for omnisense/omnibase's `AttributeReader` so that Doctrine's SQL
+  filters, which reach it through `getInstance()`, found one; making it made the router, the entity manager, the
+  hydrator, the storages and the rest it is given, and its constructor read the attribute folders and loaded each of
+  their classes - on every command and every request, attributes read or not. With a core whose reader is made when
+  first asked (`AttributeReader::NAMES` defined: through the contracts' registry handed just before), the boot no
+  longer makes it; a previous kernel's reader is forgotten, so that this container's is the one asked. The boot still
+  makes `advanced_router`, which hands Symfony's router omnibase's matcher and generator, as the reader's construction
+  did. An older core is given its reader at boot, as before.
+- `Compiler\Pass\AttributesPass`: the attributes of the folders the reader searches (the core's, `base.attributes.paths`)
+  found once, when the container is compiled (`AttributeReader::discover()`), in the parameter `base.attributes.names`,
+  which the reader reads instead of the folders. Each folder is a resource of the container: in debug, a file added,
+  changed or removed there rebuilds it, and the list with it. Nothing is done with a core without `discover()`.
+
 ### Changed: the pool's class aliases are declared when first needed, not each at boot
 - `Omnibase\BaseBundle::boot()` declared every alias of its pool (`App\Entity\X` for `Base\Entity\X`, a plugin's
   `Base\Entity\Marketplace\X`...), and `class_alias()` loads the class it aliases: every class of every bundle was
