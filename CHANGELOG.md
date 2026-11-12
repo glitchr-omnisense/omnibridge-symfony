@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Fixed: a container compiled before the lazy reader and router boots as before
+- With debug off a compiled container is never rebuilt, and `cache:clear` boots the one in place first: new code over
+  a `var/cache/prod` compiled by 3144602 (and omnisense/omnibase 9b33abb) lacked `base.attributes.names` and the
+  attribute reader in the contracts' locator, so the boot made no reader and `AttributeReader::getInstance()` answered
+  none ("Call to a member function getParameterBag() on null" in `cache:clear --env=prod`); its router's options named
+  Symfony's matcher and generator, and omnibase's router, no longer made at boot, was never asked. `BaseBundle::boot()`
+  makes the reader where the container has no `AttributeReader::NAMES` parameter, and `advanced_router` where it has no
+  `AdvancedRouterPass::PARAMETER` (`omnibridge.router.advanced`, which the pass now sets where it named both classes),
+  as before those changes. The enumerations already read their folders without `omnibridge.doctrine.enumerations`.
+  omnisense/omnibase's `StaleContainerTest` boots such a container.
+
 ### Changed: omnibase's router is made when routing first needs it, and the enumerations' list is compiled
 - `Omnibase\BaseBundle::boot()` made `advanced_router` (about 20 ms) on every command and every request: its
   constructor set Symfony's router's `matcher_class` and `generator_class` to omnibase's matcher and generator, and

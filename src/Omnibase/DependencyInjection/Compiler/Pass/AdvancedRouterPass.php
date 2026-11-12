@@ -16,6 +16,12 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
  */
 final class AdvancedRouterPass implements CompilerPassInterface
 {
+    /**
+     * True where this pass named omnibase's matcher and generator on Symfony's router. A container compiled before it
+     * has no such parameter, and BaseBundle::boot() makes the router there as before, its constructor naming both.
+     */
+    public const PARAMETER = 'omnibridge.router.advanced';
+
     public function process(ContainerBuilder $container): void
     {
         if (!$container->has('advanced_router') || !$container->hasDefinition('router.default')) {
@@ -31,5 +37,6 @@ final class AdvancedRouterPass implements CompilerPassInterface
         $options['matcher_class'] = AdvancedUrlMatcher::class;
         $options['generator_class'] = AdvancedUrlGenerator::class;
         $router->replaceArgument(2, $options);
+        $container->setParameter(self::PARAMETER, true);
     }
 }

@@ -23,6 +23,7 @@ use Omnibridge\Symfony\Omnibase\Console\Command\CacheClearCommand;
 use Base\Demo\DemoGuard;
 use Base\Demo\DemoMode;
 use Omnibridge\Symfony\Omnibase\DependencyInjection\Compiler\DiscoveryPass;
+use Omnibridge\Symfony\Omnibase\DependencyInjection\Compiler\Pass\AdvancedRouterPass;
 use Omnibridge\Symfony\Omnibase\DependencyInjection\Compiler\Pass\EnumerationsPass;
 use Omnibridge\Symfony\Omnibase\Legacy\DependencyInjection\Compiler\Pass\ContractsPass;
 use Omnibridge\Symfony\Omnibase\DependencyInjection\Dumper\CliDumper;
@@ -433,9 +434,13 @@ class BaseBundle extends AbstractBaseBundle
         // not made here, with the router, the entity manager and the rest it is given,
         // for a command or a request that reads no attribute. A previous kernel's
         // reader is forgotten, so that this container's is the one asked. An older
-        // core is given its reader here, as before.
+        // core is given its reader here, as before, and so is a container compiled
+        // before AttributesPass (no AttributeReader::NAMES parameter: a cache made
+        // by the previous versions, which a production container without debug is
+        // never rebuilt from, cache:clear booting it first): its contracts' locator
+        // does not list the reader, and getInstance() would find none.
         if ($this->container->has(AttributeReader::class)) {
-            if (!\defined(AttributeReader::class.'::NAMES')) {
+            if (!\defined(AttributeReader::class.'::NAMES') || !$this->container->hasParameter(AttributeReader::NAMES)) {
                 $this->container->get(AttributeReader::class);
             } elseif (!$this->container->initialized(AttributeReader::class)) {
                 AttributeReader::setInstance(null);
@@ -443,8 +448,13 @@ class BaseBundle extends AbstractBaseBundle
         }
         // The router's matcher and generator are omnibase's from the container's compilation (AdvancedRouterPass sets
         // Symfony's router's matcher_class and generator_class): they make omnibase's router from this container when
-        // they first need it, which is no longer made here for a command or a request that routes nothing.
+        // they first need it, which is no longer made here for a command or a request that routes nothing. A container
+        // compiled before AdvancedRouterPass (no AdvancedRouterPass::PARAMETER) names Symfony's own: its router is made
+        // here, as before, its constructor setting both options before anything matches or generates.
         if ($this->container->has('advanced_router')) {
+            if (!$this->container->hasParameter(AdvancedRouterPass::PARAMETER)) {
+                $this->container->get('advanced_router');
+            }
             AdvancedRouter::setContainer($this->container);
         }
 
