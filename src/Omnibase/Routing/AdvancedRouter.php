@@ -26,6 +26,7 @@ use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use Symfony\Bundle\SecurityBundle\Security\FirewallConfig;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Security\Http\FirewallMapInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 
@@ -107,10 +108,44 @@ class AdvancedRouter implements AdvancedRouterInterface, ResetInterface
         $this->useAdvancedFeatures = $parameterBag->get("base.router.use_custom") ?? false;
         $this->useFallbacks = $parameterBag->get("base.router.use_fallbacks") ?? false;
 
+        // The router's options name the matcher and the generator from the container's compilation (AdvancedRouterPass);
+        // set here as well for a router this one is given by hand.
         AdvancedUrlMatcher::$router = $this;
         $this->router->setOption("matcher_class", AdvancedUrlMatcher::class);
         AdvancedUrlGenerator::$router = $this;
         $this->router->setOption("generator_class", AdvancedUrlGenerator::class);
+    }
+
+    /** The container of the kernel booted last (BaseBundle::boot()), where the matcher and the generator find this router. */
+    private static ?ContainerInterface $container = null;
+
+    /**
+     * The booted kernel's container: the matcher and the generator its router's options name (AdvancedRouterPass) make
+     * this router from it when they first need it (current()), so a kernel's boot no longer makes it - with Symfony's
+     * router, the localizer, the firewall map and the cache it is given - for a command or a request that matches and
+     * generates nothing. The router this container made already is theirs at once; a previous kernel's is forgotten.
+     */
+    public static function setContainer(ContainerInterface $container): void
+    {
+        self::$container = $container;
+        AdvancedUrlMatcher::$router = AdvancedUrlGenerator::$router = $container->initialized('advanced_router') ? $container->get('advanced_router') : null;
+    }
+
+    /**
+     * A kernel's container let go of at its shutdown, if it is still the one handed: the router it made stays the
+     * matcher's and the generator's (a router kept past the kernel generates as before), none is made from it any more.
+     */
+    public static function forgetContainer(ContainerInterface $container): void
+    {
+        if (self::$container === $container) {
+            self::$container = null;
+        }
+    }
+
+    /** This router as the booted kernel's container makes it; null where no container was handed, or it has none. */
+    public static function current(): ?AdvancedRouterInterface
+    {
+        return self::$container?->has('advanced_router') ? self::$container->get('advanced_router') : null;
     }
 
     public function useAdvancedFeatures(): bool

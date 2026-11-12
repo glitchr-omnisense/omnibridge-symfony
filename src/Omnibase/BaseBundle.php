@@ -23,9 +23,11 @@ use Omnibridge\Symfony\Omnibase\Console\Command\CacheClearCommand;
 use Base\Demo\DemoGuard;
 use Base\Demo\DemoMode;
 use Omnibridge\Symfony\Omnibase\DependencyInjection\Compiler\DiscoveryPass;
+use Omnibridge\Symfony\Omnibase\DependencyInjection\Compiler\Pass\EnumerationsPass;
 use Omnibridge\Symfony\Omnibase\Legacy\DependencyInjection\Compiler\Pass\ContractsPass;
 use Omnibridge\Symfony\Omnibase\DependencyInjection\Dumper\CliDumper;
 use Omnibridge\Symfony\Omnibase\DependencyInjection\Dumper\HtmlDumper;
+use Omnibridge\Symfony\Omnibase\Routing\AdvancedRouter;
 use Base\Service\Locator;
 use Base\Traits\SingletonTrait;
 
@@ -439,10 +441,11 @@ class BaseBundle extends AbstractBaseBundle
                 AttributeReader::setInstance(null);
             }
         }
-        // The router's matcher and generator are omnibase's once AdvancedRouter is made (it hands them to Symfony's
-        // router): made here, as the reader made it until now.
+        // The router's matcher and generator are omnibase's from the container's compilation (AdvancedRouterPass sets
+        // Symfony's router's matcher_class and generator_class): they make omnibase's router from this container when
+        // they first need it, which is no longer made here for a command or a request that routes nothing.
         if ($this->container->has('advanced_router')) {
-            $this->container->get('advanced_router');
+            AdvancedRouter::setContainer($this->container);
         }
 
         if (class_exists(\Symfony\Component\VarDumper\VarDumper::class)) {
@@ -500,8 +503,15 @@ class BaseBundle extends AbstractBaseBundle
             // DateTimeTypeUTC, array its ArrayType (backward compatibility, see doctrine:array:upgrade),
             // the UTC types, every enumeration of the core's src/Enum and of the application's.
             // Where Doctrine is there (plan "omnibase agnostic", step B3): omnibridge/eloquent casts the same types itself.
+            // The enumerations of both folders were found when the container was compiled (EnumerationsPass): the
+            // boot registers that list, it no longer reads the folders and loads each of their classes.
             if (class_exists(Types::class) && $this->container->has('doctrine.orm.entity_manager')) {
-                Types::register([], [Types::coreEnumerationDirectory(), $this->getProjectDir() . "/src/Enum"]);
+                if ($this->container->hasParameter(EnumerationsPass::PARAMETER)) {
+                    Types::register();
+                    Types::registerEnumerations($this->container->getParameter(EnumerationsPass::PARAMETER));
+                } else {
+                    Types::register([], EnumerationsPass::directories($this->getProjectDir()));
+                }
                 Configuration::enableFilters($this->container->get('doctrine.orm.entity_manager'), $this->getEnvironment());
             }
         }
@@ -529,6 +539,9 @@ class BaseBundle extends AbstractBaseBundle
         // database connection open per kernel otherwise (MySQL's "Too many connections").
         if ($this->container?->initialized('omnibridge.eloquent.connection')) {
             $this->container->get('omnibridge.eloquent.connection')->disconnect();
+        }
+        if ($this->container) {
+            AdvancedRouter::forgetContainer($this->container);
         }
 
         parent::shutdown();

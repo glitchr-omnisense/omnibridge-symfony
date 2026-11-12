@@ -4,6 +4,7 @@ namespace Omnibridge\Symfony\Omnibase\Routing\Generator;
 
 use Base\Service\Localizer;
 use Exception;
+use Omnibridge\Symfony\Omnibase\Routing\AdvancedRouter;
 use Psr\Log\LoggerInterface;
 
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
@@ -14,8 +15,22 @@ class AdvancedUrlGenerator extends CompiledUrlGenerator
 {
     public static $router = null;
 
+    /**
+     * omnibase's router, made when a generator first needs it (AdvancedRouter::current()): the router's options name
+     * this class from the container's compilation (AdvancedRouterPass), the kernel's boot no longer makes the router
+     * for that. None where no kernel handed its container and none was set: the generator is then Symfony's, as it
+     * was before the router was made and named this class.
+     */
+    private static function router(): mixed
+    {
+        // Not loaded: no container was handed (setContainer() loads it), and loading it needs omnisense/omnibase.
+        return self::$router ??= class_exists(AdvancedRouter::class, false) ? AdvancedRouter::current() : null;
+    }
+
     protected array $cachedRoutes = [];
     protected array $compiledRoutes;
+    /** Made with omnibase's router: else Symfony's generator, whatever router comes later. */
+    private bool $advanced = true;
 
     public function getCompiledRoutes(): array
     {
@@ -25,18 +40,25 @@ class AdvancedUrlGenerator extends CompiledUrlGenerator
     public function __construct(array $compiledRoutes, RequestContext $context, ?LoggerInterface $logger = null, ?string $defaultLocale = null)
     {
         $this->context = $context;
+        $this->advanced = null !== self::router();
+        if (!$this->advanced) {
+            parent::__construct($compiledRoutes, $context, $logger, $defaultLocale);
+            $this->compiledRoutes = $compiledRoutes;
+
+            return;
+        }
 
         //
         // NB: Static routes using multiple host, or domains might be screened.. imo
         $reservedChars = ["{", "}", "(", ")", "/", "\\", "@", ":"];
         $replacementChars = array_pad([], count($reservedChars), "_");
-        $cacheKey = str_replace($reservedChars, $replacementChars, self::$router->getCacheName() . ".compiled_routes[" . self::$router->getLocale() . "][" . self::$router->getHost() . "]");
-        $compiledRoutes = self::$router->getCache()->get($cacheKey, function () use ($compiledRoutes) {
+        $cacheKey = str_replace($reservedChars, $replacementChars, self::router()->getCacheName() . ".compiled_routes[" . self::router()->getLocale() . "][" . self::router()->getHost() . "]");
+        $compiledRoutes = self::router()->getCache()->get($cacheKey, function () use ($compiledRoutes) {
             foreach ($compiledRoutes as &$compiledRoute) {
-                $machine = self::$router->getMachine() ?? null;
-                $subdomain = self::$router->getSubdomain() ?? null;
-                $domain = self::$router->getDomain() ?? null;
-                $port = self::$router->getPort() ?? null;
+                $machine = self::router()->getMachine() ?? null;
+                $subdomain = self::router()->getSubdomain() ?? null;
+                $domain = self::router()->getDomain() ?? null;
+                $port = self::router()->getPort() ?? null;
 
                 $search = ["\\{_machine\\}.", "\\{_subdomain\\}.", "\\{_domain\\}", ":\\{_port\\}"];
                 $replace = [$machine ? $machine . "." : "", $subdomain ? $subdomain . "." : "", $domain, $port == 80 || $port == 443 || !$port ? "" : ":" . $port];
@@ -57,7 +79,7 @@ class AdvancedUrlGenerator extends CompiledUrlGenerator
     protected function resolveCandidates(string $routeName, array $routeParameters = [], int $referenceType = self::ABSOLUTE_PATH, ?string $locale = null): array
     {
         $routeCandidates = [];
-        $locale ??= $routeParameters["_locale"] ?? self::$router->getLocalizer()->getLocaleLang();
+        $locale ??= $routeParameters["_locale"] ?? self::router()->getLocalizer()->getLocaleLang();
     
         if (!str_ends_with($routeName, "." . $locale)) {
             $localizedAppRouteName = $routeName . "." . $locale;
@@ -65,7 +87,7 @@ class AdvancedUrlGenerator extends CompiledUrlGenerator
         }
     
         $routeCandidates[] = $routeName;
-        $routeGroups = self::$router->getRouteGroups($routeName);
+        $routeGroups = self::router()->getRouteGroups($routeName);
 
         // No group for a route the router does not know: its own name (str_ends_with() and substr() were given null, deprecated since PHP 8.1, before RouteNotFoundException).
         $routeDefaultName = first($routeGroups) ?? $routeName;
@@ -98,7 +120,7 @@ class AdvancedUrlGenerator extends CompiledUrlGenerator
         // default locale's, whatever the visitor's language.)
         $routes = [];
         foreach (array_unique(array_merge($routeCandidates, $routeGroups)) as $candidate) {
-            if ($candidate && !array_key_exists($candidate, $routes) && ($route = self::$router->getRoute($candidate))) {
+            if ($candidate && !array_key_exists($candidate, $routes) && ($route = self::router()->getRoute($candidate))) {
                 $routes[$candidate] = $route;
             }
         }
@@ -110,7 +132,7 @@ class AdvancedUrlGenerator extends CompiledUrlGenerator
     {
         if ($routeParameters === null) {
 
-            $parse = parse_url2(get_url(), -1, self::$router->getBaseDir()); // Make sure also it gets the basic context
+            $parse = parse_url2(get_url(), -1, self::router()->getBaseDir()); // Make sure also it gets the basic context
 
         } else {
 
@@ -163,17 +185,21 @@ class AdvancedUrlGenerator extends CompiledUrlGenerator
 
     public function generate(string $routeName, array $routeParameters = [], int $referenceType = self::ABSOLUTE_PATH): string
     {
+        if (!$this->advanced) {
+            return parent::generate($routeName, $routeParameters, $referenceType);
+        }
+
         $referenceType = array_key_exists("_host", $routeParameters) && $routeParameters["_host"] !== null ? self::ABSOLUTE_URL : $referenceType;
 
         //
         // Prevent to generate custom route with Symfony internal route.
         // NB: It breaks and gets infinite loop due to "_profiler*" route, if not set..
-        if (str_starts_with($routeName, "_") || !self::$router->useAdvancedFeatures()) {
+        if (str_starts_with($routeName, "_") || !self::router()->useAdvancedFeatures()) {
             $routeParameters = $this->resolveParameters($routeParameters);
             $routeUrl = parent::generate($routeName, $routeParameters, $referenceType);
             $routeUrl = str_replace(
                 ["http://", "https://"], // Ignore forced scheme from Symfony internal route generation
-                [self::$router->getScheme() . "://", self::$router->getScheme() . "://"], $routeUrl
+                [self::router()->getScheme() . "://", self::router()->getScheme() . "://"], $routeUrl
             );
 
             return $routeUrl;
@@ -182,7 +208,7 @@ class AdvancedUrlGenerator extends CompiledUrlGenerator
         //
         // Extract locale from route name if found ("app_x.en": English, whatever the visitor's)
         $locale = null;
-        foreach (self::$router->getLocalizer()->getAvailableLocaleLangs() as $lang) {
+        foreach (self::router()->getLocalizer()->getAvailableLocaleLangs() as $lang) {
             if (str_ends_with($routeName, "." . $lang)) {
                 $routeName = str_rstrip($routeName, "." . $lang);
                 $locale = $lang;
@@ -190,11 +216,11 @@ class AdvancedUrlGenerator extends CompiledUrlGenerator
         }
 
         // Update context, transforms requested route by adding parameters
-        if (($route = self::$router->getRoute($routeName))) {
+        if (($route = self::router()->getRoute($routeName))) {
             
             $isHttpsEnv = strtobool($_ENV["HTTPS"] ?? "off");
             
-            $host = $route->getHost() ? $route->getHost() : self::$router->getHost();
+            $host = $route->getHost() ? $route->getHost() : self::router()->getHost();
             // The router's host may come with its scheme ("https://localhost"): cut at the first
             // colon, it left "https" as the host - url() answered https://https/... wherever no
             // request gives the host again (a test, a command, a worker).
@@ -202,8 +228,8 @@ class AdvancedUrlGenerator extends CompiledUrlGenerator
             $host = explode(":", $host)[0]; // Force removing port from host..
             $this->getContext()->setHost($host);
 
-            $scheme = self::$router->getScheme() ?? $this->getContext()->getScheme();
-            $port = self::$router->getPort() ?? $this->getContext()->getHttpPort();
+            $scheme = self::router()->getScheme() ?? $this->getContext()->getScheme();
+            $port = self::router()->getPort() ?? $this->getContext()->getHttpPort();
             // A route with a host of its own is written whole. A visitor on http
             // where the site sets HTTPS no longer forces it: getScheme() is the
             // request's now, and the address would carry the request's own
@@ -265,11 +291,11 @@ class AdvancedUrlGenerator extends CompiledUrlGenerator
         $routeParameters = $this->resolveParameters($routeParameters);
 
         // Check whether the route is already cached
-        $hash = self::$router->getRouteHash($routeName, $routeParameters, $referenceType);
+        $hash = self::router()->getRouteHash($routeName, $routeParameters, $referenceType);
         if (array_key_exists($hash, $this->cachedRoutes) && $this->cachedRoutes[$hash]["_name"] !== null) {
             $cachedRoute = $this->cachedRoutes[$hash];
 
-            $locale ??= array_key_exists("_locale", $routeParameters) ? self::$router->getLocalizer()->getLocaleLang($routeParameters["_locale"]) : self::$router->getLocalizer()->getLocaleLang();
+            $locale ??= array_key_exists("_locale", $routeParameters) ? self::router()->getLocalizer()->getLocaleLang($routeParameters["_locale"]) : self::router()->getLocalizer()->getLocaleLang();
             try {
                 return self::withoutEmptySegments(parent::generate($cachedRoute["_name"] . ($locale ? "." . $locale : ""), $routeParameters, $referenceType), $referenceType);
             } catch (Exception $_) {
@@ -295,7 +321,7 @@ class AdvancedUrlGenerator extends CompiledUrlGenerator
             }
 
             // Cached without its locale: the cached path appends the visitor's.
-            $lang = $locale ?? (array_key_exists("_locale", $routeParameters) ? self::$router->getLocalizer()->getLocaleLang($routeParameters["_locale"]) : self::$router->getLocalizer()->getLocaleLang());
+            $lang = $locale ?? (array_key_exists("_locale", $routeParameters) ? self::router()->getLocalizer()->getLocaleLang($routeParameters["_locale"]) : self::router()->getLocalizer()->getLocaleLang());
             $this->cachedRoutes[$hash] = [
                 "_name" => $lang && str_ends_with($routeName, "." . $lang) ? substr($routeName, 0, -strlen("." . $lang)) : $routeName,
                 "_requirements" => $routeRequirements
