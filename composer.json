@@ -49,7 +49,7 @@
         "omnimap/google": "^1.0@dev",
         "omnimap/maplibre": "^1.0@dev",
         "omnimap/openstreetmap": "^1.0@dev",
-        "omnisense/contracts": "^1.0@dev",
+        "omnisense/contracts": "^1.0",
         "omnisense/omniauth": "1.x-dev",
         "omnisense/omnidrive": "^1.0@dev",
         "omnisense/omnimap": "^1.0@dev",
@@ -101,7 +101,6 @@
     "config": {
         "sort-packages": true
     },
-    "minimum-stability": "dev",
     "prefer-stable": true,
     "scripts": {
         "test": "phpunit"

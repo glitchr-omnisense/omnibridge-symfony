@@ -19,9 +19,12 @@ use Symfony\Component\Routing\RouterInterface;
  * command line, handed what this host offers the site's file - a renderer
  * through this kernel's own request handling (each page a visitor's GET, at
  * --render-origin, by default the router's default URI), the router's routes,
- * the container, the public folder.
+ * the container, the public folder. --cache, --only and --full are the command
+ * line's: the renderer's answers kept between builds, a targeted rebuild, a
+ * full one (omnibridge/static's docs/incremental.md).
  *
  *     bin/console omnibridge:static:build static.php --out=var/static [--verify] [--strict]
+ *                                         [--cache=var/static-cache] [--only=/news/*,/] [--full]
  *
  * Registered by config/services.php only where omnibridge/static is installed.
  */
@@ -39,11 +42,14 @@ final class BuildCommand extends Command
     {
         $this
             ->addArgument('site', InputArgument::OPTIONAL, 'The file that declares the site (it returns an Omnibridge\Static\Site, or a closure that takes the host\'s offer)', 'static.php')
-            ->addOption('out', null, InputOption::VALUE_REQUIRED, 'The folder to export to (emptied first if it holds an earlier export)', 'var/static')
+            ->addOption('out', null, InputOption::VALUE_REQUIRED, 'The folder to export to (empty, or an earlier export: only the files that changed are written, those no longer exported removed)', 'var/static')
             ->addOption('render-origin', null, InputOption::VALUE_REQUIRED, 'The origin the pages are rendered at (the router\'s default URI if not given)')
             ->addOption('verify', null, InputOption::VALUE_NONE, 'Render every page twice; a page that differs is an error')
             ->addOption('strict', null, InputOption::VALUE_NONE, 'A warning fails the build too')
-            ->addOption('quiet-progress', null, InputOption::VALUE_NONE, 'Errors and counts only');
+            ->addOption('quiet-progress', null, InputOption::VALUE_NONE, 'Errors and counts only')
+            ->addOption('cache', null, InputOption::VALUE_REQUIRED, 'A folder that keeps the renderer\'s answers between builds: a page whose declared inputs did not change is not rendered again')
+            ->addOption('only', null, InputOption::VALUE_REQUIRED, 'Comma-separated path patterns rendered whatever the cache holds (a targeted rebuild): /news/*,/')
+            ->addOption('full', null, InputOption::VALUE_NONE, 'Render everything and rewrite every file, the cache aside');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -68,6 +74,9 @@ final class BuildCommand extends Command
             'verify' => $input->getOption('verify') ?: null,
             'strict' => $input->getOption('strict') ?: null,
             'quiet' => $input->getOption('quiet-progress') ?: null,
+            'cache' => $input->getOption('cache'),
+            'only' => $input->getOption('only'),
+            'full' => $input->getOption('full') ?: null,
         ], static fn (mixed $value) => null !== $value);
         $site = $input->getArgument('site');
         $site = \is_string($site) ? $site : 'static.php';

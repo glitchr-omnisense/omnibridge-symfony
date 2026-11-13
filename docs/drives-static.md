@@ -54,17 +54,20 @@ Where [omnibridge/static](https://github.com/glitchr-omnisense/omnibridge-static
 line (`Console\Cli`), handed what this host offers the site's file.
 
 ```sh
-bin/console omnibridge:static:build static.php --out=var/static [--verify] [--strict]
+bin/console omnibridge:static:build static.php --out=var/static [--verify] [--strict] [--cache=var/static-cache] [--only=/news/*,/] [--full]
 ```
 
 | Argument or option | Default | Effect |
 |---|---|---|
 | `site` | `static.php` | the file that declares the site (it returns an `Omnibridge\Static\Site`, or a closure that takes the host's offer); relative to the project directory unless absolute |
-| `--out` | `var/static` | the folder to export to (emptied first if it holds an earlier export) |
+| `--out` | `var/static` | the folder to export to: empty, or an earlier export (only the files that changed are written, those no longer exported removed) |
 | `--render-origin` | the router's default URI | the origin the pages are rendered at: the request context's scheme and host, its port unless 80 or 443 |
 | `--verify` | off | render every page twice; a page that differs is an error |
 | `--strict` | off | a warning fails the build too |
 | `--quiet-progress` | off | errors and counts only |
+| `--cache` | none | a folder that keeps the renderer's answers between builds (`Site::cache()`): a page whose declared inputs (`Site::dependsOn()`, the site's file among them) did not change is not rendered again; an empty value is invalid |
+| `--only` | none | comma-separated path patterns rendered whatever the cache holds, a targeted rebuild (`/news/*,/`) |
+| `--full` | off | render everything and rewrite every file, the cache aside |
 
 What the command hands `Cli::build()` as the host's offer:
 

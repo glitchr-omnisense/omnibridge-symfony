@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-13
+
+### Added: `omnibridge:static:build --cache`, `--only` and `--full`
+- `Static\BuildCommand` hands omnibridge/static's command line its incremental export options. `--cache=<folder>`
+  keeps the renderer's answers between builds (`Site::cache()`), so a page whose declared inputs did not change
+  (`Site::dependsOn()`, the site's file among them) is not rendered again. `--only=<pattern>,...` renders the
+  addresses it names whatever the cache holds (a targeted rebuild). `--full` renders everything and rewrites every
+  file. An empty `--cache` is invalid (`INVALID`, the command line's message). `--out` takes an empty folder or an
+  earlier export; only the files that changed are written there. An omnibridge/static from before its incremental
+  exports ignores the three options.
+- Tests: `Static\BuildCommandTest` runs the console command on a site file whose pages declare their content files.
+  A second build reuses both pages, a changed file renders its page alone, `--only` renders the address it names,
+  `--full` renders both, a build without `--cache` reuses nothing, and the offer the site's file receives is this
+  host's.
+
+### Changed: composer.json resolves without `minimum-stability: dev`
+- The package's own `minimum-stability: dev` is gone. Each development requirement without a stable release says
+  its stability itself (`1.x-dev`, `@dev`), and `omnisense/contracts` is required at `^1.0` for `Policy\RateLimiter`'s
+  tests. `require` was stable already: a stable project installs this package with `omnisense/omnibridge` and
+  `omnibridge/twig` 1.0.
+
 ### Fixed: a container compiled before the lazy reader and router boots as before
 - With debug off a compiled container is never rebuilt, and `cache:clear` boots the one in place first: new code over
   a `var/cache/prod` compiled by 3144602 (and omnisense/omnibase 9b33abb) lacked `base.attributes.names` and the

@@ -267,7 +267,12 @@ default URI), the router's routes, the container and `public/`.
 
 ```sh
 bin/console omnibridge:static:build static.php --out=var/static [--verify] [--strict]
+bin/console omnibridge:static:build static.php --cache=var/static-cache [--only=/news/*] [--full]
 ```
+
+`--cache`, `--only` and `--full` are omnibridge/static's incremental exports:
+the renderer's answers kept between builds for the pages whose declared inputs
+did not change, a targeted rebuild, a full one.
 
 Run on lesringostars (2026-10-24, the working copy loaded by hand, neither
 package installed there yet): the same report as the plain command line, but
