@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-11-13
+
+### Changed
+- The help text of `base.local_business.extra` gives a neutral example organisation.
+
 ## [1.1.0] - 2026-11-13
 
 ### Added: `omnibridge:static:build --cache`, `--only` and `--full`

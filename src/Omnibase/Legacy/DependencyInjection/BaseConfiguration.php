@@ -792,7 +792,7 @@ class BaseConfiguration extends AbstractBaseConfiguration
                     ->end()
                     ->arrayNode('same_as')->scalarPrototype()->end()->defaultValue([])->info('The business elsewhere: its Facebook, Instagram, LinkedIn pages.')->end()
                     ->arrayNode('area_served')->scalarPrototype()->end()->defaultValue([])->end()
-                    ->variableNode('extra')->defaultValue([])->info('Any other schema.org property, merged as it is: {parentOrganization: {"@type": Organization, name: PANO}}.')->end()
+                    ->variableNode('extra')->defaultValue([])->info('Any other schema.org property, merged as it is: {parentOrganization: {"@type": Organization, name: Exemple Groupe}}.')->end()
                 ->end()
             ->end()
 
