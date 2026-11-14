@@ -30,6 +30,9 @@ omnisense/omnibase < 6.0; the core 6.0 conflicts with this package < 2.0). The c
 - Every former name in config/, src/, tests/ and docs/ written with its new name. composer.json: branch alias
   `dev-2.x` → `2.x-dev`.
 
+- `ThreadSearchController` gives the search page each thread's section (`sections`, the core 6.0's
+  `ThreadSearch::sections()`): the template asked the entity for its repository through BaseTrait, gone at 6.0.
+
 ### Kept
 - `Legacy\` (the parents of the commands, subscribers and voters) and `Console\Command`'s protected `$entityManager`.
 

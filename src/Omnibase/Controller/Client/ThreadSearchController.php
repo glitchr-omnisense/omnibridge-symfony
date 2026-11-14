@@ -37,9 +37,10 @@ class ThreadSearchController extends AbstractController
                 "form_data" => $formProcessor->getForm()->getData(),
             ]))
             ->onDefault(function (FormProcessorInterface $formProcessor) {
-                [$model, $threads] = ($this->search ?? throw new \LogicException('No Base\\Thread\\ThreadSearch given.'))->find($formProcessor->getData());
+                $search = $this->search ?? throw new \LogicException('No Base\\Thread\\ThreadSearch given.');
+                [$model, $threads] = $search->find($formProcessor->getData());
 
-                return $this->render(ThreadSearch::TEMPLATE, ["form" => $formProcessor->getForm()->createView(), "model" => $model, "threads" => $threads]);
+                return $this->render(ThreadSearch::TEMPLATE, ["form" => $formProcessor->getForm()->createView(), "model" => $model, "threads" => $threads, "sections" => $search->sections($threads)]);
             })
             ->handleRequest($request)
             ->getResponse();
