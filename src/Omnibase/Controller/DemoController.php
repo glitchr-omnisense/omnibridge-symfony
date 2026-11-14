@@ -6,7 +6,7 @@ use Base\Auth\Account\Outcome;
 use Base\Demo\DemoMode;
 use Base\Demo\DemoSignIn;
 use Base\Repository\Users;
-use Base\Security\LoginFormAuthenticator;
+use Omnibridge\Symfony\Omnibase\Security\LoginFormAuthenticator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

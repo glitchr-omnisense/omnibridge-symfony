@@ -13,10 +13,9 @@ use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 
 /**
- * The settings form (omnibase/admin's /admin/settings) under either name of a moved form type: a
- * setting declared with Base\Field\Type\ImageType or Base\Field\Type\DateTimePickerType (the former
- * names, aliases until omnisense/omnibase 6.0) gets the upload options and the date conversion its
- * new name gets, and the same data once submitted. And a date setting the bag already holds as a date
+ * The settings form (omnibase/admin's /admin/settings): a setting declared with ImageType or FileType gets the upload
+ * options, one with DateTimePickerType the date conversion, and a plain Save submits the stored data (1.x proved the
+ * same under the former names, Base\Field\Type\X, which omnisense/omnibase 6.0 no longer declares). And a date setting the bag already holds as a date
  * (a form built before in the same request) stays that date.
  *
  * Needs the core and a host kernel: run in the omnibase harness, where omnibridge/symfony is the
@@ -40,14 +39,14 @@ class LayoutSettingListTypeTest extends KernelTestCase
     /** @return iterable<string, array{string, string}> */
     public static function names(): iterable
     {
-        yield 'image' => ['Base\\Field\\Type\\ImageType', ImageType::class];
-        yield 'file' => ['Base\\Field\\Type\\FileType', FileType::class];
-        yield 'date time picker' => ['Base\\Field\\Type\\DateTimePickerType', DateTimePickerType::class];
+        yield 'image' => ['\\Omnibridge\\Symfony\\Omnibase\\Field\\Type\\ImageType', ImageType::class];
+        yield 'file' => ['\\Omnibridge\\Symfony\\Omnibase\\Field\\Type\\FileType', FileType::class];
+        yield 'date time picker' => ['\\Omnibridge\\Symfony\\Omnibase\\Field\\Type\\DateTimePickerType', DateTimePickerType::class];
     }
 
     /** @dataProvider names */
     #[\PHPUnit\Framework\Attributes\DataProvider('names')]
-    public function testFormerAndNewNamesAreTheSameType(string $former, string $new): void
+    public function testANameWithOrWithoutItsLeadingBackslash(string $former, string $new): void
     {
         $this->assertTrue(FormTypes::same($former, $new));
         $this->assertTrue(FormTypes::same($new, $former));
@@ -55,64 +54,53 @@ class LayoutSettingListTypeTest extends KernelTestCase
         $this->assertTrue(FormTypes::in($former, [TextType::class, $new]));
         $this->assertFalse(FormTypes::same($former, TextType::class));
         $this->assertFalse(FormTypes::same(null, $new));
-        $this->assertSame($new, FormTypes::declared($former));
+        $this->assertSame($new, FormTypes::declared($former), 'without its leading backslash');
         $this->assertSame(TextType::class, FormTypes::declared(TextType::class));
     }
 
-    public function testAnUploadSettingHasTheSameOptionsUnderEitherName(): void
+    public function testAnUploadSettingGetsItsOptions(): void
     {
-        foreach (['Base\\Field\\Type\\ImageType' => ImageType::class, 'Base\\Field\\Type\\FileType' => FileType::class] as $former => $new) {
-            $options = [];
-            foreach ([$former, $new] as $type) {
-                $this->store();
-                $value = $this->value($this->form($type, DateTimePickerType::class), self::IMAGE);
-                $this->assertSame($new, \get_class($value->getConfig()->getType()->getInnerType()));
-                $options[$type] = array_intersect_key($value->getConfig()->getOptions(), array_flip(['max_size', 'mime_types', 'empty_data']));
-            }
+        foreach ([ImageType::class, FileType::class] as $type) {
+            $this->store();
+            $value = $this->value($this->form($type, DateTimePickerType::class), self::IMAGE);
+            $this->assertSame($type, \get_class($value->getConfig()->getType()->getInnerType()));
+            $options = array_intersect_key($value->getConfig()->getOptions(), array_flip(['max_size', 'mime_types', 'empty_data']));
 
-            $this->assertNotNull($options[$new]['max_size'], 'the new name gets the upload options');
-            $this->assertSame('logo.png', $options[$new]['empty_data'], 'its own stored value, what a plain Save binds');
-            $this->assertSame($options[$new], $options[$former], $former.' gets the options '.$new.' gets');
+            $this->assertNotNull($options['max_size'], $type.' gets the upload options');
+            $this->assertSame('logo.png', $options['empty_data'], 'its own stored value, what a plain Save binds');
         }
     }
 
-    public function testADateSettingIsConvertedUnderEitherName(): void
+    public function testADateSettingIsConverted(): void
     {
-        foreach (['Base\\Field\\Type\\DateTimePickerType', DateTimePickerType::class] as $type) {
-            $this->store();
-            $date = $this->value($this->form(ImageType::class, $type), self::DATE)->getData();
+        $this->store();
+        $date = $this->value($this->form(ImageType::class, DateTimePickerType::class), self::DATE)->getData();
 
-            $this->assertInstanceOf(\DateTimeInterface::class, $date, $type);
-            $this->assertSame(self::STORED_DATE, $date->format('Y-m-d H:i:s'), $type);
-        }
+        $this->assertInstanceOf(\DateTimeInterface::class, $date);
+        $this->assertSame(self::STORED_DATE, $date->format('Y-m-d H:i:s'));
     }
 
-    public function testAPlainSaveSubmitsTheSameDataUnderEitherName(): void
+    public function testAPlainSaveSubmitsTheStoredData(): void
     {
-        $submitted = [];
-        foreach ([['Base\\Field\\Type\\ImageType', 'Base\\Field\\Type\\DateTimePickerType'], [ImageType::class, DateTimePickerType::class]] as [$image, $date]) {
-            $this->store();
-            $form = $this->form($image, $date);
-            $form->submit($this->displayed($form->createView()));
-            $this->assertTrue($form->isSubmitted());
+        $this->store();
+        $form = $this->form(ImageType::class, DateTimePickerType::class);
+        $form->submit($this->displayed($form->createView()));
+        $this->assertTrue($form->isSubmitted());
 
-            $data = [];
-            foreach ($form->getData() as $path => $setting) {
-                $value = $setting->translate($this->locale())->getValue();
-                $data[$path] = $value instanceof \DateTimeInterface ? $value->format('Y-m-d H:i:s') : $value;
-            }
-            ksort($data);
-            $submitted[$image] = $data;
+        $data = [];
+        foreach ($form->getData() as $path => $setting) {
+            $value = $setting->translate($this->locale())->getValue();
+            $data[$path] = $value instanceof \DateTimeInterface ? $value->format('Y-m-d H:i:s') : $value;
         }
+        ksort($data);
 
-        $this->assertSame([self::DATE, self::IMAGE], array_keys($submitted[ImageType::class]));
-        $this->assertSame(self::STORED_DATE, $submitted[ImageType::class][self::DATE]);
-        $this->assertSame($submitted[ImageType::class], $submitted['Base\\Field\\Type\\ImageType']);
+        $this->assertSame([self::DATE, self::IMAGE], array_keys($data));
+        $this->assertSame(self::STORED_DATE, $data[self::DATE]);
     }
 
     public function testADateTheBagAlreadyHoldsAsADateIsKept(): void
     {
-        foreach (['Base\\Field\\Type\\DateTimePickerType', DateTimePickerType::class] as $type) {
+        foreach ([DateTimePickerType::class] as $type) {
             $this->store();
             // The first form converts the stored string on the SettingIntl the bag holds; the second
             // reads that same SettingIntl, a DateTime now (two forms of one request, a page and its

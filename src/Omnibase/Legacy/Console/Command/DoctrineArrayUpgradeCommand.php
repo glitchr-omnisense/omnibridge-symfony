@@ -32,7 +32,7 @@ class DoctrineArrayUpgradeCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         // The columns as MySQL has them, comments included: the schema manager leaves the "(DC2Type:...)"
-        // comments of before out of a column (Base\Bridge\Doctrine\MySQLSchemaManager, doctrine/dbal as
+        // comments of before out of a column (Omnibridge\Doctrine\Omnibase\MySQLSchemaManager, doctrine/dbal as
         // published since 4.0), and those are what says a LONGTEXT column held DBAL 3's serialized arrays.
         $columns = $this->getEntityManager()->getConnection()->fetchAllAssociative(
             'SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, COLUMN_COMMENT FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() ORDER BY TABLE_NAME, ORDINAL_POSITION'

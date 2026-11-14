@@ -40,8 +40,6 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     if (class_exists(\Omnibridge\Twig\TwigViews::class)) {
         $services->set('Omnibridge\Twig\TwigViews')->args([service_closure('twig')]);
         $services->alias('Omnibridge\Contract\Views', 'Omnibridge\Twig\TwigViews')->public();
-        // A constructor that still accepts Twig's environment, deprecated (until 6.0), beside Views.
-        $services->alias('Omnibridge\Contract\Views|Twig\Environment', 'Omnibridge\Contract\Views');
     }
 
     // An asset's path as the page links it (Base\View\AssetPaths): omnibase's environment, which decorates `twig`,
@@ -62,7 +60,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // The Symfony host's classes of the Twig layer, which leave for omnibridge/symfony at F5c: the
     // kernel subscriber that adds the renderers' tags to a page, the warmer of the Webpack
     // renderer's entry points, the form extension that loads a field's entry.
-    $services->set('Base\Subscriber\TwigSubscriber')
+    $services->set('Omnibridge\Symfony\Omnibase\Subscriber\TwigSubscriber')
         ->tag('kernel.event_subscriber')
         ->args([
             service('twig.html_renderer'),
@@ -72,7 +70,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
             service('advanced_router'),
         ]);
 
-    $services->set('Base\Cache\Warmer\WebpackCacheWarmer')->public()
+    $services->set('Omnibridge\Symfony\Omnibase\Cache\Warmer\WebpackCacheWarmer')->public()
         ->tag('kernel.cache_warmer')
         ->args([
             service('parameter_bag'),
@@ -82,7 +80,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ->bind('$cacheDir', '%kernel.cache_dir%')
         ->bind('$publicDir', '%kernel.project_dir%/public');
 
-    $services->set('Base\Form\Extension\FormTypeWebpackExtension')
+    $services->set('Omnibridge\Symfony\Omnibase\Form\Extension\FormTypeWebpackExtension')
         ->tag('form.type_extension')
         ->args([
             new Reference('form.proxy'),

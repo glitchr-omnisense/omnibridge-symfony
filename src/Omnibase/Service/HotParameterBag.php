@@ -10,11 +10,11 @@ use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface as SymfonyParameterBagInterface;
 
 /**
- * `parameter_bag` under Symfony: the container's parameters (Base\Service\ParameterBag)
+ * `parameter_bag` under Symfony: the container's parameters (Omnibridge\Symfony\Omnibase\Service\ParameterBag)
  * with the settings stored in the database laid over them - Base\Service\HotParameters,
  * the Foundation's overlay, as DependencyInjection's ParameterBagInterface and
  * ContainerBagInterface (plan "omnibase agnostique", C9). It decorates `parameter_bag`
- * over Base\Service\ParameterBag; `parameter_bag`, the autowiring of
+ * over Omnibridge\Symfony\Omnibase\Service\ParameterBag; `parameter_bag`, the autowiring of
  * Base\Service\ParameterBagInterface (and of DependencyInjection's two interfaces) and
  * Runtime::parameters() are this one object.
  *

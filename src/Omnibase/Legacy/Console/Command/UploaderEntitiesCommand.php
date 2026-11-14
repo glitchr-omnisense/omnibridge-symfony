@@ -5,7 +5,7 @@ namespace Omnibridge\Symfony\Omnibase\Legacy\Console\Command;
 use Base\Database\Repository\Repositories;
 use Base\Database\Attribute\Uploader;
 use Base\Attributes\AttributeReader;
-use Base\BaseBundle;
+use Omnibridge\Symfony\Omnibase\BaseBundle;
 use Omnidrive\Model\Entry;
 use Omnibridge\Symfony\Omnibase\Console\Command;
 

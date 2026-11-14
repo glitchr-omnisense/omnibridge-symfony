@@ -8,7 +8,7 @@ use Base\Entity\User as BaseUser;
 
 use Base\Entity\User\Notification;
 use Omnibridge\Symfony\Omnibase\Security\RescueFormAuthenticator;
-use Base\BaseBundle;
+use Omnibridge\Symfony\Omnibase\BaseBundle;
 use Omnibridge\Symfony\Omnibase\Console\Command;
 use Omnibridge\Symfony\Omnibase\Console\Command\CacheClearCommand;
 use Omnibridge\Symfony\Omnibase\Routing\AdvancedRouterInterface;

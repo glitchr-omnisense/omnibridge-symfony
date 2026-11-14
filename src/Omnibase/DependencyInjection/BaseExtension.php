@@ -45,10 +45,8 @@ class BaseExtension extends AbstractBaseExtension implements PrependExtensionInt
         $loader->load('services-decoration.php');
 
         // The container loads its services' classes through the autoloader, also with debug, where Symfony would
-        // write include_once of their files (inline_class_loader): a class moved to omnibridge/doctrine (plan
-        // "omnibase agnostic", step F3) loaded by its file was never aliased by its former name, which the core's
-        // autoloader declares when the class is loaded (src/Resources/former-names.php) - and PHP checks a type or
-        // an instanceof written with the former name without autoloading it, so they failed on that class.
+        // write include_once of their files (inline_class_loader). 1.x needed it for the core's former names (the
+        // core 5.x aliased a moved class when the autoloader loaded it); kept: the App\ aliases are declared the same way.
         $container->setParameter('.container.dumper.inline_class_loader', false);
 
         // Configuration file: ./config/package/base.yaml

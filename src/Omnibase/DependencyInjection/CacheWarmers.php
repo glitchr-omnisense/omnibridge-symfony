@@ -15,15 +15,15 @@ final class CacheWarmers
     public static function declarations(): array
     {
         $warmers = class_exists(\PhpOffice\PhpSpreadsheet\Settings::class)
-            ? ['Base\Cache\Warmer\SpreadsheetCacheWarmer' => ['$cacheDir' => '%kernel.cache_dir%']]
+            ? ['Omnibridge\Symfony\Omnibase\Cache\Warmer\SpreadsheetCacheWarmer' => ['$cacheDir' => '%kernel.cache_dir%']]
             : [];
 
         return $warmers + [
-            'Base\Cache\Warmer\IconCacheWarmer' => ['base.service.icon', '$cacheDir' => '%kernel.cache_dir%'],
-            'Base\Cache\Warmer\LocalizerCacheWarmer' => ['localizer', '$cacheDir' => '%kernel.cache_dir%'],
-            'Base\Cache\Warmer\ThemizerCacheWarmer' => ['themizer', '$cacheDir' => '%kernel.cache_dir%'],
-            'Base\Cache\Warmer\AttributeCacheWarmer' => ['base.attribute_reader', '$cacheDir' => '%kernel.cache_dir%'],
-            'Base\Cache\Warmer\MetadataCacheWarmer' => ['base.database.metadata_manipulator', 'base.attribute_reader', '$cacheDir' => '%kernel.cache_dir%'],
+            'Omnibridge\Symfony\Omnibase\Cache\Warmer\IconCacheWarmer' => ['base.service.icon', '$cacheDir' => '%kernel.cache_dir%'],
+            'Omnibridge\Symfony\Omnibase\Cache\Warmer\LocalizerCacheWarmer' => ['localizer', '$cacheDir' => '%kernel.cache_dir%'],
+            'Omnibridge\Symfony\Omnibase\Cache\Warmer\ThemizerCacheWarmer' => ['themizer', '$cacheDir' => '%kernel.cache_dir%'],
+            'Omnibridge\Symfony\Omnibase\Cache\Warmer\AttributeCacheWarmer' => ['base.attribute_reader', '$cacheDir' => '%kernel.cache_dir%'],
+            'Omnibridge\Symfony\Omnibase\Cache\Warmer\MetadataCacheWarmer' => ['base.database.metadata_manipulator', 'base.attribute_reader', '$cacheDir' => '%kernel.cache_dir%'],
         ];
     }
 }

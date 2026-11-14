@@ -2,7 +2,7 @@
 
 namespace Omnibridge\Symfony\Omnibase\Legacy\Console\Command;
 
-use Base\BaseBundle;
+use Omnibridge\Symfony\Omnibase\BaseBundle;
 use Omnibridge\Symfony\Omnibase\Console\Command;
 
 use ReflectionClass;
@@ -19,7 +19,7 @@ class BaseMappingCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $appList = BaseBundle::getInstance()->getAllClasses("./src", "App");
-        $baseLocation = \Base\BaseBundle::getBundleDir().'/src';
+        $baseLocation = \Omnibridge\Symfony\Omnibase\BaseBundle::getBundleDir().'/src';
         $baseList = array_merge(
             BaseBundle::getInstance()->getAllClasses($baseLocation . "/Enum", "Base"),
             BaseBundle::getInstance()->getAllClasses($baseLocation . "/Form", "Base"),

@@ -15,14 +15,14 @@ use Symfony\Component\DependencyInjection\Reference;
 /**
  * omnibase's Doctrine mapping on DoctrineBundle's entity managers, from the
  * same lists and the same driver an entity manager built by hand gets from
- * Base\Bridge\Doctrine\Mapping (plan "omnibase agnostique", C6):
+ * Omnibridge\Doctrine\Omnibase\Mapping (plan "omnibase agnostique", C6):
  *
  * - the filters, the DQL functions and the default hint of
- *   Base\Bridge\Doctrine\Configuration, on `doctrine.orm.configuration`;
+ *   Omnibridge\Doctrine\Omnibase\Configuration, on `doctrine.orm.configuration`;
  * - every entity manager's mapping driver wrapped in omnibridge/doctrine's
  *   DeclarationDriver (the metadata built from the classes' declarations,
  *   Omnibridge\Schema\Declaration: the structure described outside Doctrine,
- *   audit R14), then in Base\Bridge\Doctrine\MappingDriver (the discriminator
+ *   audit R14), then in Omnibridge\Doctrine\Omnibase\MappingDriver (the discriminator
  *   maps generated, the `resolveDiscriminator` event), given its entity
  *   manager lazily;
  * - DoctrineBundle's metadata cache warmer replaced by DoctrineMetadataCacheWarmer, which warms the metadata's PHP

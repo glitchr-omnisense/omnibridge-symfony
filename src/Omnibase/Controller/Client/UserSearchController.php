@@ -3,9 +3,9 @@
 namespace Omnibridge\Symfony\Omnibase\Controller\Client;
 
 use Base\Auth\Account\MemberSearch;
-use Base\Form\FormProxyInterface;
+use Omnibridge\Symfony\Omnibase\Form\FormProxyInterface;
 use Base\Form\Model\UserSearchModel;
-use Base\Form\Type\UserSearchType;
+use Omnibridge\Symfony\Omnibase\Form\Type\UserSearchType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;

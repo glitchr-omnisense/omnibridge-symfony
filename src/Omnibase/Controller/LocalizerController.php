@@ -4,7 +4,7 @@ namespace Omnibridge\Symfony\Omnibase\Controller;
 
 use Base\Request\LocaleSwitch;
 use Base\Request\TimezoneSwitch;
-use Base\Routing\AdvancedRouterInterface;
+use Omnibridge\Symfony\Omnibase\Routing\AdvancedRouterInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;

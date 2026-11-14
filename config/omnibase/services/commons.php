@@ -23,15 +23,15 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ->autoconfigure();
 
     // A TemplatedEmail's {% block subject %} becomes its subject.
-    $services->set('Base\Subscriber\TemplatedEmailSubjectSubscriber')
+    $services->set('Omnibridge\Symfony\Omnibase\Subscriber\TemplatedEmailSubjectSubscriber')
         ->args([service('twig')])
         ->tag('kernel.event_subscriber');
     // The second-level cache emptied after doctrine:fixtures:load and the like.
-    $services->set('Base\Subscriber\SecondLevelCacheConsoleSubscriber')
+    $services->set('Omnibridge\Symfony\Omnibase\Subscriber\SecondLevelCacheConsoleSubscriber')
         ->args([service('doctrine')->nullOnInvalid()])
         ->tag('kernel.event_subscriber');
     // The sign-in's captcha after a few failures from an address (base.guard.sign_in_after).
-    $services->set('Base\Security\SignInGuard')->public()
+    $services->set('Omnibridge\Symfony\Omnibase\Security\SignInGuard')->public()
         ->arg('$cache', service('cache.app')->nullOnInvalid())
         ->arg('$logger', service('logger')->nullOnInvalid());
 

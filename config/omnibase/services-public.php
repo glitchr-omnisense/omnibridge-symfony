@@ -11,21 +11,21 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ->public(true);
 
     // Session
-    $services->alias('session.storage.factory.dynamic', 'Base\Security\Session\DynamicSessionStorageFactory');
+    $services->alias('session.storage.factory.dynamic', 'Omnibridge\Symfony\Omnibase\Security\Session\DynamicSessionStorageFactory');
 
     // Console
-    $services->alias('console', 'Base\Console\Console');
+    $services->alias('console', 'Omnibridge\Symfony\Omnibase\Console\Console');
     $services->alias('Base\Console\ConsoleInterface', 'console');
 
     // Routing
-    $services->alias('advanced_router', 'Base\Routing\AdvancedRouter');
-    $services->alias('Base\Routing\AdvancedRouterInterface', 'advanced_router');
+    $services->alias('advanced_router', 'Omnibridge\Symfony\Omnibase\Routing\AdvancedRouter');
+    $services->alias('Omnibridge\Symfony\Omnibase\Routing\AdvancedRouterInterface', 'advanced_router');
 
     // The core's services' public aliases are its declaration's (Base\Services' contracts; plan "omnibase agnostic",
     // step F5e slice 4); these are this bridge's own services'.
 
     // ParameterBag
-    $services->alias('parameter_bag.hot', 'Base\Service\HotParameterBag');
+    $services->alias('parameter_bag.hot', 'Omnibridge\Symfony\Omnibase\Service\HotParameterBag');
     $services->alias('Base\Service\HotParameterBagInterface', 'parameter_bag.hot');
 
     // Database
@@ -40,16 +40,17 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     }
 
     // Form
-    $services->alias('form.proxy', 'Base\Form\FormProxy');
-    $services->alias('Base\Form\FormProxyInterface', 'form.proxy');
+    $services->alias('form.proxy', 'Omnibridge\Symfony\Omnibase\Form\FormProxy');
+    $services->alias('Omnibridge\Symfony\Omnibase\Form\FormProxyInterface', 'form.proxy');
 
     // Admin / Command
-    $services->alias('command.sessions.clear', 'Base\Console\Command\CacheClearSessionsCommand');
+    $services->alias('command.sessions.clear', 'Omnibridge\Symfony\Omnibase\Console\Command\CacheClearSessionsCommand');
 
     // The core's Symfony controllers, moved here with the bundle (plan "omnibase agnostic", step F6), are
-    // registered under their new names, which the routes' _controller carries; their former ids stay, as
-    // aliases, for a configuration that names one (framework.error_controller, a forward(), a Reference);
-    // DemoController's, registered in the demo environment only, beside it (services/demo.php).
+    // registered under their names, which the routes' _controller carries, and public, for a configuration
+    // that names one (framework.error_controller, a forward(), a Reference). 5.x kept their former ids
+    // (Base\Controller\X) as aliases; they are gone since omnibridge/symfony 2.0 (omnisense/omnibase 6.0).
+    // DemoController, registered in the demo environment only, beside it (services/demo.php).
     foreach ([
         'SecurityController', 'ProfilerController', 'ErrorController', 'RescueController', 'LocalizerController',
         'WidgetController', 'SitemapController', 'MainController', 'ShortLinkController',
@@ -57,6 +58,8 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         'Client\NotificationController', 'Client\UserSettingsController', 'Client\ContactController',
         'Client\ThreadSearchController', 'Client\UserSearchController', 'Client\UserProfileController',
     ] as $controller) {
-        $services->alias('Base\Controller\\'.$controller, 'Omnibridge\Symfony\Omnibase\Controller\\'.$controller)->public();
+        if ($builder->hasDefinition($id = 'Omnibridge\Symfony\Omnibase\Controller\\'.$controller)) {
+            $builder->getDefinition($id)->setPublic(true);
+        }
     }
 };

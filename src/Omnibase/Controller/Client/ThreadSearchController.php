@@ -3,9 +3,9 @@
 namespace Omnibridge\Symfony\Omnibase\Controller\Client;
 
 use Base\Database\Repository\Repositories;
-use Base\Form\FormProcessorInterface;
-use Base\Form\FormProxyInterface;
-use Base\Form\Type\ThreadSearchType;
+use Omnibridge\Symfony\Omnibase\Form\FormProcessorInterface;
+use Omnibridge\Symfony\Omnibase\Form\FormProxyInterface;
+use Omnibridge\Symfony\Omnibase\Form\Type\ThreadSearchType;
 use Base\Repository\ThreadTranslations;
 use Base\Thread\ThreadSearch;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

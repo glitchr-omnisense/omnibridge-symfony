@@ -2,6 +2,37 @@
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-11-14
+
+For omnisense/omnibase 6.0, which removes the former names of the classes it moved here (`conflict`:
+omnisense/omnibase < 6.0; the core 6.0 conflicts with this package < 2.0). The core's UPGRADE-6.0.md lists them.
+
+### Removed: the former ids and the former form type names
+- Every service is registered under its class's name only. The former ids (`Base\Security\UserChecker`,
+  `Base\Form\FormProxy`, `Base\Routing\AdvancedRouterInterface`, the core's repositories `Base\Repository\X`, the
+  controllers' `Base\Controller\X`...) are gone, with `FormerServiceIdsPass` (1.1.2) and `FormerFormTypesPass` (Symfony
+  Form knew a moved type under both names). The controllers are public services under their names.
+- `SymfonyKinds::MAP` gives the new names (`Omnibridge\Symfony\Omnibase\Field\Type\*`).
+- `Form\FormTypes::same()`, `in()`, `declared()` compare names as written, a leading backslash aside: no former name
+  (they no longer read the core's `FormerNames`).
+- The union aliases `Doctrine\ORM\EntityManagerInterface|Omnibridge\Persistence\UnitOfWork` and
+  `Omnibridge\Contract\Views|Twig\Environment` (the core 6.0's constructors take the contract only);
+  `ScreenResponder` takes `Views`, `UserChecker` and the former `UserCreateCommand` a `UnitOfWork`.
+- `Legacy\Subscriber\SecuritySubscriber::onMaintenanceRequest()`/`onLaunchRequest()` (they called the core's
+  `redirectOnDeny()`, gone at 6.0; the 5.x subscriber applies the rules itself) and the former cache:clear's body
+  in `Legacy\Console\Command\CacheClearCommand` (it used the core's `CacheClearTrait`; the command runs the core's
+  `CacheClear` task).
+
+### Changed
+- BaseBundle maps `App\Repository\X` from `Omnibridge\Doctrine\Omnibase\Repository\X` and `App\Form\X` from
+  `Omnibridge\Symfony\Omnibase\Form\X` (by their former names before), and registers the core's repositories under
+  their names.
+- Every former name in config/, src/, tests/ and docs/ written with its new name. composer.json: branch alias
+  `dev-2.x` → `2.x-dev`.
+
+### Kept
+- `Legacy\` (the parents of the commands, subscribers and voters) and `Console\Command`'s protected `$entityManager`.
+
 ## [1.1.2] - 2026-11-14
 
 ### Fixed: a moved form type works under its former name too

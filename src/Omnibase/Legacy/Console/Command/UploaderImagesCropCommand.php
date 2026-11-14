@@ -4,7 +4,7 @@ namespace Omnibridge\Symfony\Omnibase\Legacy\Console\Command;
 
 use Base\Database\Attribute\Uploader;
 use Base\Attributes\AttributeReader;
-use Base\BaseBundle;
+use Omnibridge\Symfony\Omnibase\BaseBundle;
 use Omnibridge\Symfony\Omnibase\Console\Command;
 use Base\Database\UnitOfWorks;
 use Base\Entity\Layout\Image;

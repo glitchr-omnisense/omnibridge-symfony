@@ -18,5 +18,5 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ->autowire()
         ->autoconfigure();
 
-    $services->set('Base\Subscriber\RedirectionSubscriber');
+    $services->set('Omnibridge\Symfony\Omnibase\Subscriber\RedirectionSubscriber');
 };

@@ -91,7 +91,7 @@ Moved:
 | `Base\Bridge\Symfony\SecuritySessions` | `Omnibridge\Symfony\Contract\SecuritySessions` | the token storage and the cookie; omnibase's router now a closure for the domain |
 | `Base\Bridge\Symfony\CsrfTokens` | `Omnibridge\Symfony\Contract\CsrfTokens` | the CSRF token manager |
 | `Base\Bridge\Symfony\FileLinks` | `Omnibridge\Symfony\FileLinks` | ErrorHandler's formatter, `APP_PATH` |
-| `Base\DependencyInjection\Compiler\Pass\ContractsPass` (its building) | `Omnibridge\Symfony\DependencyInjection\ContractsPass` | a locator of contracts; omnibase's pass keeps its list and delegates |
+| `Omnibridge\Symfony\Omnibase\Legacy\DependencyInjection\Compiler\Pass\ContractsPass` (its building) | `Omnibridge\Symfony\DependencyInjection\ContractsPass` | a locator of contracts; omnibase's pass keeps its list and delegates |
 
 The former names were aliases of the new classes (declared by omnibase's `src/Resources/Aliases.php`,
 their service ids aliases of the new ones) until omnibase 4's final pass, which removed them
@@ -101,16 +101,16 @@ Stayed in the core, `Base\` (omnibase's domain under Symfony, D3):
 
 | Class | Why |
 |---|---|
-| `Base\Bridge\Symfony\LocalizerLocales` | omnibase's Localizer (its `xx-XX` locales, its fallbacks) |
-| `Base\Bridge\Symfony\FlysystemFiles` | omnibase's Flysystem service and MediaService's image route |
-| `Base\Bridge\Symfony\RouterRoutes` | omnibase's router (localized route names) and IconProvider |
-| `Base\Bridge\Symfony\MediaPictures`, `ServiceMedia`, `WysiwygTexts` | omnibase's own contracts over its Twig extensions and MediaService |
-| `Base\Bridge\Symfony\SymfonyScreenContext`, `ScreenResponder`, `AccountScreens` | omnibase's screens (`Base\Screen`), its settings, Themizer, account builder |
+| `Omnibridge\Symfony\Omnibase\LocalizerLocales` | omnibase's Localizer (its `xx-XX` locales, its fallbacks) |
+| `Omnibridge\Symfony\Omnibase\FlysystemFiles` | omnibase's Flysystem service and MediaService's image route |
+| `Omnibridge\Symfony\Omnibase\RouterRoutes` | omnibase's router (localized route names) and IconProvider |
+| `Omnibridge\Symfony\Omnibase\MediaPictures`, `ServiceMedia`, `WysiwygTexts` | omnibase's own contracts over its Twig extensions and MediaService |
+| `Omnibridge\Symfony\Omnibase\SymfonyScreenContext`, `ScreenResponder`, `AccountScreens` | omnibase's screens (`Base\Screen`), its settings, Themizer, account builder |
 | `Base\Bridge\Symfony\NotificationMessages` | the Symfony half of omnibase's Notification entity |
-| `Base\Bridge\Symfony\SettingBagWarmer` | omnibase's SettingBag |
+| `Omnibridge\Symfony\Omnibase\SettingBagWarmer` | omnibase's SettingBag |
 | `Base\Bridge\Symfony\SecurityUser`, `TwoFactorUser` | what omnibase's `User` declares to Security and scheb/2fa (C7b) |
-| `Base\Service\ParameterBag`, `HotParameterBag` | omnibase's parameters, the settings stored in its database over the container's |
-| `Base\BaseBundle`, its extension, configuration and compiler passes | omnibase's bundle |
+| `Omnibridge\Symfony\Omnibase\Service\ParameterBag`, `HotParameterBag` | omnibase's parameters, the settings stored in its database over the container's |
+| `Omnibridge\Symfony\Omnibase\BaseBundle`, its extension, configuration and compiler passes | omnibase's bundle |
 | forms, fields, controllers, subscribers | Symfony by nature, omnibase's (D3) |
 
 Since omnibase's step F5d, the field types that held a rich kind's logic read it from omnibase's neutral
@@ -118,13 +118,11 @@ behaviours (`Base\Field\Behaviour\*`: the date picker, the slug, the switch, the
 settings), the objects omnibridge/laravel's renderer reads too; `Omnibase\Form\SymfonyKinds::COVERAGE` declares what
 Symfony draws of every kind, and `Omnibase\Form\Conformance\SymfonyHost` runs omnibase's field conformance suite on it.
 
-The classes that moved from the core to `Omnibridge\Symfony\Omnibase\` keep their former `Base\` names until
-omnisense/omnibase 6.0 (the core's `former-names.symfony.php`), and both names work. A form type named in a
-string is compared through `Omnibase\Form\FormTypes::same()`, built on that list. The settings form, for
-example, gives `Base\Field\Type\ImageType` the upload options `ImageType` gets. A service registered under its
-former id also answers to its new class name, as an alias of the same service (`FormerServiceIdsPass`).
-`SymfonyKinds` still gives a kind's type by its former name in 1.x: the core's `KindsTest` and the callers that
-compare a descriptor's `getFormType()` with a former name rely on it.
+The classes that moved from the core to `Omnibridge\Symfony\Omnibase\` have one name since 2.0, which goes with
+omnisense/omnibase 6.0: the core no longer aliases their former `Base\` names (1.x registered both, and
+`SymfonyKinds` gave a kind's type by its former name). Every service is registered under its class's name;
+`SymfonyKinds` gives `Omnibridge\Symfony\Omnibase\Field\Type\*`. The core's `UPGRADE-6.0.md` lists each former
+name with its replacement.
 
 ## The framework packages
 

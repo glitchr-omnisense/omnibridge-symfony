@@ -42,7 +42,7 @@ final class Persistence
 
     /** The repositories the core's declarations name by their class (no interface yet), by the entity they read. */
     public const REPOSITORIES_BY_CLASS = [
-        'Base\Repository\Layout\TextOverrideRepository' => 'Base\Entity\Layout\TextOverride',
+        'Omnibridge\Doctrine\Omnibase\Repository\Layout\TextOverrideRepository' => 'Base\Entity\Layout\TextOverride',
     ];
 
     /** omnisense/omnibridge's Lifecycle\Listeners::TAG (by value: a site whose omnisense/omnibridge predates it compiles too). */

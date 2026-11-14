@@ -42,21 +42,21 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     Declarations::group($builder, 'database');
 
     // Security voters
-    $services->set('Base\Security\Voter\AdminVoter')
+    $services->set('Omnibridge\Symfony\Omnibase\Security\Voter\AdminVoter')
         ->tag('security.voter')
         ->args([new Reference('advanced_router')]);
 
-    $services->set('Base\Security\Voter\PermissionVoter')
+    $services->set('Omnibridge\Symfony\Omnibase\Security\Voter\PermissionVoter')
         ->tag('security.voter');
 
-    $services->set('Base\Security\Voter\ComplaintVoter')
+    $services->set('Omnibridge\Symfony\Omnibase\Security\Voter\ComplaintVoter')
         ->tag('security.voter')
         ->args([
             new Reference('security.access.decision_manager'),
             new Reference('security.role_hierarchy'),
         ]);
 
-    $services->set('Base\Security\Voter\AccessVoter')
+    $services->set('Omnibridge\Symfony\Omnibase\Security\Voter\AccessVoter')
         ->tag('security.voter')
         ->args([
             new Reference('advanced_router'),
@@ -82,38 +82,10 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // step F2d): omnisense/omnibridge's contract, Doctrine's adapter behind it (omnibridge/doctrine's at F3).
     $services->set(\Omnibridge\Doctrine\Omnibase\DoctrineUnitOfWork::class)->args([service('doctrine.orm.entity_manager')]);
     $services->alias(\Omnibridge\Persistence\UnitOfWork::class, \Omnibridge\Doctrine\Omnibase\DoctrineUnitOfWork::class)->public();
-    // What a constructor that still accepts the entity manager (deprecated, until 6.0) is autowired with:
-    // Symfony names a union type's service by its sorted members.
-    $services->alias('Doctrine\ORM\EntityManagerInterface|Omnibridge\Persistence\UnitOfWork', \Omnibridge\Doctrine\Omnibase\DoctrineUnitOfWork::class);
     // The persistence installed, its scopes (trash, vault) as Doctrine's filters (step F2e).
     $services->set(\Omnibridge\Doctrine\Omnibase\DoctrineBackend::class)->args([service(\Omnibridge\Doctrine\Omnibase\DoctrineUnitOfWork::class)]);
     $services->alias(\Omnibridge\Persistence\Backend::class, \Omnibridge\Doctrine\Omnibase\DoctrineBackend::class)->public();
     foreach (\Base\Repository\Aliases::INTERFACES as $interface => $repository) {
         $services->alias($interface, $repository)->public();
-    }
-
-    // The services whose classes moved to omnibridge/doctrine (plan "omnibase agnostic", step F3) are
-    // registered under their new names; their former ids stay, as aliases, for a configuration that names
-    // one (an argument, a decoration). The classes' former names are src/Resources/former-names.php's.
-    $moved = require \Omnibridge\Symfony\Omnibase\BaseBundle::getBundleDir().'/src/Resources/former-names.doctrine.php';
-    foreach ([
-        'Base\Database\Mapping\NamingStrategy',
-        'Base\Database\Mapping\ClassMetadataFactory',
-        'Base\Database\Mapping\ClassMetadataManipulator',
-        'Base\Bridge\Doctrine\DoctrineRepositories',
-        'Base\Bridge\Doctrine\DoctrineUnitOfWork',
-        'Base\Bridge\Doctrine\DoctrineBackend',
-        'Base\Database\Middleware\PlatformMiddleware',
-        'Base\Bridge\Doctrine\SchemaManagerFactory',
-        'Base\DatabaseSubscriber\AttributeSubscriber',
-        'Base\DatabaseSubscriber\IntlSubscriber',
-        'Base\DatabaseSubscriber\InverseCollectionCacheSubscriber',
-        'Base\DatabaseSubscriber\TrackingPolicySubscriber',
-        'Base\EntitySubscriber\ExtensionSubscriber',
-        'Base\EntitySubscriber\TrasheableSubscriber',
-        'Base\EntitySubscriber\VersionableSubscriber',
-        'Base\EntitySubscriber\SettingSubscriber',
-    ] as $former) {
-        $services->alias($former, $moved[$former])->public();
     }
 };

@@ -29,7 +29,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 // The alias this class is typed on (the core's MetadataManipulator on 5.x, Doctrine's on 4.x), defined when this file
 // is loaded: a type check never autoloads, and BaseBundle.php, which defines it too, is not every application's
-// (a 4.x one registers the core's Base\BaseBundle; plan "omnibase agnostic", step B3).
+// (a 4.x one registers the core's Omnibridge\Symfony\Omnibase\BaseBundle; plan "omnibase agnostic", step B3).
 class_exists(ClassMetadataManipulator::class);
 
 class LayoutSettingListType extends AbstractType implements DataMapperInterface
@@ -155,9 +155,6 @@ class LayoutSettingListType extends AbstractType implements DataMapperInterface
                     $fieldOptions['label'] = $setting->getLabel() ?? mb_ucwords(str_replace('_', ' ', implode(' - ', $label)));
                 }
 
-                // The type by either of its names (Base\Field\Type\ImageType is ImageType until
-                // omnisense/omnibase 6.0): a setting declared with a former name keeps its upload
-                // options and its value conversion.
                 $isUpload = FormTypes::in($fieldOptions['form_type'], [FileType::class, ImageType::class, AvatarType::class]);
                 if ($isUpload) {
                     $fieldOptions['max_size'] = $fieldOptions['max_size'] ?? Uploader::getMaxFilesize(SettingIntl::class, 'value');

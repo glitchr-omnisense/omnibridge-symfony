@@ -452,28 +452,4 @@ class SecuritySubscriber implements EventSubscriberInterface
 
         $this->router->redirectEvent($event, LoginFormAuthenticator::LOGOUT_ROUTE);
     }
-
-    public function onMaintenanceRequest(RequestEvent $event)
-    {
-        if (!$event->isMainRequest()) {
-            return;
-        }
-
-        if ($this->maintenanceProvider->redirectOnDeny($event)) {
-            $this->profiler?->disable();
-            $event->stopPropagation();
-        }
-    }
-
-    public function onLaunchRequest(RequestEvent $event)
-    {
-        if (!$event->isMainRequest()) {
-            return;
-        }
-
-        if ($this->launcher->redirectOnDeny($event, $this->localizer->getLocale())) {
-            $this->profiler?->disable();
-            $event->stopPropagation();
-        }
-    }
 }

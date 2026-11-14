@@ -101,10 +101,9 @@ abstract class AbstractBaseBundle extends Bundle
 
     /**
      * Maps the classes of $path, $inputNamespace\X => $outputNamespace\X. $declaredNamespace is
-     * the namespace the files declare when it is not $inputNamespace: the core's repositories,
-     * in omnibridge/doctrine since the plan "omnibase agnostic"'s step F3 (Omnibridge\Doctrine\
-     * Omnibase\Repository\X), mapped by their former names (Base\Repository\X), which
-     * src/Resources/former-names.php resolves.
+     * the namespace the files declare when it is not $inputNamespace (5.x mapped the core's
+     * repositories by their former names, Base\Repository\X; since 6.0 they are mapped by their own,
+     * Omnibridge\Doctrine\Omnibase\Repository\X, and the argument is left for a bundle's own use).
      */
     public function setMapping(string $path, string $inputNamespace = "", string $outputNamespace = "", ?string $declaredNamespace = null)
     {
@@ -300,7 +299,7 @@ abstract class AbstractBaseBundle extends Bundle
     public static function declareAlias(string $class, string $alias, bool $lookup = true): bool
     {
         if (class_exists($alias, false) || interface_exists($alias, false) || trait_exists($alias, false)) {
-            // The declared name, not the one asked: $class may be a former name (src/Resources/former-names.php).
+            // The declared name, not the one asked: $class may itself be an alias.
             return (new \ReflectionClass($alias))->getName() === self::declaredName($class);
         }
 
@@ -465,10 +464,9 @@ abstract class AbstractBaseBundle extends Bundle
     }
 
     /**
-     * The name $class is declared under: itself, or the class a former name stands for (a class moved
-     * to omnibridge/doctrine at the plan "omnibase agnostic"'s step F3, aliased by
-     * src/Resources/former-names.php) - so that an App\ alias of Base\Repository\UserRepository is
-     * known as that class's.
+     * The name $class is declared under: itself, or the class an alias stands for (omnisense/omnibase 5.x
+     * aliased the classes it moved to the bridges by their former names; none since 6.0) - so that an App\
+     * alias is known as its class's.
      */
     protected static function declaredName(string $class): string
     {
@@ -508,7 +506,7 @@ abstract class AbstractBaseBundle extends Bundle
      * Whether $class is registered as a Doctrine repository service (tagged
      * doctrine.repository_service, built with `doctrine`): a class whose name
      * ends with "Repository", that can be instantiated and that is a service
-     * repository: omnibase's Base\Database\Repository\ServiceEntityRepository
+     * repository: omnibase's Omnibridge\Doctrine\Omnibase\Database\Repository\ServiceEntityRepository
      * (built on doctrine/orm's EntityRepository since step C3b of the plan
      * "omnibase agnostique") or DoctrineBundle's ServiceEntityRepositoryInterface.
      *

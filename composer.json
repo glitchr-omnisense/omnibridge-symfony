@@ -61,11 +61,14 @@
         "symfony/rate-limiter": "^7.0|^8.0",
         "symfony/translation": "^6.0|^7.0|^8.0"
     },
+    "conflict": {
+        "omnisense/omnibase": "<6.0"
+    },
     "suggest": {
         "omnibridge/doctrine": "omnibase's persistence on Doctrine's ORM (base.persistence: doctrine, the default where it is installed), with doctrine/doctrine-bundle and symfony/doctrine-bridge: Doctrine's wiring - the entity manager's listeners and filters, the DBAL types, the Doctrine-named commands (doctrine:schema:charset, doctrine:database:import...) - is registered only where it is installed (Persistences::isInstalled('doctrine'), plan \"omnibase agnostic\", step B3); omnibridge/eloquent is the other persistence",
         "doctrine/doctrine-bundle": "Doctrine's entity manager and connection as Symfony services, for omnibridge/doctrine (the persistence on Doctrine) and the packages written on DoctrineBundle (omnibase/admin's EasyAdmin, API Platform's doctrine-orm)",
         "symfony/doctrine-bridge": "The security provider `entity:` and the form type EntityType on Doctrine, for omnibridge/doctrine; on omnibridge/eloquent, the users' provider is Base\\Repository\\Users",
-        "omnisense/omnibase": "Omnibridge\\Symfony\\Omnibase\\: omnibase's Symfony form layer, moved from the core (its former Base\\ names kept by the core until 6.0): the form types, extensions, FormFactory, FormProxy, FormProcessor",
+        "omnisense/omnibase": "Omnibridge\\Symfony\\Omnibase\\: omnibase's Symfony form layer, moved from the core (^6.0: no former Base\\ name any more): the form types, extensions, FormFactory, FormProxy, FormProcessor",
         "omniauth/google": "Google sign-in through Omnibridge\\Symfony\\Auth\\ (omniauth.yaml: oauth.providers.google; its GoogleFactory is registered when it is installed)",
         "omniauth/otp": "Authenticator applications through Omnibridge\\Symfony\\Auth\\ (omniauth.yaml: totp; totp.secret_key seals the secrets at rest), formerly omniauth/totp",
         "omniauth/webauthn": "Passkeys through Omnibridge\\Symfony\\Auth\\ (omniauth.yaml: passkey), formerly omniauth/passkey",
@@ -95,7 +98,7 @@
     ],
     "extra": {
         "branch-alias": {
-            "dev-1.x": "1.x-dev"
+            "dev-2.x": "2.x-dev"
         }
     },
     "config": {

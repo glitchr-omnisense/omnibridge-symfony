@@ -13,7 +13,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 /**
  * The enumerations given to DoctrineBundle's doctrine.dbal.types (the core's and the application's
  * by BaseExtension, a bundle's by its own prepend) taken out of them and given to
- * Base\Bridge\Doctrine\EnumerationsMiddleware (plan "omnibase agnostic", step F2a): DoctrineBundle's
+ * Omnibridge\Doctrine\Omnibase\EnumerationsMiddleware (plan "omnibase agnostic", step F2a): DoctrineBundle's
  * connection factory instantiates each type's class, and an enumeration is no Doctrine type any more -
  * the middleware registers an EnumTypeAdapter of it under the same name, when the connection is made.
  */

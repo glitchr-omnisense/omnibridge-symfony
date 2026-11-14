@@ -23,7 +23,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 // The alias this class is typed on (the core's MetadataManipulator on 5.x, Doctrine's on 4.x), defined when this file
 // is loaded: a type check never autoloads, and BaseBundle.php, which defines it too, is not every application's
-// (a 4.x one registers the core's Base\BaseBundle; plan "omnibase agnostic", step B3).
+// (a 4.x one registers the core's Omnibridge\Symfony\Omnibase\BaseBundle; plan "omnibase agnostic", step B3).
 class_exists(ClassMetadataManipulator::class);
 
 class FormFactory extends SymfonyFormFactory implements FormFactoryInterface

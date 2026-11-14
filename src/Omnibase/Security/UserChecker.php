@@ -4,10 +4,8 @@ namespace Omnibridge\Symfony\Omnibase\Security;
 
 use Base\Security\LoginRestrictionInterface;
 use App\Entity\User;
-use Base\Database\UnitOfWorks;
 use Base\Entity\User\Notification;
 use Base\Entity\User\Token;
-use Doctrine\ORM\EntityManagerInterface;
 use Omnibridge\Persistence\UnitOfWork;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAccountStatusException;
@@ -18,10 +16,9 @@ class UserChecker implements UserCheckerInterface
 {
     protected UnitOfWork $unitOfWork;
 
-    /** @param UnitOfWork|EntityManagerInterface $unitOfWork the entity manager is deprecated (until 6.0): adapted by UnitOfWorks */
-    public function __construct(UnitOfWork|EntityManagerInterface $unitOfWork, protected ?\Base\Notifier\Notifier $notifier = null)
+    public function __construct(UnitOfWork $unitOfWork, protected ?\Base\Notifier\Notifier $notifier = null)
     {
-        $this->unitOfWork = UnitOfWorks::of($unitOfWork);
+        $this->unitOfWork = $unitOfWork;
     }
 
     public function checkPreAuth(UserInterface $user): void

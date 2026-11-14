@@ -4,7 +4,7 @@ namespace Omnibridge\Symfony\Omnibase\Controller\Client;
 
 use Base\Auth\Account\Outcome;
 use Base\Bridge\Symfony\AccountScreens;
-use Base\Bridge\Symfony\ScreenResponder;
+use Omnibridge\Symfony\Omnibase\ScreenResponder;
 use Base\Notifier\NotificationCenter;
 use Base\Screen\Json;
 use Base\Screen\View;

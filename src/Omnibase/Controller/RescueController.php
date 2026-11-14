@@ -3,9 +3,9 @@
 namespace Omnibridge\Symfony\Omnibase\Controller;
 
 use Base\Attributes\Attribute\Iconize;
-use Base\Form\FormProcessorInterface;
-use Base\Form\FormProxyInterface;
-use Base\Form\Type\SecurityLoginType;
+use Omnibridge\Symfony\Omnibase\Form\FormProcessorInterface;
+use Omnibridge\Symfony\Omnibase\Form\FormProxyInterface;
+use Omnibridge\Symfony\Omnibase\Form\Type\SecurityLoginType;
 use Base\Auth\Account\RescuePage;
 use Twig\Environment;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

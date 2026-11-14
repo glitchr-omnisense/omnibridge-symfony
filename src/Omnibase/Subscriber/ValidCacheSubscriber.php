@@ -2,7 +2,7 @@
 
 namespace Omnibridge\Symfony\Omnibase\Subscriber;
 
-use Base\BaseBundle;
+use Omnibridge\Symfony\Omnibase\BaseBundle;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\KernelEvent;

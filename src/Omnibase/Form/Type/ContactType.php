@@ -28,7 +28,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  * off-screen for people (off). Labels: the "forms" domain's contact.fields.*,
  * or a label given to form_row().
  *
- * The data-protection notice (Base\Form\Type\PrivacyType, a `privacy`
+ * The data-protection notice (Omnibridge\Symfony\Omnibase\Form\Type\PrivacyType, a `privacy`
  * child, not mapped): privacy - true for omnibase's notice
  * (@forms.privacy.notice), a translation key for the site's own, false for
  * none (default); privacy_consent - the box to tick, the form invalid until

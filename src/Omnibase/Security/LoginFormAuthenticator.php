@@ -7,7 +7,7 @@ use App\Enum\UserRole;
 use Base\Repository\Users;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 use Base\Entity\User\Connection;
-use Base\Routing\AdvancedRouterInterface;
+use Omnibridge\Symfony\Omnibase\Routing\AdvancedRouterInterface;
 use Base\Service\ReferrerInterface;
 use Google\Badge\CaptchaBadge;
 use Symfony\Component\HttpFoundation\RedirectResponse;

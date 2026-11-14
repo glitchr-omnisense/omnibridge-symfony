@@ -2,9 +2,9 @@
 
 namespace Omnibridge\Symfony\Omnibase\Controller\Client;
 
-use Base\Form\FormProcessorInterface;
-use Base\Form\FormProxy;
-use Base\Form\Type\ContactType;
+use Omnibridge\Symfony\Omnibase\Form\FormProcessorInterface;
+use Omnibridge\Symfony\Omnibase\Form\FormProxy;
+use Omnibridge\Symfony\Omnibase\Form\Type\ContactType;
 use Base\Notifier\ContactMessage;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;

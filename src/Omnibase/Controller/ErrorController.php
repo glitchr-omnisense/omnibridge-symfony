@@ -3,7 +3,7 @@
 namespace Omnibridge\Symfony\Omnibase\Controller;
 
 use Base\Request\ErrorPage;
-use Base\Routing\AdvancedRouterInterface;
+use Omnibridge\Symfony\Omnibase\Routing\AdvancedRouterInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\ErrorHandler\ErrorRenderer\HtmlErrorRenderer;
 use Symfony\Component\ErrorHandler\Exception\FlattenException;

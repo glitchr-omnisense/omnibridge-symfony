@@ -32,9 +32,9 @@ final class GuardPass implements CompilerPassInterface
         }
 
         // Where glitchr/ux-google's reCAPTCHA guards the sign-in, the sign-in asks no second captcha.
-        if ($container->hasDefinition('Base\Security\SignInGuard')) {
+        if ($container->hasDefinition('Omnibridge\Symfony\Omnibase\Security\SignInGuard')) {
             $google = $container->hasParameter('google.recaptcha.enable') && (bool) $container->getParameterBag()->resolveValue($container->getParameter('google.recaptcha.enable'));
-            $container->getDefinition('Base\Security\SignInGuard')->setArgument('$google', $google);
+            $container->getDefinition('Omnibridge\Symfony\Omnibase\Security\SignInGuard')->setArgument('$google', $google);
         }
     }
 }

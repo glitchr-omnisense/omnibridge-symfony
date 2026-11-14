@@ -2,7 +2,7 @@
 
 namespace Omnibridge\Symfony\Omnibase\Legacy\Console\Command;
 
-use Base\BaseBundle;
+use Omnibridge\Symfony\Omnibase\BaseBundle;
 use Omnibridge\Symfony\Omnibase\Console\Command;
 use Base\Service\Localizer;
 use Base\Service\Translator;
@@ -25,7 +25,7 @@ class TranslationEnumsCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $baseLocation = \Base\BaseBundle::getBundleDir().'/src';
+        $baseLocation = \Omnibridge\Symfony\Omnibase\BaseBundle::getBundleDir().'/src';
         $enumRestriction = $input->getOption('enum') ?? "";
         $enums = array_merge(
             BaseBundle::getInstance()->getAllClasses("./src/Enum"),

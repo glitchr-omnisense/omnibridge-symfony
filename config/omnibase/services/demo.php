@@ -30,10 +30,10 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // demo_mode() and demo_accounts() in a template: with the Twig layer (config/services/twig.php).
 
     // Registered everywhere, so that it can say why it refuses outside `demo`.
-    $services->set('Base\Console\Command\DemoResetCommand')
+    $services->set('Omnibridge\Symfony\Omnibase\Console\Command\DemoResetCommand')
         ->arg('$doctrine', service('doctrine')->nullOnInvalid())
         ->arg('$lockFactory', service('lock.factory')->nullOnInvalid())
-        ->arg('$secondLevelCache', service('Base\Subscriber\SecondLevelCacheConsoleSubscriber')->nullOnInvalid())
+        ->arg('$secondLevelCache', service('Omnibridge\Symfony\Omnibase\Subscriber\SecondLevelCacheConsoleSubscriber')->nullOnInvalid())
         ->arg('$logger', service('logger')->nullOnInvalid())
         ->tag('console.command');
 
@@ -43,24 +43,23 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
 
     // The sign-in in one click (its route is declared for `demo` only too).
     $services->set('Omnibridge\Symfony\Omnibase\Controller\DemoController')
+        ->public()
         ->tag('controller.service_arguments')
         ->tag('container.service_subscriber')
         ->call('setContainer', [service('Psr\Container\ContainerInterface')]);
-    // Its former id (omnibase 4.x's class name), as services-public.php aliases the others'.
-    $services->alias('Base\Controller\DemoController', 'Omnibridge\Symfony\Omnibase\Controller\DemoController')->public();
 
     // noindex on every response; no e-mail leaves.
-    $services->set('Base\Subscriber\DemoSubscriber')
+    $services->set('Omnibridge\Symfony\Omnibase\Subscriber\DemoSubscriber')
         ->arg('$logger', service('logger')->nullOnInvalid())
         ->tag('kernel.event_subscriber')
         ->tag('monolog.logger', ['channel' => 'demo']);
 
     // The back office is not public: its accounts and the super-administrator sign in with a secret each, or not at all.
-    $services->set('Base\Subscriber\DemoBackOfficeSubscriber')
+    $services->set('Omnibridge\Symfony\Omnibase\Subscriber\DemoBackOfficeSubscriber')
         ->tag('kernel.event_subscriber');
 
     // A demonstration account keeps its identifier, address, password and second factor.
-    $services->set('Base\DatabaseSubscriber\DemoAccountLockSubscriber')
+    $services->set('Omnibridge\Doctrine\Omnibase\DatabaseSubscriber\DemoAccountLockSubscriber')
         ->arg('$translator', service('translator')->nullOnInvalid())
         ->tag('doctrine.event_listener', ['event' => 'preFlush'])
         ->tag('kernel.reset', ['method' => 'reset']);

@@ -2,7 +2,7 @@
 
 namespace Omnibridge\Symfony\Omnibase\Legacy\Console\Command;
 
-use Base\BaseBundle;
+use Omnibridge\Symfony\Omnibase\BaseBundle;
 
 use Base\Database\UnitOfWorks;
 use Exception;
@@ -22,7 +22,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 
 // The alias this class is typed on (the core's MetadataManipulator on 5.x, Doctrine's on 4.x), defined when this file
 // is loaded: a type check never autoloads, and BaseBundle.php, which defines it too, is not every application's
-// (a 4.x one registers the core's Base\BaseBundle; plan "omnibase agnostic", step B3).
+// (a 4.x one registers the core's Omnibridge\Symfony\Omnibase\BaseBundle; plan "omnibase agnostic", step B3).
 class_exists(ClassMetadataManipulator::class);
 
 #[AsCommand(name: 'icon:entities', aliases: [], description: '')]
@@ -53,7 +53,7 @@ class IconEntitiesCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $baseLocation = \Base\BaseBundle::getBundleDir().'/src';
+        $baseLocation = \Omnibridge\Symfony\Omnibase\BaseBundle::getBundleDir().'/src';
         $entityId = $input->getOption('id');
         $entityClass = $input->getOption('entity');
 

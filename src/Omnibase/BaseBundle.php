@@ -219,9 +219,10 @@ class BaseBundle extends AbstractBaseBundle
 
             $this->setMapping($this->getBundleDir() . "/src/Entity"    , "Base\Entity"    , "App\Entity");
             $this->setMapping($this->getBundleDir() . "/src/Repository", "Base\Repository", "App\Repository");
-            // The core's repositories, in omnibridge/doctrine (plan "omnibase agnostic", F3), by their former names.
+            // The core's repositories, in omnibridge/doctrine (plan "omnibase agnostic", F3), by their own names
+            // since omnisense/omnibase 6.0 (5.x mapped them by their former names, Base\Repository\X).
             if (null !== $repositories = self::doctrineRepositoryDir()) {
-                $this->setMapping($repositories, "Base\Repository", "App\Repository", "Omnibridge\Doctrine\Omnibase\Repository");
+                $this->setMapping($repositories, "Omnibridge\Doctrine\Omnibase\Repository", "App\Repository");
             }
             $this->setMapping($this->getBundleDir() . "/src/Enum"      , "Base\Enum"      , "App\Enum");
 
@@ -229,9 +230,10 @@ class BaseBundle extends AbstractBaseBundle
             $this->setMapping($this->getBundleDir() . "/src/Enum"      , "Base\Enum"      , "App\Enum");
             $this->setMapping($this->getBundleDir() . "/src/Notifier"  , "Base\Notifier"  , "App\Notifier");
             $this->setMapping($this->getBundleDir() . "/src/Form"      , "Base\Form"      , "App\Form");
-            // The core's form types, extensions and services, in omnibridge/symfony (plan "omnibase agnostic", F5b), by their former names.
+            // The core's form types, extensions and services, in omnibridge/symfony (plan "omnibase agnostic", F5b), by
+            // their own names since omnisense/omnibase 6.0 (5.x mapped them by their former names, Base\Form\X).
             if (null !== $forms = self::symfonyFormDir()) {
-                $this->setMapping($forms, "Base\Form", "App\Form", "Omnibridge\Symfony\Omnibase\Form");
+                $this->setMapping($forms, "Omnibridge\Symfony\Omnibase\Form", "App\Form");
             }
             $this->setMapping($this->getBundleDir() . "/src/Entity"    , "Base\Entity"    , "App\Entity");
 
@@ -581,7 +583,7 @@ class BaseBundle extends AbstractBaseBundle
         /* Register compiler passes */
         // What the core declares is discovered among its services (Base\Discovery, plan "omnibase agnostic", step F5e
         // slice 4c) is compiled by one generic pass; the passes left in Compiler/Pass are Symfony's own (TwigComponent,
-        // DoctrineConfiguration, WebauthnMapping, WebauthnDeprecatedAlias, Workflow, FormerFormTypes). A core without
+        // DoctrineConfiguration, WebauthnMapping, WebauthnDeprecatedAlias, Workflow). A core without
         // the declaration (4.x) has the former passes, which held its lists (Legacy\).
         $directories = [__DIR__ . '/DependencyInjection/Compiler/Pass' => __NAMESPACE__ . '\\DependencyInjection\\Compiler\\Pass\\'];
         if (class_exists(\Base\Discovery::class)) {

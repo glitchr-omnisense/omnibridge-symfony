@@ -2,7 +2,7 @@
 
 namespace Omnibridge\Symfony\Omnibase\Subscriber;
 
-use Base\BaseBundle;
+use Omnibridge\Symfony\Omnibase\BaseBundle;
 use Base\Entity\User\Notification;
 use Base\Request\Rule\Integrity;
 use Omnibridge\Symfony\Omnibase\Legacy\Subscriber\IntegritySubscriber as Legacy;

@@ -2,7 +2,7 @@
 
 namespace Omnibridge\Symfony\Omnibase\Legacy\Console\Command;
 
-use Base\BaseBundle;
+use Omnibridge\Symfony\Omnibase\BaseBundle;
 use Omnibridge\Symfony\Omnibase\Console\Command;
 use Base\Service\Localizer;
 use Base\Service\Translator;
@@ -26,7 +26,7 @@ class TranslationCrudCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $baseLocation = \Base\BaseBundle::getBundleDir().'/src';
+        $baseLocation = \Omnibridge\Symfony\Omnibase\BaseBundle::getBundleDir().'/src';
         $crudRestriction = $input->getOption('crud') ?? "";
         $cruds = array_merge(
             BaseBundle::getInstance()->getAllClasses($baseLocation . "/Controller/Admin/Crud"),

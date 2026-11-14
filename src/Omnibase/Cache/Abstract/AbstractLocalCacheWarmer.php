@@ -4,7 +4,7 @@ namespace Omnibridge\Symfony\Omnibase\Cache\Abstract;
 
 use Base\Cache\Abstract\AbstractLocalCacheInterface;
 use Base\Cache\Abstract\AbstractLocalCacheWarmerInterface;
-use Base\BaseBundle;
+use Omnibridge\Symfony\Omnibase\BaseBundle;
 use Symfony\Bundle\FrameworkBundle\CacheWarmer\AbstractPhpFileCacheWarmer;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 

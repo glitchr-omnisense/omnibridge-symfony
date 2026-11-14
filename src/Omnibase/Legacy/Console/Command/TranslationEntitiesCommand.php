@@ -2,7 +2,7 @@
 
 namespace Omnibridge\Symfony\Omnibase\Legacy\Console\Command;
 
-use Base\BaseBundle;
+use Omnibridge\Symfony\Omnibase\BaseBundle;
 use Omnibridge\Symfony\Omnibase\Console\Command;
 use Omnibridge\Doctrine\Omnibase\Database\Mapping\NamingStrategy;
 use Base\Service\Localizer;
@@ -26,7 +26,7 @@ class TranslationEntitiesCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $baseLocation = \Base\BaseBundle::getBundleDir().'/src';
+        $baseLocation = \Omnibridge\Symfony\Omnibase\BaseBundle::getBundleDir().'/src';
         $entityRestriction = $input->getOption('entity') ?? "";
         $entities = array_merge(
             BaseBundle::getInstance()->getAllNamespacesAndClasses("./src/Entity"),

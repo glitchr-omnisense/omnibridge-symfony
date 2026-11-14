@@ -5,7 +5,6 @@ namespace Omnibridge\Symfony\Omnibase\Legacy\Console\Command;
 use App\Entity\User;
 use Base\Database\UnitOfWorks;
 use Base\Notifier\NotifierInterface;
-use Doctrine\ORM\EntityManagerInterface;
 use Base\Entity\User\Token;
 use Base\Enum\UserRole;
 use Omnibridge\Symfony\Omnibase\Subscriber\PasswordChangeSubscriber;
@@ -24,19 +23,18 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * given with --password), to be changed at its first sign-in (a "change-password" token,
  * PasswordChangeSubscriber) unless --keep-password; e-mailed its username and password unless
  * --no-email. A plain Symfony command (not
- * Base\Console\Command, which wants a ConsoleOutput): it runs from scripts and tests too.
+ * Omnibridge\Symfony\Omnibase\Console\Command, which wants a ConsoleOutput): it runs from scripts and tests too.
  */
 #[AsCommand(name: 'user:create', description: 'An account, its password to change at the first sign-in')]
 class UserCreateCommand extends Command
 {
     protected readonly UnitOfWork $unitOfWork;
 
-    /** @param UnitOfWork|EntityManagerInterface $unitOfWork the entity manager is deprecated (until 6.0): adapted by UnitOfWorks */
     public function __construct(
-        UnitOfWork|EntityManagerInterface $unitOfWork,
+        UnitOfWork $unitOfWork,
         protected readonly NotifierInterface $notifier,
     ) {
-        $this->unitOfWork = UnitOfWorks::of($unitOfWork);
+        $this->unitOfWork = $unitOfWork;
         parent::__construct();
     }
 

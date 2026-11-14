@@ -15,7 +15,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  * Runs on kernel.terminate (after the response has already been sent) so
  * the counter writes never add latency to what the visitor is waiting on.
  *
- * Not to be confused with the pre-existing Base\Subscriber\AnalyticsSubscriber
+ * Not to be confused with the pre-existing Omnibridge\Symfony\Omnibase\Subscriber\AnalyticsSubscriber
  * (an unrelated, currently-inert - gated behind the now-dead isAdmin()
  * check - "online users" heartbeat + Google Analytics live-stats puller).
  * That one is untouched by this; naming this class PageViewSubscriber

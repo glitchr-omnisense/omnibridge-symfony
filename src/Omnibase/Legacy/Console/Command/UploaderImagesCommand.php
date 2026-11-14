@@ -3,7 +3,7 @@
 namespace Omnibridge\Symfony\Omnibase\Legacy\Console\Command;
 
 use Base\Database\Attribute\Uploader;
-use Base\Controller\UX\MediaController;
+use Omnibridge\Symfony\Omnibase\Controller\UX\MediaController;
 use Base\Imagine\Filter\Format\WebpFilter;
 use Base\Service\MediaServiceInterface;
 use Base\Service\LocalizerInterface;

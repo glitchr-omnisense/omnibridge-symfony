@@ -32,21 +32,21 @@ return function (ContainerConfigurator $configurator) {
         ->autoconfigure(false)
         ->public(false);
 
-    $services->set('Base\Field\Type\PasswordType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\PasswordType')
         ->tag('form.type')
         ->args([new Reference('translator')]);
-    $services->set('Base\Field\Type\TranslationType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\TranslationType')
         ->tag('form.type')
         ->args([
             new Reference('base.database.metadata_manipulator'),
             new Reference('localizer'),
         ]);
-    $services->set('Base\Field\Type\BooleanType')->tag('form.type');
-    $services->set('Base\Field\Type\ButtonType')->tag('form.type');
-    $services->set('Base\Field\Type\RouteType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\BooleanType')->tag('form.type');
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\ButtonType')->tag('form.type');
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\RouteType')
         ->tag('form.type')
         ->args([new Reference('advanced_router'), new Reference('localizer')]);
-    $services->set('Base\Field\Type\SelectType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\SelectType')
         ->tag('form.type')
         ->args([
             new Reference('form.factory'),
@@ -66,11 +66,11 @@ return function (ContainerConfigurator $configurator) {
             // untouched.
             new Reference('base.service.image'),
         ]);
-    $services->set('Base\Field\Type\ForexType')->parent('Base\Field\Type\SelectType')->tag('form.type');
-    $services->set('Base\Field\Type\IconType')->parent('Base\Field\Type\SelectType')->tag('form.type')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\ForexType')->parent('Omnibridge\Symfony\Omnibase\Field\Type\SelectType')->tag('form.type');
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\IconType')->parent('Omnibridge\Symfony\Omnibase\Field\Type\SelectType')->tag('form.type')
         ->args([new Reference('base.service.icon')]);
-    $services->set('Base\Field\Type\CountryType')->parent('Base\Field\Type\SelectType')->tag('form.type');
-    $services->set('Base\Field\Type\AssociationType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\CountryType')->parent('Omnibridge\Symfony\Omnibase\Field\Type\SelectType')->tag('form.type');
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\AssociationType')
         ->tag('form.type')
         ->args([
             new Reference('form.factory'),
@@ -78,7 +78,7 @@ return function (ContainerConfigurator $configurator) {
             new Reference('base.database.entity_hydrator'),
             new Reference('translator'),
         ]);
-    $services->set('Base\Field\Type\AssociationFileType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\AssociationFileType')
         ->tag('form.type')
         ->args([
             new Reference('form.factory'),
@@ -87,25 +87,25 @@ return function (ContainerConfigurator $configurator) {
             new Reference('base.service.image'),
             new Reference('Base\Routing\AdminUrlGeneratorInterface'),
         ]);
-    $services->set('Base\Field\Type\AttributeType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\AttributeType')
         ->tag('form.type')
         ->args([
             new Reference('form.factory'),
             new Reference('base.database.metadata_manipulator'),
         ]);
-    $services->set('Base\Field\Type\DiscriminatorType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\DiscriminatorType')
         ->tag('form.type')
         ->args([
             new Reference('form.factory'),
             new Reference('base.database.metadata_manipulator'),
         ]);
-    $services->set('Base\Field\Type\WysiwygType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\WysiwygType')
         ->tag('form.type')
         ->args([
             new Reference('parameter_bag'),
             new Reference('translator'),
         ]);
-    $services->set('Base\Field\Type\EditorType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\EditorType')
         ->tag('form.type')
         ->args([
             new Reference('parameter_bag'),
@@ -118,46 +118,46 @@ return function (ContainerConfigurator $configurator) {
             new Reference('security.token_storage'),
             new Reference('Base\Service\Collab\CollabTicketFactory'),
         ]);
-    $services->set('Base\Field\Type\MoneyType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\MoneyType')
         ->tag('form.type')
         ->args([new Reference('trading_market')]);
-    $services->set('Base\Field\Type\NumberType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\NumberType')
         ->tag('form.type');
-    $services->set('Base\Field\Type\StockType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\StockType')
         ->tag('form.type');
-    $services->set('Base\Field\Type\DateTimePickerType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\DateTimePickerType')
         ->tag('form.type')
         ->args([
             new Reference('parameter_bag'),
             new Reference('localizer'),
         ]);
-    $services->set('Base\Field\Type\CodeType')->tag('form.type');
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\CodeType')->tag('form.type');
 
-    $services->set('Base\Field\Type\ColorType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\ColorType')
         ->tag('form.type')
         ->args([
             new Reference('parameter_bag'),
         ]);
-    $services->set('Base\Field\Type\ColorPickerType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\ColorPickerType')
         ->tag('form.type')
         ->args([new Reference('translator')]);
-    $services->set('Base\Field\Type\EmojiPickerType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\EmojiPickerType')
         ->tag('form.type');
-    $services->set('Base\Field\Type\SlugType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\SlugType')
         ->tag('form.type')
         ->args([
             new Reference('base.database.metadata_manipulator'),
         ]);
-    $services->set('Base\Field\Type\QuadrantType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\QuadrantType')
         ->tag('form.type');
-    $services->set('Base\Field\Type\CropperType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\CropperType')
         ->tag('form.type')
         ->args([
             new Reference('form.factory'),
             new Reference('doctrine.orm.entity_manager', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             new Reference('parameter_bag'),
         ]);
-    $services->set('Base\Field\Type\FileType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\FileType')
         ->tag('form.type')
         ->args([
             new Reference('parameter_bag'),
@@ -171,19 +171,19 @@ return function (ContainerConfigurator $configurator) {
             new Reference('obfuscator'),
             '%kernel.cache_dir%',
         ]);
-    $services->set('Base\Field\Type\ImageType')
-        ->parent('Base\Field\Type\FileType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\ImageType')
+        ->parent('Omnibridge\Symfony\Omnibase\Field\Type\FileType')
         ->tag('form.type');
-    $services->set('Base\Field\Type\AudioType')
-        ->parent('Base\Field\Type\FileType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\AudioType')
+        ->parent('Omnibridge\Symfony\Omnibase\Field\Type\FileType')
         ->tag('form.type');
-    $services->set('Base\Field\Type\VideoType')
-        ->parent('Base\Field\Type\FileType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\VideoType')
+        ->parent('Omnibridge\Symfony\Omnibase\Field\Type\FileType')
         ->tag('form.type');
-    $services->set('Base\Field\Type\AvatarType')
-        ->parent('Base\Field\Type\ImageType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\AvatarType')
+        ->parent('Omnibridge\Symfony\Omnibase\Field\Type\ImageType')
         ->tag('form.type');
-    $services->set('Base\Field\Type\CollectionType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\CollectionType')
         ->tag('form.type')
         ->args([
             new Reference('translator'),
@@ -196,19 +196,19 @@ return function (ContainerConfigurator $configurator) {
             // "extra fields" and the save was rejected with a 422.
             new Reference('request_stack'),
         ]);
-    $services->set('Base\Field\Type\ArrayType')
-        ->parent('Base\Field\Type\CollectionType')
+    $services->set('Omnibridge\Symfony\Omnibase\Field\Type\ArrayType')
+        ->parent('Omnibridge\Symfony\Omnibase\Field\Type\CollectionType')
         ->tag('form.type')
         ->args([new Reference('base.database.metadata_manipulator')]);
 
-    $services->set('Base\Form\Type\LayoutSettingListType')
+    $services->set('Omnibridge\Symfony\Omnibase\Form\Type\LayoutSettingListType')
         ->tag('form.type')
         ->args([
             new Reference('setting_bag'),
             new Reference('localizer'),
             new Reference('base.database.metadata_manipulator'),
         ]);
-    $services->set('Base\Form\Type\LayoutWidgetListType')
+    $services->set('Omnibridge\Symfony\Omnibase\Form\Type\LayoutWidgetListType')
         ->tag('form.type')
         ->args([new Reference('base.widget_provider')]);
 };

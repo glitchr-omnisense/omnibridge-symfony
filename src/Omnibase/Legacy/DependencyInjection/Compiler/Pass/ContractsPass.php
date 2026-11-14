@@ -99,7 +99,7 @@ final class ContractsPass implements CompilerPassInterface
      * The contracts bound to another service than their interface's name:
      * the parameters are `parameter_bag` (HotParameterBag, the settings stored
      * in the database over the container's), what BaseTrait's getParameterBag()
-     * gives - the interface's name is the plain Base\Service\ParameterBag.
+     * gives - the interface's name is the plain Omnibridge\Symfony\Omnibase\Service\ParameterBag.
      *
      * @var array<class-string, string>
      */

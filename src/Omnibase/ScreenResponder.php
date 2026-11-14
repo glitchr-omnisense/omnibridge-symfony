@@ -19,10 +19,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Base\View\ViewsAdapter;
 use Omnibridge\Contract\Views;
 use Omnibridge\Contract\ViewSources;
-use Twig\Environment;
 
 /**
  * An action's result answered under Symfony: Symfony's adapter of
@@ -45,15 +43,14 @@ class ScreenResponder
     /** The views the templates render through (plan "omnibase agnostic", F5a; Twig's environment before). */
     private readonly Views $views;
 
-    /** @param Views|Environment $views Twig's environment is deprecated (until 6.0) */
     public function __construct(
-        Views|Environment $views,
+        Views $views,
         private readonly ContextProvider $context,
         private readonly ?string $version = null,
         /** Whether omnibridge/react's protocol is spoken for a View; null: when omnibridge/react is installed. */
         private readonly ?bool $omnibridge = null,
     ) {
-        $this->views = ViewsAdapter::of($views);
+        $this->views = $views;
     }
 
     /** @param array<string, mixed> $legacy a View's variables of before, for a site's own template */
@@ -126,7 +123,7 @@ class ScreenResponder
     public function legacy(string $template, \Closure $variables, ?string $own = null): array
     {
         // The core's own templates (omnisense/omnibase's templates/, beside its src/ where BaseBundle is).
-        $own ??= \Base\BaseBundle::getBundleDir().'/templates';
+        $own ??= \Omnibridge\Symfony\Omnibase\BaseBundle::getBundleDir().'/templates';
         $own = realpath($own) ?: $own;
         $path = $this->views instanceof ViewSources ? (string) $this->views->sourcePath($template) : '';
 

@@ -28,8 +28,8 @@ use Twig\Environment;
  *
  * For the core's host code - BaseService, the validators, the controllers,
  * Notification's Twig until it renders through Omnibridge\Contract\Views
- * (F5a) - and for Base\Traits\FrameworkAccessorsTrait, the deprecated
- * accessors that still reach these through BaseTrait. Its Doctrine half is
+ * (F5a) - and, until omnisense/omnibase 6.0, for BaseTrait's deprecated
+ * accessors (5.x's FrameworkAccessorsTrait). Its Doctrine half is
  * omnibridge/doctrine's Omnibridge\Doctrine\Omnibase\DoctrineLocator since step F3
  * (the methods here call it); its Symfony half moves with the rest of the host
  * code at F5c.

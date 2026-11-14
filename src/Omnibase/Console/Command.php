@@ -67,7 +67,7 @@ class Command extends SymfonyCommand
      * The unit of work of the persistence the host chose (omnisense/omnibase's plan "omnibase agnostic", steps F7f and
      * B4): the container's, given after the constructor's entity manager - Doctrine's over the same entity manager on
      * doctrine, omnibridge/eloquent's on eloquent, so that a command's reads and writes go where the site's do. Every
-     * command declared on Base\Console\Command's definition gets it; the commands named after Doctrine use
+     * command declared on Omnibridge\Symfony\Omnibase\Console\Command's definition gets it; the commands named after Doctrine use
      * getEntityManager() itself.
      */
     public function setUnitOfWork(UnitOfWork $unitOfWork): static

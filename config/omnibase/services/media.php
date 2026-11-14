@@ -66,7 +66,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ]);
 
     // Subscribers
-    $services->set('Base\Subscriber\LocalizerSubscriber')
+    $services->set('Omnibridge\Symfony\Omnibase\Subscriber\LocalizerSubscriber')
         ->tag('kernel.event_subscriber')
         ->args([
             new Reference('localizer'),
@@ -77,10 +77,10 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // Former EagerSubscriber: eager construction is obsolete now that
     // AttributeReader's constructor is metadata-free (heavy precompute moved
     // to AttributeCacheWarmer) — only the cache-valid marker remains.
-    $services->set('Base\Subscriber\ValidCacheSubscriber')
+    $services->set('Omnibridge\Symfony\Omnibase\Subscriber\ValidCacheSubscriber')
         ->tag('kernel.event_subscriber');
 
-    $services->set('Base\Subscriber\FlashBagSubscriber')
+    $services->set('Omnibridge\Symfony\Omnibase\Subscriber\FlashBagSubscriber')
         ->tag('kernel.event_subscriber');
 
     // Database subscribers: Doctrine's, only where Doctrine is there (plan "omnibase agnostic", step B3); omnibridge/
