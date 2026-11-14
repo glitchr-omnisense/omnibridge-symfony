@@ -84,7 +84,10 @@ final class BuildCommandTest extends KernelTestCase
         };
         $cache = ['--cache' => $this->dir.'/cache'];
 
-        self::assertStringContainsString('incremental: 2 rendered, 0 reused;', $build($cache));
+        // The first export into an empty cache: `incremental` with omnibridge/static 1.0, `full (no record of an
+        // earlier export in the cache)` since 1.1 (its build record, which vouches for a cache, is not there yet).
+        // The same two pages rendered either way.
+        self::assertMatchesRegularExpression('~(incremental|full \(no record of an earlier export in the cache\)): 2 rendered, 0 reused;~', $build($cache));
         self::assertStringContainsString('A by symfony, 2 routes', (string) file_get_contents($this->dir.'/out/index.html'), 'the host\'s offer reaches the site\'s file');
         self::assertDirectoryExists($this->dir.'/cache');
 

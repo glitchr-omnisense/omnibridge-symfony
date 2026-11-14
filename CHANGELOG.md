@@ -39,6 +39,12 @@
   compares the upload options, the date conversion and the data a plain Save submits. It also builds the form
   twice on one bag (the date kept). `FormerServiceIdsTest`: both names give the same instance, the
   ScreenResponder is public under its new name, and every moved id the container keeps has its new name.
+- `Static\BuildCommandTest` holds with omnibridge/static 1.0 and 1.1. Since 1.1, the first export into an empty
+  cache reads `full (no record of an earlier export in the cache)` instead of `incremental`. The command is
+  unchanged: the same two pages are rendered, and the later builds read as before. A site built in CI from a
+  fresh `var/cache` gets a full export each time unless its `static.php` calls
+  `Site::ignoreLoaded(<kernel cache dir>/*)`. That export is correct, only slower (omnibridge/static's
+  docs/incremental.md).
 
 ## [1.1.1] - 2026-11-13
 
