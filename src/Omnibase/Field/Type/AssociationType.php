@@ -7,6 +7,7 @@ use Base\Database\Entity\EntityHydrator;
 use Base\Field\Behaviour\Association;
 use Omnibridge\Symfony\Omnibase\Form\FormFactory;
 use Omnibridge\Symfony\Omnibase\Form\FormMapping;
+use Omnibridge\Symfony\Omnibase\Form\FormTypes;
 use Base\Database\Attribute\Backend\Backends;
 use Base\Database\Backend\EntityCache;
 use Base\Service\Model\Autocomplete;
@@ -189,7 +190,7 @@ class AssociationType extends AbstractType implements DataMapperInterface
                     $fieldEntity = $field['allow_entity'] ?? $options["allow_entity"] ?? false;
                     unset($field['allow_entity']);
 
-                    if ($fieldType !== null && $fieldEntity && $fieldType != AssociationType::class) {
+                    if ($fieldType !== null && $fieldEntity && !FormTypes::same($fieldType, AssociationType::class)) {
                         $form->add($fieldName, $fieldType, $field);
                     }
                 }
@@ -304,7 +305,7 @@ class AssociationType extends AbstractType implements DataMapperInterface
 
             foreach ($entries as $fieldName => $entry) {
                 $formType = $options["fields"][$fieldName]["form_type"] ?? null;
-                if ($formType == CollectionType::class) {
+                if (FormTypes::same($formType, CollectionType::class)) {
                     unset($entries[$fieldName]);
                 }
             }

@@ -118,6 +118,14 @@ behaviours (`Base\Field\Behaviour\*`: the date picker, the slug, the switch, the
 settings), the objects omnibridge/laravel's renderer reads too; `Omnibase\Form\SymfonyKinds::COVERAGE` declares what
 Symfony draws of every kind, and `Omnibase\Form\Conformance\SymfonyHost` runs omnibase's field conformance suite on it.
 
+The classes that moved from the core to `Omnibridge\Symfony\Omnibase\` keep their former `Base\` names until
+omnisense/omnibase 6.0 (the core's `former-names.symfony.php`), and both names work. A form type named in a
+string is compared through `Omnibase\Form\FormTypes::same()`, built on that list. The settings form, for
+example, gives `Base\Field\Type\ImageType` the upload options `ImageType` gets. A service registered under its
+former id also answers to its new class name, as an alias of the same service (`FormerServiceIdsPass`).
+`SymfonyKinds` still gives a kind's type by its former name in 1.x: the core's `KindsTest` and the callers that
+compare a descriptor's `getFormType()` with a former name rely on it.
+
 ## The framework packages
 
 composer.json requires what omnibase's Symfony side needs, so that the core does not: PHP 8.2 or

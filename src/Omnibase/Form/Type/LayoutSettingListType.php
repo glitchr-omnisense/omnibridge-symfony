@@ -12,6 +12,7 @@ use Omnibridge\Symfony\Omnibase\Field\Type\FileType;
 use Omnibridge\Symfony\Omnibase\Field\Type\ImageType;
 use Omnibridge\Symfony\Omnibase\Field\Type\TranslationType;
 use Omnibridge\Symfony\Omnibase\Form\Common\AbstractType;
+use Omnibridge\Symfony\Omnibase\Form\FormTypes;
 use Base\Service\Localizer;
 use Base\Service\LocalizerInterface;
 use Base\Service\SettingBag;
@@ -154,7 +155,11 @@ class LayoutSettingListType extends AbstractType implements DataMapperInterface
                     $fieldOptions['label'] = $setting->getLabel() ?? mb_ucwords(str_replace('_', ' ', implode(' - ', $label)));
                 }
 
-                if (FileType::class == $fieldOptions['form_type'] || ImageType::class == $fieldOptions['form_type'] || AvatarType::class == $fieldOptions['form_type']) {
+                // The type by either of its names (Base\Field\Type\ImageType is ImageType until
+                // omnisense/omnibase 6.0): a setting declared with a former name keeps its upload
+                // options and its value conversion.
+                $isUpload = FormTypes::in($fieldOptions['form_type'], [FileType::class, ImageType::class, AvatarType::class]);
+                if ($isUpload) {
                     $fieldOptions['max_size'] = $fieldOptions['max_size'] ?? Uploader::getMaxFilesize(SettingIntl::class, 'value');
                     $fieldOptions['mime_types'] = $fieldOptions['mime_types'] ?? Uploader::getMimeTypes(SettingIntl::class, 'value');
                     // THIS setting's own stored value, not $settingValue -
@@ -195,8 +200,7 @@ class LayoutSettingListType extends AbstractType implements DataMapperInterface
                 foreach ($translations as $locale => $settingTranslation) {
                     $settingValue = $settingTranslation->getValue();
 
-                    if (in_array($fieldOptions['form_type'], [FileType::class, ImageType::class, AvatarType::class], true)
-                        && is_string($settingValue) && '' !== $settingValue) {
+                    if ($isUpload && is_string($settingValue) && '' !== $settingValue) {
                         $storedUploads[spl_object_id($settingTranslation)] = [
                             'translation' => $settingTranslation,
                             'raw' => $settingTranslation->getValueRaw(),
@@ -204,22 +208,18 @@ class LayoutSettingListType extends AbstractType implements DataMapperInterface
                         ];
                     }
 
-                    switch ($fieldOptions['form_type']) {
-                        case DateTimePickerType::class:
-                            $datetime = $settingValue instanceof \DateTime ? $settingValue : null;
-                            if (!$datetime && is_string($settingValue)) {
-                                $datetime = new \DateTime($settingValue);
-                            } else {
-                                $datetime = null;
-                            }
+                    if (FormTypes::same($fieldOptions['form_type'], DateTimePickerType::class)) {
+                        // A value that already is a date is kept: the SettingIntl is the one the
+                        // setting bag holds, converted by a form built before this one.
+                        $datetime = $settingValue instanceof \DateTimeInterface ? $settingValue : null;
+                        if (null === $datetime && is_string($settingValue)) {
+                            $datetime = new \DateTime($settingValue);
+                        }
 
-                            $settingTranslation->setValue($datetime);
-                            break;
-
-                        case CheckboxType::class:
-                            $bool = !empty($settingValue) && '0' != $settingValue;
-                            $settingTranslation->setValue($bool);
-                            break;
+                        $settingTranslation->setValue($datetime);
+                    } elseif (FormTypes::same($fieldOptions['form_type'], CheckboxType::class)) {
+                        $bool = !empty($settingValue) && '0' != $settingValue;
+                        $settingTranslation->setValue($bool);
                     }
                 }
 

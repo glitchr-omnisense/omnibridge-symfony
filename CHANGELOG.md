@@ -2,6 +2,44 @@
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-11-14
+
+### Fixed: a moved form type works under its former name too
+- `Omnibase\Form\FormTypes` (new, internal to omnibase's part) compares a form type named in a string with a
+  class under either of its names. It is read from the core's alias map (`Base\Database\FormerNames`, the core's
+  `former-names.symfony.php`), not from a list of its own. `Base\Field\Type\ImageType` and
+  `Omnibridge\Symfony\Omnibase\Field\Type\ImageType` are the same type there.
+- `LayoutSettingListType` (omnibase/admin's settings pages): since omnisense/omnibase 5.0, a setting declared with
+  a former name (`Base\Field\Type\ImageType`, `FileType`, `AvatarType`, `DateTimePickerType`) lost its handling.
+  The upload options (`max_size`, `mime_types`, `empty_data`: its own stored value on a plain Save) and the stored
+  upload kept on a plain Save were missing. A date picker's stored string was not made a date, so the form failed
+  with "Expected a \DateTimeInterface". Both names now get the same options and submit the same data.
+- `LayoutSettingListType`: a date setting that already held a date (the SettingIntl the bag holds, converted by a
+  form built before in the same request) was set to `null`. It is kept now, and so is any `\DateTimeInterface`.
+- `AssociationType` compares a field's `form_type` with `AssociationType` and `CollectionType` under either name.
+- A service registered under a moved class's former id also answers to its new class name. Until now,
+  `Base\Bridge\Symfony\ScreenResponder` was the only id, so a constructor typed on
+  `Omnibridge\Symfony\Omnibase\ScreenResponder` was autowired `null`. The new
+  `DependencyInjection\Compiler\Pass\FormerServiceIdsPass` aliases the new name to the former id: one service,
+  public where the former id is, and the former id unchanged. It covers 214 ids in the omnibase harness:
+  the field and form types, the console commands, the subscribers, the cache warmers, the security services,
+  `Base\Bridge\Symfony\*`, the router, and omnibridge/doctrine's moved repositories. A new name the container
+  already defines is left alone.
+
+### Unchanged
+- `SymfonyKinds` still gives a kind's type by its former name (`Base\Field\Type\AssociationType`). Callers that
+  compare a descriptor's `getFormType()` with a former name rely on it, and so does the core's own `KindsTest`
+  (omnibase/admin 1.0.0 among those callers). It moves to the new names with omnisense/omnibase 6.0, when the
+  former names go.
+
+### Tests
+- `tests/Omnibase` needs the core and a host kernel, so it runs in the omnibase harness (this checkout mounted as
+  compose.checkouts.yml does) and is skipped by this package's own suite. PHPStan sets it aside, as it does
+  `src/Omnibase`. `LayoutSettingListTypeTest` builds the settings form with the former and the new name and
+  compares the upload options, the date conversion and the data a plain Save submits. It also builds the form
+  twice on one bag (the date kept). `FormerServiceIdsTest`: both names give the same instance, the
+  ScreenResponder is public under its new name, and every moved id the container keeps has its new name.
+
 ## [1.1.1] - 2026-11-13
 
 ### Changed

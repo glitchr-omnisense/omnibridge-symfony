@@ -15,6 +15,8 @@ parameters:
     # (the core's sites require it): PHPStan cannot read a class whose parent or interface is absent, nor put
     # that in a baseline. It is analysed with the core, by omnisense/omnibase's phpstan.neon (its CI's package job, from
     # vendor/, baseline phpstan-bridges-baseline.neon there) - as omnibridge/doctrine's src/Omnibase.
+    # tests/Omnibase tests that part on the core's kernel (the omnibase harness), so it is set aside too.
     excludePaths:
         - src/Omnibase
+        - tests/Omnibase
     reportUnmatchedIgnoredErrors: false
