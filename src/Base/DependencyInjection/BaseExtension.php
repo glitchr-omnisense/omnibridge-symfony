@@ -11,6 +11,7 @@ use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
+use Symfony\Component\DependencyInjection\Reference;
 
 use Base\Bundle\AbstractBaseExtension;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
@@ -71,6 +72,19 @@ class BaseExtension extends AbstractBaseExtension implements PrependExtensionInt
             ));
         }
 
+        // The sign-in captcha's count in the pool the application names (base.guard.sign_in_pool: a pool shared by
+        // its hosts), where it names one.
+        if (null !== ($config['guard']['sign_in_pool'] ?? null) && $container->hasDefinition('Base\Security\SignInGuard')) {
+            $container->getDefinition('Base\Security\SignInGuard')->setArgument('$cache', new Reference((string) $config['guard']['sign_in_pool']));
+        }
+
+        // The accounts as WebauthnBundle reads them (webauthn.user_repository, prepended), where the bundle is.
+        if ($container->hasExtension('webauthn') || \in_array('Webauthn\Bundle\WebauthnBundle', $container->hasParameter('kernel.bundles') ? (array) $container->getParameter('kernel.bundles') : [], true)) {
+            $container->register(HostConfiguration::PASSKEY_USERS, HostConfiguration::PASSKEY_USERS)
+                ->setArguments([new Reference(HostConfiguration::USERS)])
+                ->setPublic(true);
+        }
+
         // What a service whose class is one of the core's interfaces is tagged with: the core's `autoconfigure` registry
         // (Base\Discovery), compiled here - Symfony reads it before any compiler pass.
         DiscoveryPass::autoconfigure($container, \Base\Discovery::registry('autoconfigure'));
@@ -86,6 +100,10 @@ class BaseExtension extends AbstractBaseExtension implements PrependExtensionInt
         $builder->setParameter('base.package_dir', BaseBundle::getBundleDir());
 
         $this->prependDoctrineTypes($builder);
+
+        // What a site's configuration no longer names: omnibase's classes of Security, Doctrine, the framework and
+        // WebauthnBundle, from the options of base: (HostConfiguration).
+        HostConfiguration::prepend($builder, Persistence::hasDoctrine($builder));
 
         // The core's entities (Base\Entity), mapped by DoctrineBundle's auto_mapping from the bundle's
         // class until 5.0: the bundle is omnibridge/symfony's since the plan "omnibase agnostic"'s step F6,

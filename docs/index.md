@@ -127,6 +127,10 @@ under its class's name. `Omnibridge\Symfony\Omnibase\` keeps the adapters of the
 above): a site or a bundle never names it - it types the contract (`Base\Contract\*`, `Base\Screen\Responder`,
 `Base\Field\Conformance\Host`) and asks the container.
 
+A site's configuration names no class of omnibase: `Base\DependencyInjection\HostConfiguration` prepends, from
+`base.security` (`firewall`, `rescue`, `sign_in`, `access_token`, `provider`, `role_hierarchy`, `access_control`),
+what security.yaml, doctrine.yaml, framework.yaml and webauthn.yaml used to name (tests/HostConfigurationTest).
+
 ## The framework packages
 
 composer.json requires what omnibase's Symfony side needs, so that the core does not: PHP 8.2 or

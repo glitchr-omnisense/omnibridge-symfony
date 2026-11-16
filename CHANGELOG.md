@@ -10,6 +10,11 @@ commands, the kernel subscribers, the DI passes, the router, the cache warmers, 
 writes those names only; `Omnibridge\Symfony\` is plumbing (the adapters of the core's contracts) nobody names.
 
 - The 4.x layer (`Legacy\`, the `class_exists()` fallbacks) is gone.
+- A site's configuration names no class: `Base\DependencyInjection\HostConfiguration` prepends, from `base.security`
+  (`firewall`, `rescue`, `sign_in`, `access_token`, `provider`, `role_hierarchy`, `access_control`), the user checker,
+  the authenticators, the entry points, the token handler and the users' provider of security.yaml, the naming
+  strategy, metadata factory and repository factory of doctrine.yaml, `error_controller` of framework.yaml, the
+  repositories of webauthn.yaml; `base.guard.sign_in_pool` names the sign-in captcha's pool.
 - The repositories are the core's agnostic classes: registered with `Base\Database\Repository\Finders`
   (`Omnibridge\Doctrine\Omnibase\DoctrineFinders` on Doctrine, the persistence's on Eloquent), the registry
   `Base\Database\Repository\EntityRepositories`; the core's lifecycle events relayed from Doctrine's
