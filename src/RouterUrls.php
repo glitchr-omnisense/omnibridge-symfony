@@ -17,20 +17,30 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  */
 final class RouterUrls implements Urls
 {
+    /** @param Urls|null $elsewhere what answers the route names this router lacks (omnibase's base.router.fallback) */
     public function __construct(
         private readonly UrlGeneratorInterface $router,
         private readonly ?Packages $packages = null,
+        private readonly ?Urls $elsewhere = null,
     ) {
     }
 
     public function path(string $name, array $parameters = []): string
     {
-        return $this->router->generate($name, $parameters, UrlGeneratorInterface::ABSOLUTE_PATH);
+        try {
+            return $this->router->generate($name, $parameters, UrlGeneratorInterface::ABSOLUTE_PATH);
+        } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $exception) {
+            return $this->elsewhere?->path($name, $parameters) ?? throw $exception;
+        }
     }
 
     public function url(string $name, array $parameters = []): string
     {
-        return $this->router->generate($name, $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
+        try {
+            return $this->router->generate($name, $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
+        } catch (\Symfony\Component\Routing\Exception\RouteNotFoundException $exception) {
+            return $this->elsewhere?->url($name, $parameters) ?? throw $exception;
+        }
     }
 
     public function asset(string $path): string

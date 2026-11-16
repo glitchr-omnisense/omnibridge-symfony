@@ -15,24 +15,26 @@ use Omnibridge\Contract\Routes;
  */
 final class RouterRoutes implements Routes
 {
+    /** @param Routes|null $elsewhere what answers the route names this router lacks (omnibase's base.router.fallback) */
     public function __construct(
         private readonly AdvancedRouterInterface $router,
         private readonly ?IconProvider $icons = null,
+        private readonly ?Routes $elsewhere = null,
     ) {
     }
 
     public function pattern(string $name): ?string
     {
-        return $this->router->getRouteCollection()->get($name)?->getPath();
+        return $this->router->getRouteCollection()->get($name)?->getPath() ?? $this->elsewhere?->pattern($name);
     }
 
     public function match(string $url): ?string
     {
-        return $this->router->getRouteName($url);
+        return $this->router->getRouteName($url) ?? $this->elsewhere?->match($url);
     }
 
     public function icons(string $name): ?array
     {
-        return $this->icons?->getRouteIcons($name);
+        return $this->icons?->getRouteIcons($name) ?? (null === $this->router->getRouteCollection()->get($name) ? $this->elsewhere?->icons($name) : null);
     }
 }

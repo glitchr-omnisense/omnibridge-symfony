@@ -72,6 +72,12 @@ class BaseExtension extends AbstractBaseExtension implements PrependExtensionInt
             ));
         }
 
+        // base.router.fallback: the service answering the route names this host lacks (another site's routes), behind the
+        // Urls and Routes contracts.
+        if (\is_string($config['router']['fallback'] ?? null) && '' !== $config['router']['fallback']) {
+            HostConfiguration::routerFallback($container, $config['router']['fallback']);
+        }
+
         // The sign-in captcha's count in the pool the application names (base.guard.sign_in_pool: a pool shared by
         // its hosts), where it names one.
         if (null !== ($config['guard']['sign_in_pool'] ?? null) && $container->hasDefinition('Base\Security\SignInGuard')) {

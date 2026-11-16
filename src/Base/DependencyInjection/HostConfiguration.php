@@ -180,6 +180,16 @@ final class HostConfiguration
         return $security;
     }
 
+    /** base.router.fallback: the service answering the route names this host lacks, given to the Urls and Routes adapters. */
+    public static function routerFallback(ContainerBuilder $container, string $service): void
+    {
+        foreach (['Omnibridge\Symfony\RouterUrls', 'Omnibridge\Symfony\Omnibase\RouterRoutes'] as $id) {
+            if ($container->hasDefinition($id)) {
+                $container->getDefinition($id)->setArgument('$elsewhere', new \Symfony\Component\DependencyInjection\Reference($service));
+            }
+        }
+    }
+
     /**
      * At boot: the repositories UnitOfWorks::repositories() gives on this container's entity managers (a fixtures
      * command's, a lifecycle listener's) are the container's registry - the application's repositories its services, a

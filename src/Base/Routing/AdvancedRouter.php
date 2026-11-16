@@ -90,6 +90,15 @@ class AdvancedRouter implements AdvancedRouterInterface, ResetInterface
         return $this->environment;
     }
 
+    /** base.router.fallback_locale: the language a name declared per language is read in last (null: none). */
+    private ?string $fallbackLocale = null;
+
+    /** @internal the generator's: base.router.fallback_locale */
+    public function getFallbackLocale(): ?string
+    {
+        return $this->fallbackLocale;
+    }
+
     public function __construct(Router $router, RequestStack $requestStack, FirewallMapInterface $firewallMap, ParameterBagInterface $parameterBag, LocalizerInterface $localizer, AssetExtension $assetTwigExtension, CacheInterface $cache, string $debug, string $environment)
     {
         $this->debug = $debug;
@@ -107,6 +116,8 @@ class AdvancedRouter implements AdvancedRouterInterface, ResetInterface
 
         $this->useAdvancedFeatures = $parameterBag->get("base.router.use_custom") ?? false;
         $this->useFallbacks = $parameterBag->get("base.router.use_fallbacks") ?? false;
+        $fallbackLocale = $parameterBag->get("base.router.fallback_locale");
+        $this->fallbackLocale = \is_string($fallbackLocale) && '' !== $fallbackLocale ? $fallbackLocale : null;
 
         // The router's options name the matcher and the generator from the container's compilation (AdvancedRouterPass);
         // set here as well for a router this one is given by hand.

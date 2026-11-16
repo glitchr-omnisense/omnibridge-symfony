@@ -87,6 +87,11 @@ class AdvancedUrlGenerator extends CompiledUrlGenerator
         }
     
         $routeCandidates[] = $routeName;
+        // base.router.fallback_locale: a name declared per language, read in that language when the page's has none.
+        $fallback = method_exists(self::router(), 'getFallbackLocale') ? self::router()->getFallbackLocale() : null;
+        if (null !== $fallback && $fallback !== $locale && !str_ends_with($routeName, "." . $fallback)) {
+            $routeCandidates[] = $routeName . "." . $fallback;
+        }
         $routeGroups = self::router()->getRouteGroups($routeName);
 
         // No group for a route the router does not know: its own name (str_ends_with() and substr() were given null, deprecated since PHP 8.1, before RouteNotFoundException).
