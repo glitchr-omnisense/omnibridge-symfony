@@ -4,6 +4,7 @@ namespace Omnibridge\Symfony\Omnibase;
 
 use Base\Screen\File;
 use Base\Screen\Redirect;
+use Base\Screen\Responder;
 use Base\Screen\Json;
 use Base\Screen\Shell;
 use Base\Screen\Template;
@@ -24,7 +25,7 @@ final class ActionResults
 {
     private const RESULTS = [View::class, Template::class, Json::class, Shell::class, File::class, Redirect::class];
 
-    public function __construct(private readonly ScreenResponder $responder)
+    public function __construct(private readonly Responder $responder)
     {
     }
 

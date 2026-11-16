@@ -2,7 +2,7 @@
 
 namespace Omnibridge\Symfony\Tests\Fixtures\DeferredAliases;
 
-use Omnibridge\Symfony\Omnibase\Bundle\AbstractBaseBundle;
+use Base\Bundle\AbstractBaseBundle;
 
 /** AbstractBaseBundle's deferred aliases, asked directly. */
 final class Bundle extends AbstractBaseBundle

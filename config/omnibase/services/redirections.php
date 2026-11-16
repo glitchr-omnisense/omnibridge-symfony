@@ -1,6 +1,6 @@
 <?php
 
-use Omnibridge\Symfony\Omnibase\DependencyInjection\Declarations;
+use Base\DependencyInjection\Declarations;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
@@ -18,5 +18,5 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ->autowire()
         ->autoconfigure();
 
-    $services->set('Omnibridge\Symfony\Omnibase\Subscriber\RedirectionSubscriber');
+    $services->set('Base\Subscriber\RedirectionSubscriber');
 };

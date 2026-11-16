@@ -1,7 +1,7 @@
 <?php
 
-use Omnibridge\Symfony\Omnibase\DependencyInjection\Declarations;
-use Omnibridge\Symfony\Omnibase\DependencyInjection\Persistence;
+use Base\DependencyInjection\Declarations;
+use Base\DependencyInjection\Persistence;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use \Symfony\Component\DependencyInjection\ContainerInterface;
@@ -17,7 +17,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ->public(false);
 
     // Controllers
-    $services->set('Omnibridge\Symfony\Omnibase\Controller\ErrorController')
+    $services->set('Base\Controller\ErrorController')
         ->tag('controller.service_arguments')
         ->tag('container.service_subscriber')
         ->call('setContainer', [new Reference('Psr\Container\ContainerInterface')])
@@ -26,15 +26,16 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
             new Reference('advanced_router'),
             new Reference('Base\Request\ErrorPage'),
             new Reference('request_stack'),
-            new Reference('profiler', ContainerInterface::IGNORE_ON_INVALID_REFERENCE)
+            new Reference('profiler', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
+            new Reference('error_renderer', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
         ]);
 
-    $services->set('Omnibridge\Symfony\Omnibase\Controller\SitemapController')
+    $services->set('Base\Controller\SitemapController')
         ->tag('controller.service_arguments')
         ->tag('container.service_subscriber')
         ->call('setContainer', [new Reference('Psr\Container\ContainerInterface')]);
 
-    $services->set('Omnibridge\Symfony\Omnibase\Controller\RescueController')
+    $services->set('Base\Controller\RescueController')
         ->tag('controller.service_arguments')
         ->tag('container.service_subscriber')
         ->call('setContainer', [new Reference('Psr\Container\ContainerInterface')])
@@ -45,7 +46,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
             new Reference('Base\Auth\Account\RescuePage'),
         ]);
 
-    $services->set('Omnibridge\Symfony\Omnibase\Controller\SecurityController')
+    $services->set('Base\Controller\SecurityController')
         ->tag('controller.service_arguments')
         ->tag('container.service_subscriber')
         ->call('setContainer', [new Reference('Psr\Container\ContainerInterface')])
@@ -66,7 +67,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ]);
 
     // Subscribers
-    $services->set('Omnibridge\Symfony\Omnibase\Subscriber\LocalizerSubscriber')
+    $services->set('Base\Subscriber\LocalizerSubscriber')
         ->tag('kernel.event_subscriber')
         ->args([
             new Reference('localizer'),
@@ -77,10 +78,10 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // Former EagerSubscriber: eager construction is obsolete now that
     // AttributeReader's constructor is metadata-free (heavy precompute moved
     // to AttributeCacheWarmer) — only the cache-valid marker remains.
-    $services->set('Omnibridge\Symfony\Omnibase\Subscriber\ValidCacheSubscriber')
+    $services->set('Base\Subscriber\ValidCacheSubscriber')
         ->tag('kernel.event_subscriber');
 
-    $services->set('Omnibridge\Symfony\Omnibase\Subscriber\FlashBagSubscriber')
+    $services->set('Base\Subscriber\FlashBagSubscriber')
         ->tag('kernel.event_subscriber');
 
     // Database subscribers: Doctrine's, only where Doctrine is there (plan "omnibase agnostic", step B3); omnibridge/
@@ -96,7 +97,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
             ->decorate('doctrine.dbal.default_schema_manager_factory', null, 0, ContainerInterface::IGNORE_ON_INVALID_REFERENCE)
             ->args([new Reference('.inner')]);
 
-        $services->set('Omnibridge\Doctrine\Omnibase\DatabaseSubscriber\AttributeSubscriber')
+        $services->set('Base\DatabaseSubscriber\AttributeSubscriber')
             ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata', 'priority' => 4096])
             ->tag('doctrine.event_listener', ['event' => 'resolveDiscriminator', 'priority' => 2048])
             ->tag('doctrine.event_listener', ['event' => 'preQuery', 'priority' => 2048])
@@ -122,7 +123,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         * Doctrine Subscribers
         * ------------------------------*/
 
-        $services->set('Omnibridge\Doctrine\Omnibase\DatabaseSubscriber\IntlSubscriber')
+        $services->set('Base\DatabaseSubscriber\IntlSubscriber')
             ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata',    'priority' => 4096])
             ->tag('doctrine.event_listener', ['event' => 'resolveDiscriminator', 'priority' => 2048])
             ->tag('doctrine.event_listener', ['event' => 'onQuery',              'priority' => 2048])
@@ -136,14 +137,14 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
             ]);
 
         // Low priority: after the subscribers that still change associations in onFlush.
-        $services->set('Omnibridge\Doctrine\Omnibase\DatabaseSubscriber\InverseCollectionCacheSubscriber')
+        $services->set('Base\DatabaseSubscriber\InverseCollectionCacheSubscriber')
             ->tag('doctrine.event_listener', ['event' => 'onFlush', 'priority' => -1024]);
 
-        $services->set('Omnibridge\Doctrine\Omnibase\DatabaseSubscriber\TrackingPolicySubscriber')
+        $services->set('Base\DatabaseSubscriber\TrackingPolicySubscriber')
             ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata'])
             ->args([new Reference('base.database.metadata_manipulator')]);
 
-        $services->set('Omnibridge\Doctrine\Omnibase\EntitySubscriber\ExtensionSubscriber')
+        $services->set('Base\EntitySubscriber\ExtensionSubscriber')
             ->tag('doctrine.event_listener', ['event' => 'onFlush'])
             ->tag('doctrine.event_listener', ['event' => 'postPersist'])
             ->tag('doctrine.event_listener', ['event' => 'loadClassMetadata'])
@@ -157,14 +158,14 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         // stamped updatedAt and the initiator by the time a revision reads the
         // change set; Trasheable runs above Versionable so a removal that turns
         // into a soft delete never also reads as an edit.
-        $services->set('Omnibridge\Doctrine\Omnibase\EntitySubscriber\TrasheableSubscriber')
+        $services->set('Base\EntitySubscriber\TrasheableSubscriber')
             ->tag('doctrine.event_listener', ['event' => 'onFlush',   'priority' => 1024])
             ->tag('doctrine.event_listener', ['event' => 'postFlush', 'priority' => 1024])
             ->args([
                 '%base.extension.empty_trash%',
             ]);
 
-        $services->set('Omnibridge\Doctrine\Omnibase\EntitySubscriber\VersionableSubscriber')
+        $services->set('Base\EntitySubscriber\VersionableSubscriber')
             ->tag('doctrine.event_listener', ['event' => 'onFlush',   'priority' => 512])
             ->tag('doctrine.event_listener', ['event' => 'postFlush', 'priority' => 512])
             ->args([

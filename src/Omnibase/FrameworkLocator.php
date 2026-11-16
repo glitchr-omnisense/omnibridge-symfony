@@ -2,9 +2,9 @@
 
 namespace Omnibridge\Symfony\Omnibase;
 
-use Omnibridge\Doctrine\Omnibase\Database\Mapping\ClassMetadataManipulator;
+use Base\Database\Mapping\ClassMetadataManipulator;
 use Omnibridge\Doctrine\Omnibase\DoctrineLocator;
-use Omnibridge\Symfony\Omnibase\Routing\AdvancedRouterInterface;
+use Base\Routing\AdvancedRouterInterface;
 use Base\Service\BaseService;
 use Base\Service\Locator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -58,7 +58,7 @@ final class FrameworkLocator
         return DoctrineLocator::entityManager($reopen);
     }
 
-    public static function repository(object|string $entity): ?ObjectRepository
+    public static function repository(object|string $entity): ?object
     {
         return DoctrineLocator::repository($entity);
     }

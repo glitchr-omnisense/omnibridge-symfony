@@ -1,6 +1,6 @@
 <?php
 
-use Omnibridge\Symfony\Omnibase\DependencyInjection\Declarations;
+use Base\DependencyInjection\Declarations;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 

@@ -2,7 +2,7 @@
 
 namespace Omnibridge\Symfony\Tests\Routing;
 
-use Omnibridge\Symfony\Omnibase\Routing\Matcher\AdvancedUrlMatcher;
+use Base\Routing\Matcher\AdvancedUrlMatcher;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;

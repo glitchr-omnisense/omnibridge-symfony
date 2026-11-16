@@ -91,7 +91,7 @@ Moved:
 | `Base\Bridge\Symfony\SecuritySessions` | `Omnibridge\Symfony\Contract\SecuritySessions` | the token storage and the cookie; omnibase's router now a closure for the domain |
 | `Base\Bridge\Symfony\CsrfTokens` | `Omnibridge\Symfony\Contract\CsrfTokens` | the CSRF token manager |
 | `Base\Bridge\Symfony\FileLinks` | `Omnibridge\Symfony\FileLinks` | ErrorHandler's formatter, `APP_PATH` |
-| `Omnibridge\Symfony\Omnibase\Legacy\DependencyInjection\Compiler\Pass\ContractsPass` (its building) | `Omnibridge\Symfony\DependencyInjection\ContractsPass` | a locator of contracts; omnibase's pass keeps its list and delegates |
+| `Base\DependencyInjection\Compiler\Pass\ContractsPass` (the former pass, removed) | `Omnibridge\Symfony\DependencyInjection\ContractsPass` | a locator of contracts; omnibase's pass keeps its list and delegates |
 
 The former names were aliases of the new classes (declared by omnibase's `src/Resources/Aliases.php`,
 their service ids aliases of the new ones) until omnibase 4's final pass, which removed them
@@ -109,8 +109,8 @@ Stayed in the core, `Base\` (omnibase's domain under Symfony, D3):
 | `Base\Bridge\Symfony\NotificationMessages` | the Symfony half of omnibase's Notification entity |
 | `Omnibridge\Symfony\Omnibase\SettingBagWarmer` | omnibase's SettingBag |
 | `Base\Bridge\Symfony\SecurityUser`, `TwoFactorUser` | what omnibase's `User` declares to Security and scheb/2fa (C7b) |
-| `Omnibridge\Symfony\Omnibase\Service\ParameterBag`, `HotParameterBag` | omnibase's parameters, the settings stored in its database over the container's |
-| `Omnibridge\Symfony\Omnibase\BaseBundle`, its extension, configuration and compiler passes | omnibase's bundle |
+| `Base\Service\ParameterBag`, `HotParameterBag` | omnibase's parameters, the settings stored in its database over the container's |
+| `Base\BaseBundle`, its extension, configuration and compiler passes | omnibase's bundle |
 | forms, fields, controllers, subscribers | Symfony by nature, omnibase's (D3) |
 
 Since omnibase's step F5d, the field types that held a rich kind's logic read it from omnibase's neutral
@@ -118,11 +118,14 @@ behaviours (`Base\Field\Behaviour\*`: the date picker, the slug, the switch, the
 settings), the objects omnibridge/laravel's renderer reads too; `Omnibase\Form\SymfonyKinds::COVERAGE` declares what
 Symfony draws of every kind, and `Omnibase\Form\Conformance\SymfonyHost` runs omnibase's field conformance suite on it.
 
-The classes that moved from the core to `Omnibridge\Symfony\Omnibase\` have one name since 2.0, which goes with
-omnisense/omnibase 6.0: the core no longer aliases their former `Base\` names (1.x registered both, and
-`SymfonyKinds` gave a kind's type by its former name). Every service is registered under its class's name;
-`SymfonyKinds` gives `Omnibridge\Symfony\Omnibase\Field\Type\*`. The core's `UPGRADE-6.0.md` lists each former
-name with its replacement.
+What is Symfony by nature in omnibase is this package's, under its `Base\` name (PSR-4 `Base\` => `src/Base/`):
+`Base\BaseBundle`, `Base\Bundle\AbstractBase*`, `Base\Security\*`, `Base\Form\*`, `Base\Field\Type\*`,
+`Base\Controller\*`, `Base\Console\*`, `Base\Subscriber\*`, `Base\DependencyInjection\*`, `Base\Routing\*`,
+`Base\Cache\*`, `Base\Response\*`, `Base\Inspector\*`, `Base\Service\{ParameterBag, HotParameterBag}`. One
+owner per class: a class exists either in the core or here (tests/SingleOwnerTest). Every service is registered
+under its class's name. `Omnibridge\Symfony\Omnibase\` keeps the adapters of the core's contracts only (the table
+above): a site or a bundle never names it - it types the contract (`Base\Contract\*`, `Base\Screen\Responder`)
+and asks the container.
 
 ## The framework packages
 

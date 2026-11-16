@@ -5,7 +5,7 @@ namespace Omnibridge\Symfony\Omnibase\Form\Conformance;
 use Base\Field\Conformance\Host;
 use Base\Field\Conformance\Outcome;
 use Base\Form\Definition\FormDefinition;
-use Omnibridge\Symfony\Omnibase\Form\DefinitionForms;
+use Base\Form\DefinitionForms;
 use Symfony\Component\Form\FormInterface;
 use Twig\Environment;
 

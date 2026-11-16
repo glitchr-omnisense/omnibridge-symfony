@@ -1,6 +1,6 @@
 <?php
 
-use Omnibridge\Symfony\Omnibase\DependencyInjection\Declarations;
+use Base\DependencyInjection\Declarations;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -14,20 +14,20 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     $services->defaults()
         ->public(false);
 
-    // ParameterBag services (plan "omnibase agnostique", C9): Omnibridge\Symfony\Omnibase\Service\ParameterBag, the container's
+    // ParameterBag services (plan "omnibase agnostique", C9): Base\Service\ParameterBag, the container's
     // parameters by a dotted path, decorates Symfony's parameter_bag; HotParameterBag, the settings stored
     // in the database laid over it, decorates it in turn and is `parameter_bag`. omnibase's
     // ParameterBagInterface is that same object, as DependencyInjection's interfaces and
     // Runtime::parameters() (Base\Discovery's `contracts`) are - it was the plain ParameterBag, without the settings.
     $services->alias('Base\Service\ParameterBagInterface', 'parameter_bag');
 
-    $services->set('Omnibridge\Symfony\Omnibase\Service\ParameterBag')
+    $services->set('Base\Service\ParameterBag')
         ->parent('parameter_bag')
         ->decorate('parameter_bag')
         ->public(true);
 
-    $services->set('Omnibridge\Symfony\Omnibase\Service\HotParameterBag')
-        ->args([service('Omnibridge\Symfony\Omnibase\Service\ParameterBag')])
+    $services->set('Base\Service\HotParameterBag')
+        ->args([service('Base\Service\ParameterBag')])
         ->decorate('parameter_bag')
         ->public(true);
 
@@ -37,9 +37,9 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     Declarations::group($builder, 'decoration');
 
     // Form services
-    $services->alias('Omnibridge\Symfony\Omnibase\Form\FormFactoryInterface', 'Omnibridge\Symfony\Omnibase\Form\FormFactory');
+    $services->alias('Base\Form\FormFactoryInterface', 'Base\Form\FormFactory');
 
-    $services->set('Omnibridge\Symfony\Omnibase\Form\FormFactory')
+    $services->set('Base\Form\FormFactory')
         ->parent('form.factory')
         ->decorate('form.factory')
         ->args([
@@ -63,8 +63,8 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ]);
 
     // Console commands
-    $services->set('Omnibridge\Symfony\Omnibase\Console\Command\CacheClearCommand')
-        ->parent('Omnibridge\Symfony\Omnibase\Console\Command')
+    $services->set('Base\Console\Command\CacheClearCommand')
+        ->parent('Base\Console\Command')
         ->decorate('console.command.cache_clear')
         ->tag('console.command')
         ->args([
@@ -74,6 +74,8 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
             new Reference('base.notifier'),
             new Reference('advanced_router'),
         ])
+        // After args(): args() replaces the whole list, an index set before it with it.
+        ->arg('index_2', new Reference('doctrine.orm.entity_manager', ContainerInterface::NULL_ON_INVALID_REFERENCE))
         ->bind('$projectDir', '%kernel.project_dir%')
         ->bind('$cacheDir', '%kernel.cache_dir%');
 };

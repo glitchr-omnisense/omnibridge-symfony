@@ -1,6 +1,6 @@
 <?php
 
-use Omnibridge\Symfony\Omnibase\DependencyInjection\Declarations;
+use Base\DependencyInjection\Declarations;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
@@ -23,15 +23,15 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ->autoconfigure();
 
     // A TemplatedEmail's {% block subject %} becomes its subject.
-    $services->set('Omnibridge\Symfony\Omnibase\Subscriber\TemplatedEmailSubjectSubscriber')
+    $services->set('Base\Subscriber\TemplatedEmailSubjectSubscriber')
         ->args([service('twig')])
         ->tag('kernel.event_subscriber');
     // The second-level cache emptied after doctrine:fixtures:load and the like.
-    $services->set('Omnibridge\Symfony\Omnibase\Subscriber\SecondLevelCacheConsoleSubscriber')
+    $services->set('Base\Subscriber\SecondLevelCacheConsoleSubscriber')
         ->args([service('doctrine')->nullOnInvalid()])
         ->tag('kernel.event_subscriber');
     // The sign-in's captcha after a few failures from an address (base.guard.sign_in_after).
-    $services->set('Omnibridge\Symfony\Omnibase\Security\SignInGuard')->public()
+    $services->set('Base\Security\SignInGuard')->public()
         ->arg('$cache', service('cache.app')->nullOnInvalid())
         ->arg('$logger', service('logger')->nullOnInvalid());
 

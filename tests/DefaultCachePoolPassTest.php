@@ -2,7 +2,7 @@
 
 namespace Omnibridge\Symfony\Tests;
 
-use Omnibridge\Symfony\Omnibase\DependencyInjection\Compiler\Pass\DefaultCachePoolPass;
+use Base\DependencyInjection\Compiler\Pass\DefaultCachePoolPass;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;

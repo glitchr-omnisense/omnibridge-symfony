@@ -7,7 +7,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Illuminate\Database\Connection;
 use Omnibridge\Eloquent\Connections;
 use Omnibridge\Eloquent\Omnibase\EloquentPersistence;
-use Omnibridge\Symfony\Omnibase\Console\InstalledEntities;
+use Base\Console\InstalledEntities;
 use Psr\Container\ContainerInterface;
 
 /**

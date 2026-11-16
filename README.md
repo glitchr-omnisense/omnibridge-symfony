@@ -14,7 +14,7 @@ composer require omnisense/omnibase omnibridge/symfony
 ```
 
 Since omnibase 5.0 (plan "omnibase agnostic", step F6) the bundle itself is here:
-`Omnibridge\Symfony\Omnibase\BaseBundle` (registered in `config/bundles.php` in place of
+`Base\BaseBundle` (registered in `config/bundles.php` in place of
 `Base\BaseBundle`), its extension and configuration (`base:`), its compiler passes, the Symfony
 controllers, whose routes an application imports with `type: omnibase`, and the service
 configuration (`config/omnibase/`). With omnibase 4.x, omnibase's own `Base\BaseBundle` runs and

@@ -1,6 +1,6 @@
 <?php
 
-use Omnibridge\Symfony\Omnibase\DependencyInjection\Declarations;
+use Base\DependencyInjection\Declarations;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use \Symfony\Component\DependencyInjection\ContainerInterface;
@@ -14,7 +14,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ->public(false);
 
     // A neutral FormDefinition as a Symfony form (plan "omnibase agnostic", step F5b).
-    $services->set('Omnibridge\Symfony\Omnibase\Form\DefinitionForms')
+    $services->set('Base\Form\DefinitionForms')
         ->public()
         ->args([new Reference('form.factory')]);
 
@@ -26,14 +26,14 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // ------------------------------
     // Form Extensions
     // ------------------------------
-    $services->set('Omnibridge\Symfony\Omnibase\Form\Extension\FormTypeBootstrapExtension')
+    $services->set('Base\Form\Extension\FormTypeBootstrapExtension')
         ->tag('form.type_extension')
         ->args([new Reference('parameter_bag')]);
 
-    $services->set('Omnibridge\Symfony\Omnibase\Form\Extension\FormTypeCsrfExtension')
+    $services->set('Base\Form\Extension\FormTypeCsrfExtension')
         ->tag('form.type_extension');
 
-    $services->set('Omnibridge\Symfony\Omnibase\Form\Extension\FormTypeExtension')
+    $services->set('Base\Form\Extension\FormTypeExtension')
         ->tag('form.type_extension')
         ->args([
             new Reference('advanced_router'),
@@ -46,11 +46,11 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
             new Reference('translator', ContainerInterface::NULL_ON_INVALID_REFERENCE),
         ]);
 
-    $services->set('Omnibridge\Symfony\Omnibase\Form\Extension\FormTypeCollectionExtension')
+    $services->set('Base\Form\Extension\FormTypeCollectionExtension')
         ->tag('form.type_extension')
         ->args([new Reference('base.database.metadata_manipulator')]);
 
-    $services->set('Omnibridge\Symfony\Omnibase\Form\Extension\FormTypeCollabExtension')
+    $services->set('Base\Form\Extension\FormTypeCollabExtension')
         ->tag('form.type_extension')
         ->args([
             new Reference('Base\Service\Collab\CollabRoomResolver'),
@@ -64,10 +64,10 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // Controllers, Subscribers, Security
     // ------------------------------
     $controllerServices = [
-        'Omnibridge\Symfony\Omnibase\Controller\Client\ThreadSearchController',
-        'Omnibridge\Symfony\Omnibase\Controller\Client\UserSearchController',
-        'Omnibridge\Symfony\Omnibase\Controller\Client\UserProfileController',
-        'Omnibridge\Symfony\Omnibase\Controller\Client\UserSettingsController',
+        'Base\Controller\Client\ThreadSearchController',
+        'Base\Controller\Client\UserSearchController',
+        'Base\Controller\Client\UserProfileController',
+        'Base\Controller\Client\UserSettingsController',
     ];
 
     foreach ($controllerServices as $controller) {
@@ -79,20 +79,20 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
             ->call('setContainer', [new Reference('Psr\Container\ContainerInterface')]);
     }
 
-    $services->set('Omnibridge\Symfony\Omnibase\Security\UserChecker')
+    $services->set('Base\Security\UserChecker')
         ->args([new Reference('Omnibridge\Persistence\UnitOfWork'), new Reference('Base\Notifier\Notifier', ContainerInterface::NULL_ON_INVALID_REFERENCE)]);
 
     // hwi/oauth-bundle is a suggestion since 4.0: the provider is OAuth-aware when it is there.
-    $services->set('Omnibridge\Symfony\Omnibase\Security\UserProvider', interface_exists('HWI\Bundle\OAuthBundle\Security\Core\User\OAuthAwareUserProviderInterface') ? 'Omnibridge\Symfony\Omnibase\Security\OAuthUserProvider' : 'Omnibridge\Symfony\Omnibase\Security\UserProvider')
+    $services->set('Base\Security\UserProvider', interface_exists('HWI\Bundle\OAuthBundle\Security\Core\User\OAuthAwareUserProviderInterface') ? 'Base\Security\OAuthUserProvider' : 'Base\Security\UserProvider')
         ->args([
             new Reference('Base\Security\UserTracker'),
             new Reference('Base\Repository\Users'),
         ]);
 
-    $services->set('Omnibridge\Symfony\Omnibase\Security\RescueFormAuthenticator')
-        ->parent('Omnibridge\Symfony\Omnibase\Security\LoginFormAuthenticator');
+    $services->set('Base\Security\RescueFormAuthenticator')
+        ->parent('Base\Security\LoginFormAuthenticator');
 
-    $services->set('Omnibridge\Symfony\Omnibase\Security\LoginFormAuthenticator')
+    $services->set('Base\Security\LoginFormAuthenticator')
         ->args([
             new Reference('referrer'),
             new Reference('Base\Repository\Users'),
@@ -101,7 +101,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ]);
 
     $subscriberServices = [
-        'Omnibridge\Symfony\Omnibase\Subscriber\NotifierSubscriber' => [
+        'Base\Subscriber\NotifierSubscriber' => [
             'args' => [
                 new Reference('base.notifier'),
                 new Reference('security.authorization_checker'),
@@ -109,13 +109,13 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
             ],
             'bind' => ['$debug' => '%kernel.debug%']
         ],
-        'Omnibridge\Symfony\Omnibase\Subscriber\IsGrantedSubscriber' => [
+        'Base\Subscriber\IsGrantedSubscriber' => [
             'args' => [
                 new Reference('base.attribute_reader'),
                 new Reference('security.authorization_checker', ContainerInterface::NULL_ON_INVALID_REFERENCE)
             ]
         ],
-        'Omnibridge\Symfony\Omnibase\Subscriber\SecuritySubscriber' => [
+        'Base\Subscriber\SecuritySubscriber' => [
             'args' => [
                 // The users' repository of the persistence chosen on 5.x (plan "omnibase agnostic", step B3): Doctrine's
                 // App\Repository\UserRepository on doctrine, as before.
@@ -137,7 +137,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
                 new Reference('Omnibridge\Contract\Urls', ContainerInterface::NULL_ON_INVALID_REFERENCE),
             ]
         ],
-        'Omnibridge\Symfony\Omnibase\Subscriber\ReferrerSubscriber' => [
+        'Base\Subscriber\ReferrerSubscriber' => [
             'args' => [
                 new Reference('referrer'),
                 new Reference('advanced_router'),

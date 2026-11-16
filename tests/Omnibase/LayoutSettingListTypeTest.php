@@ -2,11 +2,11 @@
 
 namespace Omnibridge\Symfony\Tests\Omnibase;
 
-use Omnibridge\Symfony\Omnibase\Field\Type\DateTimePickerType;
-use Omnibridge\Symfony\Omnibase\Field\Type\FileType;
-use Omnibridge\Symfony\Omnibase\Field\Type\ImageType;
-use Omnibridge\Symfony\Omnibase\Form\FormTypes;
-use Omnibridge\Symfony\Omnibase\Form\Type\LayoutSettingListType;
+use Base\Field\Type\DateTimePickerType;
+use Base\Field\Type\FileType;
+use Base\Field\Type\ImageType;
+use Base\Form\FormTypes;
+use Base\Form\Type\LayoutSettingListType;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormInterface;
@@ -39,9 +39,9 @@ class LayoutSettingListTypeTest extends KernelTestCase
     /** @return iterable<string, array{string, string}> */
     public static function names(): iterable
     {
-        yield 'image' => ['\\Omnibridge\\Symfony\\Omnibase\\Field\\Type\\ImageType', ImageType::class];
-        yield 'file' => ['\\Omnibridge\\Symfony\\Omnibase\\Field\\Type\\FileType', FileType::class];
-        yield 'date time picker' => ['\\Omnibridge\\Symfony\\Omnibase\\Field\\Type\\DateTimePickerType', DateTimePickerType::class];
+        yield 'image' => ['\\Base\\Field\\Type\\ImageType', ImageType::class];
+        yield 'file' => ['\\Base\\Field\\Type\\FileType', FileType::class];
+        yield 'date time picker' => ['\\Base\\Field\\Type\\DateTimePickerType', DateTimePickerType::class];
     }
 
     /** @dataProvider names */

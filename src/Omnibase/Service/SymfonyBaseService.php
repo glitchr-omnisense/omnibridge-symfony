@@ -19,10 +19,10 @@ use Omnibridge\Contract\Access;
 use Omnibridge\Contract\Environment as EnvironmentContract;
 use Omnibridge\Contract\Requests;
 use Omnibridge\Contract\Urls;
-use Omnibridge\Symfony\Omnibase\Database\MetadataManipulator as ClassMetadataManipulator;
+use Base\Database\Mapping\MetadataManipulator as ClassMetadataManipulator;
 use Omnibridge\Doctrine\Omnibase\DoctrineLocator;
 use Omnibridge\Symfony\Omnibase\FrameworkLocator;
-use Omnibridge\Symfony\Omnibase\Routing\AdvancedRouterInterface;
+use Base\Routing\AdvancedRouterInterface;
 use Base\Service\Model\DevelopmentEnvironment;
 use Doctrine\Persistence\Event\PreUpdateEventArgs;
 use Doctrine\Persistence\ManagerRegistry;
@@ -56,7 +56,7 @@ use Twig\Environment;
 
 // The alias this class is typed on (the core's MetadataManipulator on 5.x, Doctrine's on 4.x), defined when this file
 // is loaded: a type check never autoloads, and BaseBundle.php, which defines it too, is not every application's
-// (a 4.x one registers the core's Omnibridge\Symfony\Omnibase\BaseBundle; plan "omnibase agnostic", step B3).
+// (a 4.x one registers the core's Base\BaseBundle; plan "omnibase agnostic", step B3).
 class_exists(ClassMetadataManipulator::class);
 
 /**

@@ -2,7 +2,7 @@
 
 namespace Omnibridge\Symfony\Tests;
 
-use Omnibridge\Symfony\Omnibase\DependencyInjection\CacheWarmers;
+use Base\DependencyInjection\CacheWarmers;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
@@ -22,14 +22,14 @@ final class OptionalPackagesTest extends TestCase
         self::assertFalse($installed, 'this package\'s suite runs without phpoffice/phpspreadsheet');
 
         $warmers = CacheWarmers::declarations();
-        self::assertArrayNotHasKey('Omnibridge\Symfony\Omnibase\Cache\Warmer\SpreadsheetCacheWarmer', $warmers);
+        self::assertArrayNotHasKey('Base\Cache\Warmer\SpreadsheetCacheWarmer', $warmers);
         self::assertSame([
-            'Omnibridge\Symfony\Omnibase\Cache\Warmer\IconCacheWarmer',
-            'Omnibridge\Symfony\Omnibase\Cache\Warmer\LocalizerCacheWarmer',
-            'Omnibridge\Symfony\Omnibase\Cache\Warmer\ThemizerCacheWarmer',
-            'Omnibridge\Symfony\Omnibase\Cache\Warmer\AttributeCacheWarmer',
-            'Omnibridge\Symfony\Omnibase\Cache\Warmer\MetadataCacheWarmer',
+            'Base\Cache\Warmer\IconCacheWarmer',
+            'Base\Cache\Warmer\LocalizerCacheWarmer',
+            'Base\Cache\Warmer\ThemizerCacheWarmer',
+            'Base\Cache\Warmer\AttributeCacheWarmer',
+            'Base\Cache\Warmer\MetadataCacheWarmer',
         ], array_keys($warmers));
-        self::assertSame(['base.database.metadata_manipulator', 'base.attribute_reader', '$cacheDir' => '%kernel.cache_dir%'], $warmers['Omnibridge\Symfony\Omnibase\Cache\Warmer\MetadataCacheWarmer']);
+        self::assertSame(['base.database.metadata_manipulator', 'base.attribute_reader', '$cacheDir' => '%kernel.cache_dir%'], $warmers['Base\Cache\Warmer\MetadataCacheWarmer']);
     }
 }

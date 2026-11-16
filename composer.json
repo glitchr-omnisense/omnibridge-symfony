@@ -1,6 +1,6 @@
 {
     "name": "omnibridge/symfony",
-    "description": "The Symfony host of omnisense/omnibridge's contracts (urls, translations, access, sessions, tokens, environment) - adapters over Symfony's router, translator, security and kernel, their container wiring and OmnibridgeBundle - and the framework packages omnisense/omnibase no longer requires. A Symfony site requires it beside the core.",
+    "description": "The Symfony host of omnisense/omnibase: what is Symfony by nature in omnibase, declared under its Base\\ names (Base\\BaseBundle, the security glue, the form and field types, the controllers, the console commands, the kernel subscribers, the DI passes, the router), the adapters of omnisense/omnibridge's contracts over Symfony's services, and the framework packages the core does not require. A Symfony site requires it beside the core and names Base\\ only.",
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -61,28 +61,26 @@
         "symfony/rate-limiter": "^7.0|^8.0",
         "symfony/translation": "^6.0|^7.0|^8.0"
     },
-    "conflict": {
-        "omnisense/omnibase": "<6.0"
-    },
     "suggest": {
         "omnibridge/doctrine": "omnibase's persistence on Doctrine's ORM (base.persistence: doctrine, the default where it is installed), with doctrine/doctrine-bundle and symfony/doctrine-bridge: Doctrine's wiring - the entity manager's listeners and filters, the DBAL types, the Doctrine-named commands (doctrine:schema:charset, doctrine:database:import...) - is registered only where it is installed (Persistences::isInstalled('doctrine'), plan \"omnibase agnostic\", step B3); omnibridge/eloquent is the other persistence",
         "doctrine/doctrine-bundle": "Doctrine's entity manager and connection as Symfony services, for omnibridge/doctrine (the persistence on Doctrine) and the packages written on DoctrineBundle (omnibase/admin's EasyAdmin, API Platform's doctrine-orm)",
         "symfony/doctrine-bridge": "The security provider `entity:` and the form type EntityType on Doctrine, for omnibridge/doctrine; on omnibridge/eloquent, the users' provider is Base\\Repository\\Users",
-        "omnisense/omnibase": "Omnibridge\\Symfony\\Omnibase\\: omnibase's Symfony form layer, moved from the core (^6.0: no former Base\\ name any more): the form types, extensions, FormFactory, FormProxy, FormProcessor",
-        "omniauth/google": "Google sign-in through Omnibridge\\Symfony\\Auth\\ (omniauth.yaml: oauth.providers.google; its GoogleFactory is registered when it is installed)",
-        "omniauth/otp": "Authenticator applications through Omnibridge\\Symfony\\Auth\\ (omniauth.yaml: totp; totp.secret_key seals the secrets at rest), formerly omniauth/totp",
-        "omniauth/webauthn": "Passkeys through Omnibridge\\Symfony\\Auth\\ (omniauth.yaml: passkey), formerly omniauth/passkey",
-        "omnisense/omniauth": "Omnibridge\\Symfony\\Auth\\: one authenticator over omniauth for every way of signing in (password, sign-in link, e-mailed code, backup codes, trusted devices, identity providers - omniauth's Omniauth\\OAuth\\, each provider a package of its own), its second factor's token and page, its routes; config/packages/omniauth.yaml (nothing of Auth\\ without it)",
-        "omnisense/omnimap": "Omnibridge\\Symfony\\Map\\: maps through omnimap (config/packages/omnimap.yaml) - its providers over the application's HTTP client and cache pool, the map cache over a storage service of the application's, the cache's routes (type \"omnimap\") and controller, omnibridge/twig's MapExtension (omnimap(), omnimap_export(), omnimap_suppress()); omnimap/google, omnimap/openstreetmap and omnimap/maplibre registered when installed",
-        "omnibridge/static": "Static\\BuildCommand: bin/console omnibridge:static:build, omnibridge/static's export of the site a static.php declares, rendered by this kernel",
+        "omnisense/omnibase": "omnibase's Symfony side under Base\\: the bundle, the form layer (Base\\Form\\*, Base\\Field\\Type\\*), the security glue (Base\\Security\\*), the controllers, the commands, the subscribers",
+        "omniauth/google": "Google sign-in through the sign-in adapters (Auth) (omniauth.yaml: oauth.providers.google; its GoogleFactory is registered when it is installed)",
+        "omniauth/otp": "Authenticator applications through the sign-in adapters (Auth) (omniauth.yaml: totp; totp.secret_key seals the secrets at rest), formerly omniauth/totp",
+        "omniauth/webauthn": "Passkeys through the sign-in adapters (Auth) (omniauth.yaml: passkey), formerly omniauth/passkey",
+        "omnisense/omniauth": "the sign-in adapters (Auth): one authenticator over omniauth for every way of signing in (password, sign-in link, e-mailed code, backup codes, trusted devices, identity providers - omniauth's Omniauth\\OAuth\\, each provider a package of its own), its second factor's token and page, its routes; config/packages/omniauth.yaml (nothing of Auth\\ without it)",
+        "omnisense/omnimap": "the map adapters (Map): maps through omnimap (config/packages/omnimap.yaml) - its providers over the application's HTTP client and cache pool, the map cache over a storage service of the application's, the cache's routes (type \"omnimap\") and controller, omnibridge/twig's MapExtension (omnimap(), omnimap_export(), omnimap_suppress()); omnimap/google, omnimap/openstreetmap and omnimap/maplibre registered when installed",
+        "omnibridge/static": "the omnibridge:static:build command: bin/console omnibridge:static:build, omnibridge/static's export of the site a static.php declares, rendered by this kernel",
         "omnisense/omnidrive": "Omnidrive\\Drives: the storages of league/flysystem-bundle's configuration (the services tagged flysystem.storage) as omnidrive's drives, by their names",
         "symfony/monolog-bundle": "Monolog's handlers and channels, MonologBundle registered by the application (^3.8|^4.0): omnibase's services log through psr/log's LoggerInterface, whatever answers it, and none needs MonologBundle's services with omnisense/omnibase 5.0 (SpamChecker makes monolog.http_client's client itself where it is not there); with it, the demo environment's messages go to the channel `demo`",
         "symfony/asset": "RouterUrls::asset() through the application's asset packages (assets.packages); without it, the path as it is",
-        "omnisense/contracts": "Omnibridge\\Symfony\\Policy\\RateLimiter: omnisense/contracts' RateLimiterInterface (the usage policies' limits and waits of the omni families' providers) over symfony/rate-limiter, with it",
-        "symfony/rate-limiter": "Omnibridge\\Symfony\\Policy\\RateLimiter: a provider policy's limits counted by Symfony's rate limiter, each a fixed window over the application's storage (a CacheStorage on a shared pool: every process counts together), with omnisense/contracts; symfony/lock keeps two processes from counting one window at once"
+        "omnisense/contracts": "the rate limiter bound to omnisense/contracts' RateLimiterInterface: omnisense/contracts' RateLimiterInterface (the usage policies' limits and waits of the omni families' providers) over symfony/rate-limiter, with it",
+        "symfony/rate-limiter": "the rate limiter bound to omnisense/contracts' RateLimiterInterface: a provider policy's limits counted by Symfony's rate limiter, each a fixed window over the application's storage (a CacheStorage on a shared pool: every process counts together), with omnisense/contracts; symfony/lock keeps two processes from counting one window at once"
     },
     "autoload": {
         "psr-4": {
+            "Base\\": "src/Base/",
             "Omnibridge\\Symfony\\": "src/"
         }
     },

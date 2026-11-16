@@ -1,6 +1,20 @@
 # Changelog
 
-## [Unreleased]
+## [1.0.0] - Unreleased (the "base-agnostic" ensemble)
+
+Every omni* package restarts at 1.0.0: this is the clean end state, no compatibility layer. What this package is:
+the Symfony host of omnisense/omnibase - it PROVIDES, under their `Base\` names (PSR-4 `Base\` => `src/Base/`), what
+is Symfony by nature in omnibase: the bundle (`Base\BaseBundle`, `Base\Bundle\AbstractBase*`), the security glue
+(`Base\Security\*`), the form and field types (`Base\Form\*`, `Base\Field\Type\*`), the controllers, the console
+commands, the kernel subscribers, the DI passes, the router, the cache warmers, the responses. A site or a bundle
+writes those names only; `Omnibridge\Symfony\` is plumbing (the adapters of the core's contracts) nobody names.
+
+- The 4.x layer (`Legacy\`, the `class_exists()` fallbacks) is gone.
+- The repositories are the core's agnostic classes: registered with `Base\Database\Repository\Finders`
+  (`Omnibridge\Doctrine\Omnibase\DoctrineFinders` on Doctrine, the persistence's on Eloquent), the registry
+  `Base\Database\Repository\EntityRepositories`.
+- `Base\Screen\Responder` is a service.
+- No `conflict` with other packages of the ensemble.
 
 ## [2.0.0] - 2026-11-14
 
@@ -12,7 +26,7 @@ omnisense/omnibase < 6.0; the core 6.0 conflicts with this package < 2.0). The c
   `Base\Form\FormProxy`, `Base\Routing\AdvancedRouterInterface`, the core's repositories `Base\Repository\X`, the
   controllers' `Base\Controller\X`...) are gone, with `FormerServiceIdsPass` (1.1.2) and `FormerFormTypesPass` (Symfony
   Form knew a moved type under both names). The controllers are public services under their names.
-- `SymfonyKinds::MAP` gives the new names (`Omnibridge\Symfony\Omnibase\Field\Type\*`).
+- `SymfonyKinds::MAP` gives the new names (`Base\Field\Type\*`).
 - `Form\FormTypes::same()`, `in()`, `declared()` compare names as written, a leading backslash aside: no former name
   (they no longer read the core's `FormerNames`).
 - The union aliases `Doctrine\ORM\EntityManagerInterface|Omnibridge\Persistence\UnitOfWork` and
@@ -24,7 +38,7 @@ omnisense/omnibase < 6.0; the core 6.0 conflicts with this package < 2.0). The c
   `CacheClear` task).
 
 ### Changed
-- BaseBundle maps `App\Repository\X` from `Omnibridge\Doctrine\Omnibase\Repository\X` and `App\Form\X` from
+- BaseBundle maps `App\Repository\X` from `Base\Repository\X` and `App\Form\X` from
   `Omnibridge\Symfony\Omnibase\Form\X` (by their former names before), and registers the core's repositories under
   their names.
 - Every former name in config/, src/, tests/ and docs/ written with its new name. composer.json: branch alias
@@ -42,7 +56,7 @@ omnisense/omnibase < 6.0; the core 6.0 conflicts with this package < 2.0). The c
 - `Omnibase\Form\FormTypes` (new, internal to omnibase's part) compares a form type named in a string with a
   class under either of its names. It is read from the core's alias map (`Base\Database\FormerNames`, the core's
   `former-names.symfony.php`), not from a list of its own. `Base\Field\Type\ImageType` and
-  `Omnibridge\Symfony\Omnibase\Field\Type\ImageType` are the same type there.
+  `Base\Field\Type\ImageType` are the same type there.
 - `LayoutSettingListType` (omnibase/admin's settings pages): since omnisense/omnibase 5.0, a setting declared with
   a former name (`Base\Field\Type\ImageType`, `FileType`, `AvatarType`, `DateTimePickerType`) lost its handling.
   The upload options (`max_size`, `mime_types`, `empty_data`: its own stored value on a plain Save) and the stored
@@ -244,7 +258,7 @@ omnisense/omnibase < 6.0; the core 6.0 conflicts with this package < 2.0). The c
   (in `bare` too): three of its seven cases fail before.
 
 ### Fixed: `use_model` finds the core's models of the moved form types (omnisense/omnibase's plan "omnibase agnostic", step S)
-- omnibase's form types moved to this bridge (`Omnibridge\Symfony\Omnibase\Form\Type\*`) and their models stayed in
+- omnibase's form types moved to this bridge (`Base\Form\Type\*`) and their models stayed in
   the core (`Base\Form\Model\*`), but the option `use_model` named the model beside the type: a page asking ContactType
   by its new name (a site's contact page over `Controller\Client\ContactController`) answered 500, "Form model
   Omnibridge\Symfony\Omnibase\Form\Model\ContactModel not found"; likewise every type whose `getModelClass()` is

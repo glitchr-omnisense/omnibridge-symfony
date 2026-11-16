@@ -9,6 +9,7 @@ use Base\Screen\Frame;
 use Base\Screen\Json;
 use Base\Screen\Negotiation;
 use Base\Screen\Redirect;
+use Base\Screen\Responder;
 use Base\Screen\Screen;
 use Base\Screen\Shell;
 use Base\Screen\Template;
@@ -36,7 +37,7 @@ use Omnibridge\Contract\ViewSources;
  * omnibase's tags out of the page (`_omnibase_inject: false`, as a route
  * default says it).
  */
-class ScreenResponder
+class ScreenResponder implements Responder
 {
     private ?Negotiation $negotiation = null;
 
@@ -54,8 +55,9 @@ class ScreenResponder
     }
 
     /** @param array<string, mixed> $legacy a View's variables of before, for a site's own template */
-    public function respond(Request $request, View|Template|Json|Shell|File|Redirect|null $result, array $legacy = [], ?Frame $frame = null): Response
+    public function respond(object $request, View|Template|Json|Shell|File|Redirect|null $result, array $legacy = [], ?Frame $frame = null): Response
     {
+        \assert($request instanceof Request);
         if (null === $result) {
             throw new NotFoundHttpException();
         }
@@ -123,7 +125,7 @@ class ScreenResponder
     public function legacy(string $template, \Closure $variables, ?string $own = null): array
     {
         // The core's own templates (omnisense/omnibase's templates/, beside its src/ where BaseBundle is).
-        $own ??= \Omnibridge\Symfony\Omnibase\BaseBundle::getBundleDir().'/templates';
+        $own ??= \Base\BaseBundle::getBundleDir().'/templates';
         $own = realpath($own) ?: $own;
         $path = $this->views instanceof ViewSources ? (string) $this->views->sourcePath($template) : '';
 

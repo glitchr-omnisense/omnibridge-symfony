@@ -30,7 +30,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     }
 
     // Doctrine fix, where Doctrine is there (plan "omnibase agnostic", step B3)
-    if (\Omnibridge\Symfony\Omnibase\DependencyInjection\Persistence::hasDoctrine($builder)) {
+    if (\Base\DependencyInjection\Persistence::hasDoctrine($builder)) {
         $services->alias('Doctrine\Bundle\DoctrineBundle\ConnectionFactory', 'doctrine.dbal.connection_factory');
 
         $services->set('Doctrine\Persistence\Mapping\ClassMetadataFactory')

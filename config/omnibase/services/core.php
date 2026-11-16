@@ -1,8 +1,8 @@
 <?php
 
-use Omnibridge\Symfony\Omnibase\DependencyInjection\CacheWarmers;
-use Omnibridge\Symfony\Omnibase\DependencyInjection\Declarations;
-use Omnibridge\Symfony\Omnibase\DependencyInjection\Persistence;
+use Base\DependencyInjection\CacheWarmers;
+use Base\DependencyInjection\Declarations;
+use Base\DependencyInjection\Persistence;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use \Symfony\Component\DependencyInjection\ContainerInterface;
@@ -21,45 +21,45 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ->public(false);
 
     // Form proxy
-    $services->set('Omnibridge\Symfony\Omnibase\Form\FormProxy')
+    $services->set('Base\Form\FormProxy')
         ->public(true)
         ->args([service('form.factory')])
         ->tag('kernel.reset', ['method' => 'reset']);
 
     // Session storage
-    $services->set('Omnibridge\Symfony\Omnibase\Security\Session\DynamicSessionStorageFactory')
+    $services->set('Base\Security\Session\DynamicSessionStorageFactory')
         ->public(true)
         ->parent('session.storage.factory.native');
 
     // Access token handler
-    $services->set('Omnibridge\Symfony\Omnibase\Security\AccessTokenHandler')
+    $services->set('Base\Security\AccessTokenHandler')
         ->args([service('Base\Repository\User\Tokens')]);
 
     // CacheClearSessionsCommand
-    $services->set('Omnibridge\Symfony\Omnibase\Console\Command\CacheClearSessionsCommand')
-        ->parent('Omnibridge\Symfony\Omnibase\Console\Command')
+    $services->set('Base\Console\Command\CacheClearSessionsCommand')
+        ->parent('Base\Console\Command')
         ->public(true)
         ->tag('console.command')
         ->bind('$projectDir', '%kernel.project_dir%');
 
     // Controllers
     $controllers = [
-        'Omnibridge\Symfony\Omnibase\Controller\MainController' => [],
-        'Omnibridge\Symfony\Omnibase\Controller\ProfilerController' => ['base.notifier', 'Base\Notifier\TestRecipient'],
-        'Omnibridge\Symfony\Omnibase\Controller\Client\ContactController' => ['form.proxy', 'Base\Notifier\ContactMessage'],
-        'Omnibridge\Symfony\Omnibase\Controller\LocalizerController' => ['advanced_router', 'Base\Request\LocaleSwitch', 'Base\Request\TimezoneSwitch'],
-        'Omnibridge\Symfony\Omnibase\Controller\UX\MediaController' => ['request_stack', 'flysystem', 'base.service.image', 'Base\Repository\Layout\ImageCrops'],
-        'Omnibridge\Symfony\Omnibase\Controller\UX\AutocompleteController' => ['request_stack', 'Omnibridge\Persistence\UnitOfWork', 'Base\Field\Search\RemoteSearch', '?Base\Field\Search\ExchangeRate'],
-        'Omnibridge\Symfony\Omnibase\Controller\WidgetController' => ['Base\Request\AttachmentDownload'],
+        'Base\Controller\MainController' => [],
+        'Base\Controller\ProfilerController' => ['base.notifier', 'Base\Notifier\TestRecipient'],
+        'Base\Controller\Client\ContactController' => ['form.proxy', 'Base\Notifier\ContactMessage'],
+        'Base\Controller\LocalizerController' => ['advanced_router', 'Base\Request\LocaleSwitch', 'Base\Request\TimezoneSwitch'],
+        'Base\Controller\UX\MediaController' => ['request_stack', 'flysystem', 'base.service.image', 'Base\Repository\Layout\ImageCrops'],
+        'Base\Controller\UX\AutocompleteController' => ['request_stack', 'Omnibridge\Persistence\UnitOfWork', 'Base\Field\Search\RemoteSearch', '?Base\Field\Search\ExchangeRate'],
+        'Base\Controller\WidgetController' => ['Base\Request\AttachmentDownload'],
         // The field's validation while a form is filled: never registered (constructor arguments, no service), so
         // /ux/validation answered 500 (plan "omnibase agnostic", step F5e slice 5b).
-        'Omnibridge\Symfony\Omnibase\Controller\UX\AutovalidateController' => ['Base\Field\Validation\Autovalidate'],
-        'Omnibridge\Symfony\Omnibase\Controller\ShortLinkController' => ['Base\Request\ShortLinkRedirect'],
+        'Base\Controller\UX\AutovalidateController' => ['Base\Field\Validation\Autovalidate'],
+        'Base\Controller\ShortLinkController' => ['Base\Request\ShortLinkRedirect'],
         // The like/follow/publish API. Was silently unregistered (constructor
         // arguments, no service): every /api/thread/{slug}/like answered 500
         // in production - "the like doesn't work".
-        'Omnibridge\Symfony\Omnibase\Controller\Api\ThreadController' => ['Base\Thread\ThreadActions'],
-        'Omnibridge\Symfony\Omnibase\Controller\Client\NotificationController' => ['Base\Notifier\NotificationCenter'],
+        'Base\Controller\Api\ThreadController' => ['Base\Thread\ThreadActions'],
+        'Base\Controller\Client\NotificationController' => ['Base\Notifier\NotificationCenter'],
     ];
 
     // A service named with a leading "?" is a suggested package's (the exchange rates: symfony/http-client's PSR-18
@@ -74,10 +74,10 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         foreach ($args as $i => $arg) {
             $definition->arg($i, $optional($arg));
         }
-        if ($id === 'Omnibridge\Symfony\Omnibase\Controller\UX\MediaController') {
+        if ($id === 'Base\Controller\UX\MediaController') {
             $definition->arg(4, new Reference('profiler', ContainerInterface::NULL_ON_INVALID_REFERENCE));
         }
-        if ($id === 'Omnibridge\Symfony\Omnibase\Controller\UX\AutocompleteController') {
+        if ($id === 'Base\Controller\UX\AutocompleteController') {
             $definition->arg(4, new Reference('profiler', ContainerInterface::NULL_ON_INVALID_REFERENCE));
             // An entity whose repository is a plain Doctrine one is searched through omnibase's, built for it.
             $definition->arg(5, service('doctrine')->nullOnInvalid());
@@ -88,7 +88,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // never registered either - constructor arguments, no service - so every
     // /ux/editorjs/* answered 500, the editor's uploads and autosave included.
     // Autowired: its arguments are all typed.
-    $services->set('Omnibridge\Symfony\Omnibase\Controller\UX\EditorController')
+    $services->set('Base\Controller\UX\EditorController')
         ->autowire()
         ->tag('controller.service_arguments')
         ->tag('container.service_subscriber')
@@ -96,11 +96,11 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
 
     // Subscribers
     $subscribers = [
-        'Omnibridge\Symfony\Omnibase\Subscriber\RouterSubscriber' => ['security.authorization_checker', 'advanced_router', 'parameter_bag'],
-        'Omnibridge\Symfony\Omnibase\Subscriber\ProfilerSubscriber' => ['advanced_router'],
-        'Omnibridge\Symfony\Omnibase\Subscriber\HotParameterBagSubscriber' => ['parameter_bag', 'setting_bag'],
-        'Omnibridge\Symfony\Omnibase\Subscriber\AnalyticsSubscriber' => ['security.token_storage', 'advanced_router', 'translator', 'twig', 'Base\Repository\Users', '?ga.service'],
-        'Omnibridge\Symfony\Omnibase\Subscriber\PageViewSubscriber' => ['Base\Service\Analytics', 'Symfony\Bundle\SecurityBundle\Security', '$excludedPrefixes' => ['/admin', '/_', '/api']],
+        'Base\Subscriber\RouterSubscriber' => ['security.authorization_checker', 'advanced_router', 'parameter_bag'],
+        'Base\Subscriber\ProfilerSubscriber' => ['advanced_router'],
+        'Base\Subscriber\HotParameterBagSubscriber' => ['parameter_bag', 'setting_bag'],
+        'Base\Subscriber\AnalyticsSubscriber' => ['security.token_storage', 'advanced_router', 'translator', 'twig', 'Base\Repository\Users', '?ga.service'],
+        'Base\Subscriber\PageViewSubscriber' => ['Base\Service\Analytics', 'Symfony\Bundle\SecurityBundle\Security', '$excludedPrefixes' => ['/admin', '/_', '/api']],
     ];
 
     foreach ($subscribers as $id => $args) {
@@ -119,15 +119,15 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // worker mode, messenger consumers). Both tags on purpose: kernel.reset never
     // runs on a cloned kernel, kernel.request never runs between messenger
     // messages - see the class docblock.
-    $services->set('Omnibridge\Symfony\Omnibase\Subscriber\EntityDispatcherFlushSubscriber')
+    $services->set('Base\Subscriber\EntityDispatcherFlushSubscriber')
         ->tag('kernel.event_subscriber');
 
-    $services->set('Omnibridge\Symfony\Omnibase\Subscriber\RequestScopedStateSubscriber')
+    $services->set('Base\Subscriber\RequestScopedStateSubscriber')
         ->tag('kernel.event_subscriber')
         ->tag('kernel.reset', ['method' => 'reset']);
 
     // cache:clear empties what remembers the code: the mapping's metadata, the parsed DQL, the routes
-    $services->set('Omnibridge\Symfony\Omnibase\Cache\Clearer\CodeCachesClearer')
+    $services->set('Base\Cache\Clearer\CodeCachesClearer')
         ->args([[
             service('doctrine.orm.default_metadata_cache')->nullOnInvalid(),
             service('doctrine.orm.default_query_cache')->nullOnInvalid(),
@@ -136,7 +136,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ->tag('kernel.cache_clearer');
 
     // AdvancedRouter
-    $services->set('Omnibridge\Symfony\Omnibase\Routing\AdvancedRouter')
+    $services->set('Base\Routing\AdvancedRouter')
         ->tag('twig.runtime')
         ->tag('kernel.reset', ['method' => 'reset'])
         ->args([
@@ -167,7 +167,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // event manager.
     // Doctrine's listener only where Doctrine is there (plan "omnibase agnostic", step B3).
     if (Persistence::hasDoctrine($builder)) {
-        $services->set('Omnibridge\Doctrine\Omnibase\EntitySubscriber\SettingSubscriber')
+        $services->set('Base\EntitySubscriber\SettingSubscriber')
             ->tag('doctrine.event_listener', ['event' => 'postPersist'])
             ->tag('doctrine.event_listener', ['event' => 'postUpdate'])
             ->tag('doctrine.event_listener', ['event' => 'postRemove'])
@@ -178,12 +178,12 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // Tracks config/routes_paths.yaml (the Base\Attributes\Attribute\Route
     // translationKey dictionary) as a routing resource, so the route cache
     // invalidates when it changes even though no loader reads routes from it.
-    $services->set('Omnibridge\Symfony\Omnibase\Routing\Loader\RouteTranslationsResourceLoader')
+    $services->set('Base\Routing\Loader\RouteTranslationsResourceLoader')
         ->args([service('file_locator'), '%kernel.environment%'])
         ->tag('routing.loader');
 
     // The routes of omnibase's controllers, this package's and the core's (`type: omnibase`, step F6).
-    $services->set('Omnibridge\Symfony\Omnibase\Routing\Loader\ControllerLoader')
+    $services->set('Base\Routing\Loader\ControllerLoader')
         ->tag('routing.loader');
 
     // Compiles+persists the settings snapshot at warmup so the first request after a
@@ -195,18 +195,18 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
 
     // Steers a signed-in user to the enrolment prompt while the administrator
     // requires a second factor they do not have.
-    $services->set('Omnibridge\\Symfony\\Omnibase\\Subscriber\\SecurityEnrolmentSubscriber')
+    $services->set('Base\\Subscriber\\SecurityEnrolmentSubscriber')
         ->autowire()
         ->tag('kernel.event_subscriber');
 
     // An account made with a password it did not choose (user:create): its owner chooses one first.
-    $services->set('Omnibridge\\Symfony\\Omnibase\\Subscriber\\PasswordChangeSubscriber')
+    $services->set('Base\\Subscriber\\PasswordChangeSubscriber')
         ->autowire()
         ->tag('kernel.event_subscriber');
 
     // Emails the account holder when their account is signed into from a
     // browser it has not been signed into before.
-    $services->set('Omnibridge\\Symfony\\Omnibase\\Subscriber\\NewDeviceSubscriber')
+    $services->set('Base\\Subscriber\\NewDeviceSubscriber')
         ->autowire()
         ->tag('kernel.event_subscriber');
 
@@ -325,6 +325,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
             service('Omnibridge\Contract\Tokens')->nullOnInvalid(),
         ]);
     $services->alias('Base\Screen\ContextProvider', 'Omnibridge\Symfony\Omnibase\SymfonyScreenContext')->public();
+    $services->alias('Base\Screen\Responder', 'Omnibridge\Symfony\Omnibase\ScreenResponder')->public();
     $services->set('Omnibridge\Symfony\Omnibase\ScreenResponder')->public()
         ->args([service('Omnibridge\Contract\Views'), service('Base\Screen\ContextProvider'), '%base.screens.version%']);
     // Actions written once for every host (audit "lesringostars face au master plan", R27): plain
@@ -375,11 +376,11 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ]);
 
     // Form extensions
-    $services->set('Omnibridge\Symfony\Omnibase\Form\Extension\FormTypeTranslateExtension')->tag('form.type_extension');
+    $services->set('Base\Form\Extension\FormTypeTranslateExtension')->tag('form.type_extension');
 
     // The forms' guard: the option `guard` (trap, time, lists, captcha) and `spam_protection`
     // (the classifier), Base\Service\FormGuard. FormTypeSpamExtension is folded into it.
-    $services->set('Omnibridge\Symfony\Omnibase\Form\Extension\FormTypeGuardExtension')
+    $services->set('Base\Form\Extension\FormTypeGuardExtension')
         ->tag('form.type_extension')
         ->args([
             service('Base\Service\FormGuard'),
@@ -389,46 +390,45 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
             service('request_stack')->nullOnInvalid(),
         ]);
 
-    $services->set('Omnibridge\Symfony\Omnibase\Subscriber\MailTrapSubscriber')
+    $services->set('Base\Subscriber\MailTrapSubscriber')
         ->args([service('Base\Mailer\MailTrap')])
         ->tag('kernel.event_subscriber');
 
     // Console
-    $services->set('Omnibridge\Symfony\Omnibase\Console\Console')->public(true)->args([service('kernel')]);
+    $services->set('Base\Console\Console')->public(true)->args([service('kernel')]);
     // Every command's unit of work is the persistence's chosen (omnisense/omnibase's plan "omnibase agnostic", step B4):
     // Doctrine's over the same entity manager on doctrine, omnibridge/eloquent's on eloquent, so that a command reads and
     // writes where the site does. The commands named after Doctrine (doctrine:schema:charset, doctrine:array:upgrade,
     // doctrine:database:import, base:mapping) use the entity manager itself, as before.
-    $services->set('Omnibridge\Symfony\Omnibase\Console\Command')->public(true)->args([service('localizer'), service('translator'), service('doctrine.orm.entity_manager')->nullOnInvalid(), service('parameter_bag')])
-        ->call('setUnitOfWork', [service('Omnibridge\Persistence\UnitOfWork')->ignoreOnInvalid()]);
+    $services->set('Base\Console\Command')->public(true)->args([service('localizer'), service('translator'), service('Omnibridge\Persistence\UnitOfWork')->nullOnInvalid(), service('parameter_bag')]);
 
     $commandServices = [
-        'Omnibridge\Symfony\Omnibase\Console\Command\NotifierCommand',
-        'Omnibridge\Symfony\Omnibase\Console\Command\DoctrineSchemaCharsetCommand',
-        'Omnibridge\Symfony\Omnibase\Console\Command\DoctrineArrayUpgradeCommand',
-        'Omnibridge\Symfony\Omnibase\Console\Command\BaseMappingCommand',
-        'Omnibridge\Symfony\Omnibase\Console\Command\ThreadPublishableCommand',
-        'Omnibridge\Symfony\Omnibase\Console\Command\EntityDiscriminatorCommand',
-        'Omnibridge\Symfony\Omnibase\Console\Command\NotifierMailTestCommand',
-        'Omnibridge\Symfony\Omnibase\Console\Command\MailTrapCommand',
-        'Omnibridge\Symfony\Omnibase\Console\Command\TrashPurgeCommand',
+        'Base\Console\Command\NotifierCommand',
+        'Base\Console\Command\DoctrineSchemaCharsetCommand',
+        'Base\Console\Command\DoctrineArrayUpgradeCommand',
+        'Base\Console\Command\BaseMappingCommand',
+        'Base\Console\Command\ThreadPublishableCommand',
+        'Base\Console\Command\EntityDiscriminatorCommand',
+        'Base\Console\Command\NotifierMailTestCommand',
+        'Base\Console\Command\MailTrapCommand',
+        'Base\Console\Command\TrashPurgeCommand',
         // The developer's lookups: which entities complete what, the enums' icons,
         // the translation keys of entities, enums and CRUD pages.
-        'Omnibridge\Symfony\Omnibase\Console\Command\AutocompleteEntitiesCommand',
-        'Omnibridge\Symfony\Omnibase\Console\Command\IconEnumsCommand',
-        'Omnibridge\Symfony\Omnibase\Console\Command\TranslationCrudCommand',
-        'Omnibridge\Symfony\Omnibase\Console\Command\TranslationEntitiesCommand',
-        'Omnibridge\Symfony\Omnibase\Console\Command\TranslationEnumsCommand',
+        'Base\Console\Command\AutocompleteEntitiesCommand',
+        'Base\Console\Command\IconEnumsCommand',
+        'Base\Console\Command\TranslationCrudCommand',
+        'Base\Console\Command\TranslationEntitiesCommand',
+        'Base\Console\Command\TranslationEnumsCommand',
     ];
 
     // The commands named after Doctrine read Doctrine's metadata or DBAL by nature: only where Doctrine is there (plan
     // "omnibase agnostic", step B3).
     if (!Persistence::hasDoctrine($builder)) {
         $commandServices = array_values(array_diff($commandServices, [
-            'Omnibridge\Symfony\Omnibase\Console\Command\DoctrineSchemaCharsetCommand',
-            'Omnibridge\Symfony\Omnibase\Console\Command\DoctrineArrayUpgradeCommand',
-            'Omnibridge\Symfony\Omnibase\Console\Command\BaseMappingCommand',
-            'Omnibridge\Symfony\Omnibase\Console\Command\EntityDiscriminatorCommand',
+            'Base\Console\Command\DoctrineSchemaCharsetCommand',
+            'Base\Console\Command\DoctrineArrayUpgradeCommand',
+            'Base\Console\Command\BaseMappingCommand',
+            'Base\Console\Command\EntityDiscriminatorCommand',
         ]));
     }
 
@@ -438,50 +438,54 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     $timeMachine = class_exists(\Backup\Manager\Manager::class);
     if ($timeMachine) {
         array_push($commandServices,
-            'Omnibridge\Symfony\Omnibase\Console\Command\TimeMachineSnapshotCommand',
-            'Omnibridge\Symfony\Omnibase\Console\Command\TimeMachineSnapshotBackupCommand',
-            'Omnibridge\Symfony\Omnibase\Console\Command\TimeMachineSnapshotRestoreCommand',
-            'Omnibridge\Symfony\Omnibase\Console\Command\TimeMachineStorageCommand',
+            'Base\Console\Command\TimeMachineSnapshotCommand',
+            'Base\Console\Command\TimeMachineSnapshotBackupCommand',
+            'Base\Console\Command\TimeMachineSnapshotRestoreCommand',
+            'Base\Console\Command\TimeMachineStorageCommand',
         );
     }
 
     foreach ($commandServices as $command) {
         $definition = $services->set($command)
-            ->parent('Omnibridge\Symfony\Omnibase\Console\Command')
+            ->parent('Base\Console\Command')
             ->tag('console.command');
         // Add specific arguments for certain commands
-        if ($command === 'Omnibridge\Symfony\Omnibase\Console\Command\EntityDiscriminatorCommand') {
+        // The commands named after Doctrine take its entity manager where the others take the unit of work.
+        if ($command === 'Base\Console\Command\DoctrineArrayUpgradeCommand') {
+            $definition->arg('index_2', service('doctrine.orm.entity_manager')->nullOnInvalid());
+        }
+        if ($command === 'Base\Console\Command\EntityDiscriminatorCommand') {
             $definition->arg(0, service('base.database.metadata_manipulator'));
         }
-        if ($command === 'Omnibridge\Symfony\Omnibase\Console\Command\NotifierMailTestCommand') {
+        if ($command === 'Base\Console\Command\NotifierMailTestCommand') {
             // On 5.x the task reads the accounts through the command's unit of work (the persistence chosen); 4.x's
             // former code still asks Doctrine's App\Repository\UserRepository.
             $definition->args(class_exists(\Base\Console\Task\NotifierMailTest::class)
                 ? [service('base.notifier')]
                 : [service('base.notifier'), service('App\Repository\UserRepository')]);
         }
-        if ($command === 'Omnibridge\Symfony\Omnibase\Console\Command\AutocompleteEntitiesCommand') {
+        if ($command === 'Base\Console\Command\AutocompleteEntitiesCommand') {
             $definition->args([service('base.database.metadata_manipulator')]);
         }
-        if (str_contains($command, 'TimeMachineSnapshot') || $command === 'Omnibridge\Symfony\Omnibase\Console\Command\TimeMachineStorageCommand') {
+        if (str_contains($command, 'TimeMachineSnapshot') || $command === 'Base\Console\Command\TimeMachineStorageCommand') {
             $definition->args([service('time_machine'), service('flysystem')]);
         }
-        if ($command === 'Omnibridge\Symfony\Omnibase\Console\Command\ThreadPublishableCommand') {
+        if ($command === 'Base\Console\Command\ThreadPublishableCommand') {
             // Its threads by their interface (step F7f of omnisense/omnibase's plan; its writes through the same
-            // persistence's unit of work, which every command now gets from Omnibridge\Symfony\Omnibase\Console\Command's definition: B4).
+            // persistence's unit of work, which every command now gets from Base\Console\Command's definition: B4).
             $definition->call('setThreads', [service(\Base\Repository\Threads::class)]);
         }
-        if ($command === 'Omnibridge\Symfony\Omnibase\Console\Command\TrashPurgeCommand') {
+        if ($command === 'Base\Console\Command\TrashPurgeCommand') {
             $definition->call('setTrashManager', [service('Base\Service\TrashManager')]);
         }
         // Setters, not args(): args() would replace the parent definition's
-        // own four arguments, which every Omnibridge\Symfony\Omnibase\Console\Command constructor
+        // own four arguments, which every Base\Console\Command constructor
         // still expects.
         //
         // mailer.transports (the real transport chain), not the Mailer
         // service: releasing a held message through Mailer would hand it
         // straight back to the armed trap and capture it again.
-        if ($command === 'Omnibridge\Symfony\Omnibase\Console\Command\MailTrapCommand') {
+        if ($command === 'Base\Console\Command\MailTrapCommand') {
             $definition
                 ->call('setMailTrap', [service('Base\Mailer\MailTrap')])
                 ->call('setMailerTransport', [service('mailer.transports')]);
@@ -491,60 +495,62 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // omnibridge:schema:create (plan "omnibase agnostic", step F7a): the installed entities' tables from their
     // description, where the core describes them with no persistence (5.x) and omnisense/omnibridge writes them.
     if (class_exists(\Base\Database\Schema\EntitySchema::class) && class_exists(\Omnibridge\Schema\Database\SchemaCreator::class)) {
-        $services->set(\Omnibridge\Symfony\Omnibase\Console\Command\SchemaCreateCommand::class)
+        $services->set(\Base\Console\Command\SchemaCreateCommand::class)
             ->args([service('doctrine.orm.entity_manager')->nullOnInvalid(), '%kernel.project_dir%', service('omnibridge.eloquent.connection')->nullOnInvalid()])
             ->tag('console.command');
     }
 
     // Console commands
-    $services->set('Omnibridge\Symfony\Omnibase\Console\Command\UserNotificationCommand')
-        ->parent('Omnibridge\Symfony\Omnibase\Console\Command')
+    $services->set('Base\Console\Command\UserNotificationCommand')
+        ->parent('Base\Console\Command')
         ->tag('console.command');
 
-    $services->set('Omnibridge\Symfony\Omnibase\Console\Command\UserCreateCommand')
+    $services->set('Base\Console\Command\UserCreateCommand')
         ->autowire()
         ->tag('console.command');
 
-    $services->set('Omnibridge\Symfony\Omnibase\Console\Command\UploaderEntitiesCommand')
-        ->parent('Omnibridge\Symfony\Omnibase\Console\Command')
+    $services->set('Base\Console\Command\UploaderEntitiesCommand')
+        ->parent('Base\Console\Command')
         ->tag('console.command')
         ->call('setRepositories', [service('Base\Database\Repository\Repositories')]);
 
-    $services->set('Omnibridge\Symfony\Omnibase\Console\Command\UploaderImagesCommand')
-        ->parent('Omnibridge\Symfony\Omnibase\Console\Command\UploaderEntitiesCommand')
+    $services->set('Base\Console\Command\UploaderImagesCommand')
+        ->parent('Base\Console\Command\UploaderEntitiesCommand')
         ->tag('console.command')
         ->args([
             new Reference('base.service.image'),
-            new Reference('Omnibridge\Symfony\Omnibase\Controller\UX\MediaController'),
+            new Reference('Base\Controller\UX\MediaController'),
         ]);
 
-    $services->set('Omnibridge\Symfony\Omnibase\Console\Command\UploaderImagesCropCommand')
-        ->parent('Omnibridge\Symfony\Omnibase\Console\Command\UploaderImagesCommand')
+    $services->set('Base\Console\Command\UploaderImagesCropCommand')
+        ->parent('Base\Console\Command\UploaderImagesCommand')
         ->tag('console.command');
 
-    $services->set('Omnibridge\Symfony\Omnibase\Console\Command\TranslationControllersCommand')
-        ->parent('Omnibridge\Symfony\Omnibase\Console\Command')
+    $services->set('Base\Console\Command\TranslationControllersCommand')
+        ->parent('Base\Console\Command')
         ->tag('console.command');
 
-    $services->set('Omnibridge\Symfony\Omnibase\Console\Command\TranslationSettingsCommand')
-        ->parent('Omnibridge\Symfony\Omnibase\Console\Command')
+    $services->set('Base\Console\Command\TranslationSettingsCommand')
+        ->parent('Base\Console\Command')
         ->tag('console.command')
         ->args([new Reference('setting_bag')]);
 
-    $services->set('Omnibridge\Symfony\Omnibase\Console\Command\IconEntitiesCommand')
-        ->parent('Omnibridge\Symfony\Omnibase\Console\Command')
+    $services->set('Base\Console\Command\IconEntitiesCommand')
+        ->parent('Base\Console\Command')
         ->tag('console.command')
         ->args([new Reference('base.database.metadata_manipulator')]);
 
     // doctrine:database:import, on Doctrine's metadata: only where Doctrine is there (plan "omnibase agnostic", step B3).
     if (Persistence::hasDoctrine($builder)) {
-        $services->set('Omnibridge\Symfony\Omnibase\Console\Command\DoctrineDatabaseImportCommand')
-            ->parent('Omnibridge\Symfony\Omnibase\Console\Command')
+        $services->set('Base\Console\Command\DoctrineDatabaseImportCommand')
+            ->parent('Base\Console\Command')
             ->tag('console.command')
             ->args([
                 new Reference('base.database.entity_hydrator'),
                 new Reference('base.database.metadata_manipulator'),
                 new Reference('base.notifier'),
-            ]);
+            ])
+            // After args(): args() replaces the whole list, an index set before it with it.
+            ->arg('index_2', service('doctrine.orm.entity_manager')->nullOnInvalid());
     }
 };

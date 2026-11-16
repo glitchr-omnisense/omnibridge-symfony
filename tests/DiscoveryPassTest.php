@@ -2,7 +2,7 @@
 
 namespace Omnibridge\Symfony\Tests;
 
-use Omnibridge\Symfony\Omnibase\DependencyInjection\Compiler\DiscoveryPass;
+use Base\DependencyInjection\Compiler\DiscoveryPass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;

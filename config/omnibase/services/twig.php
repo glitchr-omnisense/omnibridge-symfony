@@ -1,7 +1,7 @@
 <?php
 
 use Base\Twig\Renderer\TagRendererInterface;
-use Omnibridge\Symfony\Omnibase\DependencyInjection\Declarations;
+use Base\DependencyInjection\Declarations;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use \Symfony\Component\DependencyInjection\ContainerInterface;
@@ -60,7 +60,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // The Symfony host's classes of the Twig layer, which leave for omnibridge/symfony at F5c: the
     // kernel subscriber that adds the renderers' tags to a page, the warmer of the Webpack
     // renderer's entry points, the form extension that loads a field's entry.
-    $services->set('Omnibridge\Symfony\Omnibase\Subscriber\TwigSubscriber')
+    $services->set('Base\Subscriber\TwigSubscriber')
         ->tag('kernel.event_subscriber')
         ->args([
             service('twig.html_renderer'),
@@ -70,7 +70,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
             service('advanced_router'),
         ]);
 
-    $services->set('Omnibridge\Symfony\Omnibase\Cache\Warmer\WebpackCacheWarmer')->public()
+    $services->set('Base\Cache\Warmer\WebpackCacheWarmer')->public()
         ->tag('kernel.cache_warmer')
         ->args([
             service('parameter_bag'),
@@ -80,7 +80,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ->bind('$cacheDir', '%kernel.cache_dir%')
         ->bind('$publicDir', '%kernel.project_dir%/public');
 
-    $services->set('Omnibridge\Symfony\Omnibase\Form\Extension\FormTypeWebpackExtension')
+    $services->set('Base\Form\Extension\FormTypeWebpackExtension')
         ->tag('form.type_extension')
         ->args([
             new Reference('form.proxy'),
