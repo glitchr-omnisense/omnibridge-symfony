@@ -2,13 +2,12 @@
 
 namespace Omnibridge\Symfony\Tests;
 
-use Base\Contract\SecurityUserLoader;
 use Base\Repository\User\Connections;
-use Base\Repository\Users;
 use Base\Security\UserProvider;
 use Base\Security\UserTracker;
 use Base\Service\SecurityPolicy;
 use Base\Subscriber\NewDeviceSubscriber;
+use Omnibridge\Symfony\Tests\Fixtures\Host\UserLoaderUsers;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
@@ -57,9 +56,4 @@ final class SignInConnectionTest extends TestCase
         $event = new LoginSuccessEvent($this->createStub(AuthenticatorInterface::class), $passport, new UsernamePasswordToken($user, 'main', []), Request::create('/'), null, 'main');
         (new NewDeviceSubscriber($policy, $tracker, $this->createStub(Connections::class)))->onLoginSuccess($event);
     }
-}
-
-/** The users' repository as UserProvider takes it: omnibase's Users and the security loader. */
-interface UserLoaderUsers extends Users, SecurityUserLoader
-{
 }

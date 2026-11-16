@@ -16,6 +16,8 @@ final class BaseHostBundle extends Bundle
     /** As BaseBundle::boot() does it: UnitOfWorks::repositories() on this container's entity managers is its registry. */
     public function boot(): void
     {
-        \Base\DependencyInjection\HostConfiguration::unitOfWorkRepositories($this->container);
+        if (null !== $this->container) {
+            \Base\DependencyInjection\HostConfiguration::unitOfWorkRepositories($this->container);
+        }
     }
 }

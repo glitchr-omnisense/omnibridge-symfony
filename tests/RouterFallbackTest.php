@@ -63,7 +63,9 @@ final class RouterFallbackTest extends TestCase
         $container->register('Omnibridge\Symfony\Omnibase\RouterRoutes');
         foreach (['Omnibridge\Symfony\RouterUrls', 'Omnibridge\Symfony\Omnibase\RouterRoutes'] as $id) {
             \Base\DependencyInjection\HostConfiguration::routerFallback($container, 'App\Routing\OtherSite');
-            self::assertSame('App\Routing\OtherSite', (string) $container->getDefinition($id)->getArgument('$elsewhere'));
+            $elsewhere = $container->getDefinition($id)->getArgument('$elsewhere');
+            self::assertInstanceOf(\Symfony\Component\DependencyInjection\Reference::class, $elsewhere);
+            self::assertSame('App\Routing\OtherSite', (string) $elsewhere);
         }
     }
 }

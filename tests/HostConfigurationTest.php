@@ -90,7 +90,9 @@ final class HostConfigurationTest extends TestCase
         if (!class_exists(\Base\Database\Repository\EntityRepositories::class) || !class_exists(\Omnibridge\Doctrine\Omnibase\DoctrineFinders::class)) {
             self::markTestSkipped('omnisense/omnibase and omnibridge/doctrine are not installed.');
         }
-        $repository = $this->boot([], 'repositories')->getContainer()->get(\Base\Database\Repository\EntityRepositories::class)->of(\App\Entity\Note::class);
+        $registry = $this->boot([], 'repositories')->getContainer()->get(\Base\Database\Repository\EntityRepositories::class);
+        self::assertInstanceOf(\Base\Database\Repository\EntityRepositories::class, $registry);
+        $repository = $registry->of(\App\Entity\Note::class);
 
         self::assertInstanceOf(\App\Repository\NoteRepository::class, $repository);
         self::assertInstanceOf(\Symfony\Contracts\Cache\CacheInterface::class, $repository->cache);
@@ -125,9 +127,13 @@ final class HostConfigurationTest extends TestCase
         }
         \Base\Service\Model\ClassAliases::register();
         $container = $this->boot([], 'unit-of-work')->getContainer();
-        $unitOfWork = \Base\Database\UnitOfWorks::of($container->get('doctrine')->getManager());
+        $doctrine = $container->get('doctrine');
+        self::assertInstanceOf(\Doctrine\Persistence\ManagerRegistry::class, $doctrine);
+        $unitOfWork = \Base\Database\UnitOfWorks::of($doctrine->getManager());
 
-        $repository = \Base\Database\UnitOfWorks::repositories($unitOfWork)->of(\App\Entity\Comment::class);
+        /** @var \Base\Database\Repository\Repositories $registry */
+        $registry = \Base\Database\UnitOfWorks::repositories($unitOfWork);
+        $repository = $registry->of(\App\Entity\Comment::class);
 
         self::assertInstanceOf(\App\Repository\CommentRepository::class, $repository);
         self::assertInstanceOf(\Base\Repository\ThreadRepository::class, $repository);
@@ -141,7 +147,9 @@ final class HostConfigurationTest extends TestCase
     public function testTheSixthWrongAttemptWaitsOneMinute(): void
     {
         $kernel = $this->boot([], 'throttling');
-        $kernel->getContainer()->get('cache.rate_limiter')->clear();
+        $limits = $kernel->getContainer()->get('cache.rate_limiter');
+        self::assertInstanceOf(\Psr\Cache\CacheItemPoolInterface::class, $limits);
+        $limits->clear();
         $answers = [];
         for ($attempt = 1; $attempt <= 6; ++$attempt) {
             $answers[] = $kernel->handle(Request::create('/sign-in?user=nobody'))->getContent();

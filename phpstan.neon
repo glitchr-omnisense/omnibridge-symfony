@@ -19,4 +19,20 @@ parameters:
         - src/Base
         - src/Omnibase
         - tests/Omnibase
+        # The same for the cases written on the core's classes, skipped without omnisense/omnibase, and for their
+        # fixtures that extend those classes or carry its Base\Mapping attributes.
+        - tests/CoreAccessTokensTest.php
+        - tests/SignInConnectionTest.php
+        - tests/VisitorTimezoneTest.php
+        - tests/Fixtures/Host/Entity
+        - tests/Fixtures/Host/Repository
+        - tests/Fixtures/Host/UserLoaderUsers.php
+    ignoreErrors:
+        # HostConfigurationTest boots one host for every case: the cases on the core's registries are skipped without
+        # omnisense/omnibase, and HostExtension registers those classes only where class_exists() finds them.
+        -
+            identifier: class.notFound
+            paths:
+                - tests/HostConfigurationTest.php
+                - tests/Fixtures/Host/HostExtension.php
     reportUnmatchedIgnoredErrors: false

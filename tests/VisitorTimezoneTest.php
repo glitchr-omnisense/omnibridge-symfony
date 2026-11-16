@@ -18,6 +18,9 @@ final class VisitorTimezoneTest extends TestCase
 {
     protected function tearDown(): void
     {
+        if (!class_exists(Runtime::class)) {
+            return; // skipped: omnisense/omnibase is not installed
+        }
         Runtime::set(ClockInterface::class, null);
         Runtime::set(Locales::class, null);
     }

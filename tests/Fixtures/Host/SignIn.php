@@ -18,7 +18,7 @@ final class SignIn extends AbstractAuthenticator implements AuthenticationEntryP
     }
 
     /** The sign-in form's post, as omnibase's: /sign-in?user=<identifier>, the account loaded by the firewall's provider. */
-    public function supports(Request $request): ?bool
+    public function supports(Request $request): bool
     {
         return 'sign-in' === $this->name && '/sign-in' === $request->getPathInfo();
     }
@@ -28,20 +28,25 @@ final class SignIn extends AbstractAuthenticator implements AuthenticationEntryP
         return new \Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport(new \Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge((string) $request->query->get('user')));
     }
 
-    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): Response
     {
         return new Response('signed in: '.$token->getUserIdentifier());
     }
 
-    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
     {
-        $minutes = $exception instanceof \Symfony\Component\Security\Core\Exception\TooManyLoginAttemptsAuthenticationException ? ' (throttled, '.$exception->getMessageData()['%minutes%'].' min)' : '';
+        $minutes = $exception instanceof \Symfony\Component\Security\Core\Exception\TooManyLoginAttemptsAuthenticationException ? ' (throttled, '.self::text($exception->getMessageData()['%minutes%'] ?? '').' min)' : '';
 
-        return new Response('refused: '.$request->query->get('user').$minutes);
+        return new Response('refused: '.$request->query->getString('user').$minutes);
     }
 
     public function start(Request $request, ?AuthenticationException $authException = null): Response
     {
         return new Response('entry point: '.$this->name, Response::HTTP_UNAUTHORIZED);
+    }
+
+    private static function text(mixed $value): string
+    {
+        return \is_scalar($value) ? (string) $value : '';
     }
 }
