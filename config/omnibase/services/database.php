@@ -10,6 +10,7 @@ use Symfony\Component\DependencyInjection\Reference;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
+use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_locator;
 
 return static function (ContainerConfigurator $container, ContainerBuilder $builder): void {
@@ -92,8 +93,13 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // the persistence's scopes (trash, vault) as Doctrine's filters.
     $services->set(\Omnibridge\Doctrine\Omnibase\DoctrineFinders::class)->args([service('doctrine')]);
     $services->alias(\Base\Database\Repository\Finders::class, \Omnibridge\Doctrine\Omnibase\DoctrineFinders::class)->public();
-    // Doctrine's own getRepository() answers its plain repository (omnibase's repositories take Finders).
+    // Doctrine's own getRepository() answers its plain repository (omnibase's repositories take Finders), and the
+    // neutral lifecycle events (Base\Contract\Lifecycle\*) are relayed from Doctrine's to the listeners tagged for them.
     $services->set(\Omnibridge\Doctrine\Omnibase\RepositoryFactory::class);
+    $relay = $services->set(\Omnibridge\Doctrine\Omnibase\LifecycleRelay::class)->args([tagged_iterator(Persistence::LIFECYCLE_LISTENER)]);
+    foreach (\Omnibridge\Doctrine\Omnibase\LifecycleRelay::EVENTS as $event) {
+        $relay->tag('doctrine.event_listener', ['event' => $event, 'priority' => -4096]);
+    }
     $services->set(\Omnibridge\Doctrine\Omnibase\DoctrineUnitOfWork::class)->args([service('doctrine.orm.entity_manager')]);
     $services->alias(\Omnibridge\Persistence\UnitOfWork::class, \Omnibridge\Doctrine\Omnibase\DoctrineUnitOfWork::class)->public();
     $services->set(\Omnibridge\Doctrine\Omnibase\DoctrineBackend::class)->args([service(\Omnibridge\Doctrine\Omnibase\DoctrineUnitOfWork::class)]);

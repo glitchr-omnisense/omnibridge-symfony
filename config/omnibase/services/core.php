@@ -338,6 +338,11 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ->tag('kernel.event_listener', ['event' => 'kernel.view']);
     $services->set('Omnibridge\Symfony\Omnibase\ActionArguments')
         ->tag('controller.argument_value_resolver', ['priority' => 50]);
+    // An action's entity arguments from the route, through omnibase's repositories (Base\Controller\Attribute\MapRecord):
+    // before Symfony's doctrine-bridge resolver (priority 110 in DoctrineBundle), which still answers what omnibase does not know.
+    $services->set('Omnibridge\Symfony\Omnibase\RecordArguments')
+        ->args([service('Base\Database\Repository\Finders'), service('Base\Database\Repository\Repositories')])
+        ->tag('controller.argument_value_resolver', ['priority' => 120]);
 
     // BaseService: a lazy facade (plan "omnibase agnostique", C9). Lazy, it is a ghost
     // of the class until one of its methods reads a property: injecting it builds

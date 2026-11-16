@@ -57,6 +57,7 @@ use Omnidrive\Drives;
 use Omnidrive\Flysystem\OperatorDrives;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
+use function Symfony\Component\DependencyInjection\Loader\Configurator\inline_service;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_locator;
 
@@ -120,6 +121,17 @@ return static function (ContainerConfigurator $container): void {
         $services->set(BuildCommand::class)
             ->args([service('kernel'), service('router')])
             ->tag('console.command');
+    }
+
+    // omnisense/contracts' rate limiter over symfony/rate-limiter (Policy\RateLimiter), where both are installed: the
+    // application's shared pool (cache.app) and its lock factory when it has one. A site types the contract
+    // (Omnisense\Contracts\Policy\ConsumingRateLimiterInterface, or RateLimiterInterface) and takes it from the container.
+    // Its prerequisites tested, not the class: the file declares nothing without them, which the debug class loader refuses.
+    if (interface_exists(\Omnisense\Contracts\Policy\ConsumingRateLimiterInterface::class) && class_exists(\Symfony\Component\RateLimiter\RateLimiterFactory::class)) {
+        $services->set(\Omnibridge\Symfony\Policy\RateLimiter::class)
+            ->args([inline_service(\Symfony\Component\RateLimiter\Storage\CacheStorage::class)->args([service('cache.app')]), service('lock.factory')->nullOnInvalid()]);
+        $services->alias(\Omnisense\Contracts\Policy\ConsumingRateLimiterInterface::class, \Omnibridge\Symfony\Policy\RateLimiter::class)->public();
+        $services->alias(\Omnisense\Contracts\Policy\RateLimiterInterface::class, \Omnibridge\Symfony\Policy\RateLimiter::class)->public();
     }
 
     $services->set(AccessExtension::class)

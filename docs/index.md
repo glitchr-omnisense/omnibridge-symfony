@@ -124,8 +124,8 @@ What is Symfony by nature in omnibase is this package's, under its `Base\` name 
 `Base\Cache\*`, `Base\Response\*`, `Base\Inspector\*`, `Base\Service\{ParameterBag, HotParameterBag}`. One
 owner per class: a class exists either in the core or here (tests/SingleOwnerTest). Every service is registered
 under its class's name. `Omnibridge\Symfony\Omnibase\` keeps the adapters of the core's contracts only (the table
-above): a site or a bundle never names it - it types the contract (`Base\Contract\*`, `Base\Screen\Responder`)
-and asks the container.
+above): a site or a bundle never names it - it types the contract (`Base\Contract\*`, `Base\Screen\Responder`,
+`Base\Field\Conformance\Host`) and asks the container.
 
 ## The framework packages
 

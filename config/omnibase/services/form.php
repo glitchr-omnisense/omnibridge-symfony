@@ -14,6 +14,14 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
         ->public(false);
 
     // A neutral FormDefinition as a Symfony form (plan "omnibase agnostic", step F5b).
+    // The host the core's conformance suite of the field kinds is run on (Base\Field\Conformance\Suite): what a site's
+    // or a bundle's test asks the container for, by the contract.
+    if (class_exists(\Twig\Environment::class)) {
+        $services->set('Omnibridge\Symfony\Omnibase\Form\Conformance\SymfonyHost')
+            ->args([new Reference('Base\Form\DefinitionForms'), new Reference('twig')]);
+        $services->alias('Base\Field\Conformance\Host', 'Omnibridge\Symfony\Omnibase\Form\Conformance\SymfonyHost')->public();
+    }
+
     $services->set('Base\Form\DefinitionForms')
         ->public()
         ->args([new Reference('form.factory')]);

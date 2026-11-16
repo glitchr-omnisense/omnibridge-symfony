@@ -8,7 +8,7 @@ use Omnibridge\Contract\Locales;
 /**
  * Omnibridge\Contract\Locales under Symfony: omnibase's Localizer (the request's
  * locale, the site's default and fallbacks from base.yaml), its answers in a
- * list.
+ * list; the visitor's time zone, the localizer's.
  */
 final class LocalizerLocales implements Locales
 {
@@ -29,5 +29,11 @@ final class LocalizerLocales implements Locales
     public function getAvailableLocales(): array
     {
         return array_values($this->localizer::getAvailableLocales());
+    }
+
+    /** The visitor's zone LocalizerSubscriber gave the localizer (the `timezone` cookie, valid), UTC without one. */
+    public function getTimezone(): string
+    {
+        return $this->localizer->getTimezone();
     }
 }

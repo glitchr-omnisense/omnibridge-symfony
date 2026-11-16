@@ -12,8 +12,10 @@ writes those names only; `Omnibridge\Symfony\` is plumbing (the adapters of the 
 - The 4.x layer (`Legacy\`, the `class_exists()` fallbacks) is gone.
 - The repositories are the core's agnostic classes: registered with `Base\Database\Repository\Finders`
   (`Omnibridge\Doctrine\Omnibase\DoctrineFinders` on Doctrine, the persistence's on Eloquent), the registry
-  `Base\Database\Repository\EntityRepositories`.
-- `Base\Screen\Responder` is a service.
+  `Base\Database\Repository\EntityRepositories`; the core's lifecycle events relayed from Doctrine's
+  (`LifecycleRelay`); the generic contracts answer their `Base\Contract\*` ids too (`ContractNamesPass`).
+- `Base\Screen\Responder` and `Base\Field\Conformance\Host` are services; `#[Base\Controller\Attribute\MapRecord]`
+  and `RecordArguments` resolve an action's entity arguments from the route on any persistence.
 - No `conflict` with other packages of the ensemble.
 
 ## [2.0.0] - 2026-11-14
