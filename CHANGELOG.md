@@ -1,8 +1,8 @@
 # Changelog
 
-## [1.0.0] - Unreleased (the "base-agnostic" ensemble)
+## [3.0.0]
 
-Every omni* package restarts at 1.0.0: this is the clean end state, no compatibility layer. What this package is:
+Every package of the ensemble takes its next major version: this is the clean end state, no compatibility layer. What this package is:
 the Symfony host of omnisense/omnibase - it PROVIDES, under their `Base\` names (PSR-4 `Base\` => `src/Base/`), what
 is Symfony by nature in omnibase: the bundle (`Base\BaseBundle`, `Base\Bundle\AbstractBase*`), the security glue
 (`Base\Security\*`), the form and field types (`Base\Form\*`, `Base\Field\Type\*`), the controllers, the console

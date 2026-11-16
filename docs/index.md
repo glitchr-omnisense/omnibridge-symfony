@@ -134,7 +134,7 @@ what security.yaml, doctrine.yaml, framework.yaml and webauthn.yaml used to name
 ## The framework packages
 
 composer.json requires what omnibase's Symfony side needs, so that the core does not: PHP 8.2 or
-later, omnisense/omnibridge and omnibridge/twig 1.x, Symfony 6, 7 or 8 (asset, cache, config, console,
+later, omnisense/omnibridge and omnibridge/twig 2.x, Symfony 6, 7 or 8 (asset, cache, config, console,
 dependency-injection, dotenv, error-handler, event-dispatcher, expression-language, form,
 framework-bundle, http-foundation, http-kernel, messenger, process, routing, security-bundle,
 security-core, security-csrf, security-http, twig-bridge, twig-bundle, validator, var-dumper,

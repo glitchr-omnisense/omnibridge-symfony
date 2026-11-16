@@ -4,7 +4,7 @@ name: ci
 
 on:
   push:
-    branches: ['2.x']
+    branches: ['3.x']
   pull_request:
   workflow_dispatch:
   # release.yml runs this CI on a tag before the release.

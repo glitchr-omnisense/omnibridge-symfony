@@ -11,8 +11,8 @@
     ],
     "require": {
         "php": ">=8.2",
-        "omnibridge/twig": "^1.0",
-        "omnisense/omnibridge": "^1.0",
+        "omnibridge/twig": "^2.0",
+        "omnisense/omnibridge": "^2.0",
         "symfony/asset": "^6.0|^7.0|^8.0",
         "symfony/cache": "^6.0|^7.0|^8.0",
         "symfony/config": "^6.1|^7.0|^8.0",
@@ -101,7 +101,7 @@
     ],
     "extra": {
         "branch-alias": {
-            "dev-2.x": "2.x-dev"
+            "dev-3.x": "3.x-dev"
         }
     },
     "config": {
