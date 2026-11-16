@@ -176,6 +176,36 @@ final class HostConfiguration
     }
 
     /**
+     * At boot: the repositories UnitOfWorks::repositories() gives on this container's entity managers (a fixtures
+     * command's, a lifecycle listener's) are the container's registry - the application's repositories its services, a
+     * repository's own dependencies (a cache pool) given -, not a registry built without them.
+     */
+    public static function unitOfWorkRepositories(\Symfony\Component\DependencyInjection\ContainerInterface $container): void
+    {
+        if (!class_exists(\Omnibridge\Doctrine\Omnibase\Behaviour\DoctrineBehaviours::class) || !$container->has('doctrine') || !$container->has(\Base\Database\Repository\Repositories::class)) {
+            return;
+        }
+        \Omnibridge\Doctrine\Omnibase\Behaviour\DoctrineBehaviours::host(static function (\Doctrine\ORM\EntityManagerInterface $entityManager) use ($container): ?\Base\Database\Repository\Repositories {
+            $repositories = \in_array($entityManager, $container->get('doctrine')->getManagers(), true) ? $container->get(\Base\Database\Repository\Repositories::class) : null;
+
+            return $repositories instanceof \Base\Database\Repository\Repositories ? $repositories : null;
+        });
+    }
+
+    /** The tag of the repositories the registry's locator holds (Repositories::of(), config/omnibase/services/database.php). */
+    public const REPOSITORY_TAG = 'base.repository';
+
+    /**
+     * Every repository the container autoconfigures - the application's App\Repository\* (its services.yaml's `App\:`
+     * resource), a bundle's - in the registry's locator: Repositories::of() answers that service, its own constructor's
+     * services injected (a cache pool), instead of building one without them.
+     */
+    public static function repositories(ContainerBuilder $container): void
+    {
+        $container->registerForAutoconfiguration(\Base\Database\Repository\ServiceEntityRepository::class)->addTag(self::REPOSITORY_TAG);
+    }
+
+    /**
      * Doctrine's: omnibase's naming strategy, metadata factory and repository factory, on each entity manager the site declares (the
      * default one's shortcut where it declares none).
      *

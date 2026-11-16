@@ -88,6 +88,7 @@ class BaseExtension extends AbstractBaseExtension implements PrependExtensionInt
         // What a service whose class is one of the core's interfaces is tagged with: the core's `autoconfigure` registry
         // (Base\Discovery), compiled here - Symfony reads it before any compiler pass.
         DiscoveryPass::autoconfigure($container, \Base\Discovery::registry('autoconfigure'));
+        HostConfiguration::repositories($container);
     }
 
     public function prepend(ContainerBuilder $builder): void

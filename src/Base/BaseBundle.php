@@ -382,6 +382,9 @@ class BaseBundle extends AbstractBaseBundle
         if ($this->container->has($contracts)) {
             Runtime::setContainer($this->container->get($contracts));
         }
+        // The repositories UnitOfWorks::repositories() gives on this container's entity managers (a fixtures command's, a
+        // lifecycle listener's): the container's registry, the application's repositories its services.
+        \Base\DependencyInjection\HostConfiguration::unitOfWorkRepositories($this->container);
         // The form types read as omnibase's neutral forms (FormDefinition::of()): made by Symfony's form registry (a type's
         // services injected), the repositories when a select lists records at once.
         if (class_exists(\Base\Form\Definition\TypeReader::class) && $this->container->has('base.form.registry')) {

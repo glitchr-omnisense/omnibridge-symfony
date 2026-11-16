@@ -65,6 +65,42 @@ final class HostConfigurationTest extends TestCase
         self::assertNotContains(HostConfiguration::USER_CHECKER, self::ids($container, 'host_test.firewall.dev'), 'a firewall without security is left alone');
     }
 
+    /**
+     * The application's repository with a service of its own (a cache pool) is the one the registry answers: autowired
+     * as a site's `App\:` resource makes it, in the registry's locator (base.repository, autoconfigured).
+     */
+    public function testTheRegistryAnswersTheApplicationsRepositoryService(): void
+    {
+        if (!class_exists(\Base\Database\Repository\EntityRepositories::class) || !class_exists(\Omnibridge\Doctrine\Omnibase\DoctrineFinders::class)) {
+            self::markTestSkipped('omnisense/omnibase and omnibridge/doctrine are not installed.');
+        }
+        $repository = $this->boot([], 'repositories')->getContainer()->get(\Base\Database\Repository\EntityRepositories::class)->of(\App\Entity\Note::class);
+
+        self::assertInstanceOf(\App\Repository\NoteRepository::class, $repository);
+        self::assertInstanceOf(\Symfony\Contracts\Cache\CacheInterface::class, $repository->cache);
+    }
+
+    /**
+     * The registry a fixtures command or a lifecycle listener reaches - UnitOfWorks::repositories() on the entity
+     * manager's unit of work, not the container's service - answers the application's ThreadRepository subclass with its
+     * own service (lesringostars' CommentRepository and its cache pool), as the container's registry does.
+     */
+    public function testTheUnitOfWorksRegistryAnswersTheApplicationsRepositoryService(): void
+    {
+        if (!class_exists(\Base\Database\Repository\EntityRepositories::class) || !class_exists(\Omnibridge\Doctrine\Omnibase\DoctrineFinders::class)) {
+            self::markTestSkipped('omnisense/omnibase and omnibridge/doctrine are not installed.');
+        }
+        \Base\Service\Model\ClassAliases::register();
+        $container = $this->boot([], 'unit-of-work')->getContainer();
+        $unitOfWork = \Base\Database\UnitOfWorks::of($container->get('doctrine')->getManager());
+
+        $repository = \Base\Database\UnitOfWorks::repositories($unitOfWork)->of(\App\Entity\Comment::class);
+
+        self::assertInstanceOf(\App\Repository\CommentRepository::class, $repository);
+        self::assertInstanceOf(\Base\Repository\ThreadRepository::class, $repository);
+        self::assertInstanceOf(\Symfony\Contracts\Cache\CacheInterface::class, $repository->cache);
+    }
+
     public function testAVisitorMeetsTheEntryPointOfEachFirewall(): void
     {
         $kernel = $this->boot(['security' => ['access_control' => [

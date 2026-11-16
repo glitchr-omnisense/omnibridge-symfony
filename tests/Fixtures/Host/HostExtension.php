@@ -51,5 +51,20 @@ final class HostExtension extends Extension implements PrependExtensionInterface
         $container->register('Base\Controller\ErrorController', Errors::class)->setPublic(true)->addTag('controller.service_arguments');
         $container->register(HostConfiguration::NAMING_STRATEGY, DefaultNamingStrategy::class);
         $container->register(HostConfiguration::REPOSITORY_FACTORY, DefaultRepositoryFactory::class);
+
+        // omnibase's registry of repositories as config/omnibase/services/database.php declares it, where the core and
+        // omnibridge/doctrine are installed; the application's repository autowired, as its `App\:` resource makes it.
+        if (class_exists(\Base\Database\Repository\EntityRepositories::class) && class_exists(\Omnibridge\Doctrine\Omnibase\DoctrineFinders::class)) {
+            HostConfiguration::repositories($container);
+            $container->register(\Omnibridge\Doctrine\Omnibase\DoctrineFinders::class)->setArguments([new \Symfony\Component\DependencyInjection\Reference('doctrine')]);
+            $container->setAlias(\Base\Database\Repository\Finders::class, \Omnibridge\Doctrine\Omnibase\DoctrineFinders::class);
+            $container->setAlias(\Base\Database\Repository\Repositories::class, \Base\Database\Repository\EntityRepositories::class)->setPublic(true);
+            $container->register(\Base\Database\Repository\EntityRepositories::class)->setPublic(true)->setArguments([
+                new \Symfony\Component\DependencyInjection\Reference(\Base\Database\Repository\Finders::class),
+                new \Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument(new \Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument(HostConfiguration::REPOSITORY_TAG, needsIndexes: true)),
+            ]);
+            $container->register(\App\Repository\NoteRepository::class)->setAutowired(true)->setAutoconfigured(true);
+            $container->register(\App\Repository\CommentRepository::class)->setAutowired(true)->setAutoconfigured(true);
+        }
     }
 }

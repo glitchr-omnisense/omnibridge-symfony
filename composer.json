@@ -90,7 +90,8 @@
     "autoload-dev": {
         "psr-4": {
             "Omnibridge\\Symfony\\Tests\\": "tests/",
-            "App\\Entity\\": "tests/Fixtures/Host/Entity/"
+            "App\\Entity\\": "tests/Fixtures/Host/Entity/",
+            "App\\Repository\\": "tests/Fixtures/Host/Repository/"
         }
     },
     "keywords": [
