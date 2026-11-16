@@ -48,6 +48,9 @@ final class HostExtension extends Extension implements PrependExtensionInterface
         $container->register(HostConfiguration::SIGN_IN, SignIn::class)->setArguments(['sign-in']);
         $container->register(HostConfiguration::RESCUE, SignIn::class)->setArguments(['rescue']);
         $container->register(HostConfiguration::ACCESS_TOKENS, AccessTokens::class);
+        $container->register(HostConfiguration::ACCESS_TOKEN_EXTRACTOR, CoreTokens::class);
+        // omnibase's users' provider (Base\Security\UserProvider over the agnostic Users): an account named ada.
+        $container->register(HostConfiguration::USER_PROVIDER, \Symfony\Component\Security\Core\User\InMemoryUserProvider::class)->setArguments([['ada' => ['password' => '', 'roles' => ['ROLE_USER']]]]);
         $container->register('Base\Controller\ErrorController', Errors::class)->setPublic(true)->addTag('controller.service_arguments');
         $container->register(HostConfiguration::NAMING_STRATEGY, DefaultNamingStrategy::class);
         $container->register(HostConfiguration::REPOSITORY_FACTORY, DefaultRepositoryFactory::class);

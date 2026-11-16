@@ -34,6 +34,9 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // Access token handler
     $services->set('Base\Security\AccessTokenHandler')
         ->args([service('Base\Repository\User\Tokens')]);
+    // The visitors' firewall's Bearer tokens: omnibase's only (a package's own tokens go on to their own handling).
+    $services->set('Omnibridge\Symfony\Omnibase\CoreAccessTokens')
+        ->args([service('Base\Repository\User\Tokens')->nullOnInvalid()]);
 
     // CacheClearSessionsCommand
     $services->set('Base\Console\Command\CacheClearSessionsCommand')

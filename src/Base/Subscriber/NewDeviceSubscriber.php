@@ -54,6 +54,11 @@ class NewDeviceSubscriber implements EventSubscriberInterface
         if (\Base\Security\SignInGuard::byOmniauth($event->getPassport())) {
             return;
         }
+        // The browser's connection, recorded when the account signs in (as TrackConnections does for omniauth's), not on
+        // every request: UserProvider::refreshUser() only reloads the account. An account without a row has none.
+        if ($event->getUser() instanceof User && null !== $event->getUser()->getId()) {
+            $this->userTracker->updateConnection($event->getUser());
+        }
         $email = $this->securityPolicy->isNewDeviceEmailEnabled();
         $prompt = $this->securityPolicy->isNewDevicePromptEnabled();
         if (!$email && !$prompt) {

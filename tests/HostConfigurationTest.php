@@ -63,6 +63,22 @@ final class HostConfigurationTest extends TestCase
         self::assertNotContains(HostConfiguration::SIGN_IN, $rescue);
 
         self::assertNotContains(HostConfiguration::USER_CHECKER, self::ids($container, 'host_test.firewall.dev'), 'a firewall without security is left alone');
+        self::assertSame([], self::ids($container, 'host_test.providers'), 'no provider of Doctrine\'s (an `entity` one would be security.user.provider.concrete.users)');
+        self::assertContains(HostConfiguration::USER_PROVIDER, $main, 'omnibase\'s provider on the visitors\' firewall');
+    }
+
+    /**
+     * Signing in on a Doctrine host: the visitors' firewall's provider is omnibase's (Base\Security\UserProvider, its
+     * stand-in here), never Doctrine's `entity` provider, whose plain repository loads no user by identifier.
+     */
+    public function testAnAccountSignsInOnADoctrineHost(): void
+    {
+        $kernel = $this->boot([], 'sign-in');
+
+        $signedIn = $kernel->handle(Request::create('/sign-in?user=ada'));
+        self::assertSame('signed in: ada', $signedIn->getContent());
+        $unknown = $kernel->handle(Request::create('/sign-in?user=nobody'));
+        self::assertSame('refused: nobody', $unknown->getContent());
     }
 
     /**
@@ -78,6 +94,23 @@ final class HostConfigurationTest extends TestCase
 
         self::assertInstanceOf(\App\Repository\NoteRepository::class, $repository);
         self::assertInstanceOf(\Symfony\Contracts\Cache\CacheInterface::class, $repository->cache);
+    }
+
+    /**
+     * The visitors' firewall authenticates omnibase's Bearer tokens only: another package's (omnibase/forge's gla_ hub
+     * tokens) goes on unauthenticated by it - no 401 - for its own handling; a token of omnibase's that it refuses is
+     * still refused.
+     */
+    public function testOnlyOmnibasesBearerTokensAreClaimed(): void
+    {
+        $kernel = $this->boot([], 'bearer');
+        $bearer = static fn (string $token): Request => Request::create('/whoami', server: ['HTTP_AUTHORIZATION' => 'Bearer '.$token]);
+
+        self::assertSame('ada', $kernel->handle($bearer('core-token'))->getContent(), 'omnibase\'s token signs in');
+        $foreign = $kernel->handle($bearer('gla_0123456789abcdef'));
+        self::assertSame(200, $foreign->getStatusCode(), 'a foreign token is not refused by omnibase');
+        self::assertSame('anonymous', $foreign->getContent());
+        self::assertSame('anonymous', $kernel->handle(Request::create('/whoami'))->getContent());
     }
 
     /**
@@ -178,6 +211,8 @@ final class HostConfigurationTest extends TestCase
         self::assertSame([], $firewalls['api']);
         self::assertSame([HostConfiguration::OMNIAUTH_AUTHENTICATOR], $firewalls['main']['custom_authenticators']);
         self::assertSame(['oauth_user_provider' => ['service' => HostConfiguration::OAUTH_USERS]], $firewalls['main']['oauth']);
+        self::assertSame(['users' => ['id' => HostConfiguration::USER_PROVIDER]], $security['providers'] ?? [], 'omnibase\'s provider, on every persistence');
+        self::assertSame(['users' => ['id' => HostConfiguration::USER_PROVIDER]], HostConfiguration::security($builder, $options, true)['providers'] ?? [], 'on Doctrine too: not Doctrine\'s entity provider');
 
         $builder->prependExtensionConfig('doctrine', ['orm' => ['entity_managers' => ['default' => [], 'archive' => []]]]);
         self::assertSame(['default', 'archive'], array_keys(HostConfiguration::orm($builder)['entity_managers'] ?? []));

@@ -34,7 +34,10 @@ final class HostConfiguration
     public const SIGN_IN = 'Base\Security\LoginFormAuthenticator';
     public const RESCUE = 'Base\Security\RescueFormAuthenticator';
     public const ACCESS_TOKENS = 'Base\Security\AccessTokenHandler';
+    /** The visitors' firewall's token extractor: the Bearer tokens omnibase issued, and no other (a package's own). */
+    public const ACCESS_TOKEN_EXTRACTOR = 'Omnibridge\Symfony\Omnibase\CoreAccessTokens';
     public const OAUTH_USERS = 'Base\Security\UserProvider';
+    public const USER_PROVIDER = 'Base\Security\UserProvider';
     public const OMNIAUTH_AUTHENTICATOR = 'Omnibridge\Symfony\Auth\OmniauthAuthenticator';
     public const USERS = 'Base\Repository\Users';
     public const ERROR_CONTROLLER = 'Base\Controller\ErrorController::Main';
@@ -144,7 +147,7 @@ final class HostConfiguration
                     'entry_point' => self::SIGN_IN,
                 ];
                 if ($options['access_token']) {
-                    $firewalls[$name]['access_token'] = ['token_handler' => self::ACCESS_TOKENS];
+                    $firewalls[$name]['access_token'] = ['token_handler' => self::ACCESS_TOKENS, 'token_extractors' => [self::ACCESS_TOKEN_EXTRACTOR]];
                 }
                 if (isset($firewall['oauth'])) {
                     $firewalls[$name]['oauth'] = ['oauth_user_provider' => ['service' => self::OAUTH_USERS]];
@@ -161,8 +164,10 @@ final class HostConfiguration
         $security = [
             'password_hashers' => ['Base\Entity\User' => ['algorithm' => 'auto']],
             // The accounts' provider, unless the site declares one of that name itself (a second type for it is refused):
-            // Doctrine's `entity` provider on App\Entity\User, the agnostic Base\Repository\Users elsewhere.
-            'providers' => isset($providers[$options['provider']]) ? [] : [$options['provider'] => $doctrine ? ['entity' => ['class' => 'App\Entity\User']] : ['id' => self::USERS]],
+            // omnibase's own on every persistence (Base\Security\UserProvider: loadUserByIdentifier() through the agnostic
+            // Base\Repository\Users). Not Doctrine's `entity` provider: Doctrine's getRepository() is its plain repository,
+            // which loads no user by identifier.
+            'providers' => isset($providers[$options['provider']]) ? [] : [$options['provider'] => ['id' => self::USER_PROVIDER]],
             'firewalls' => $firewalls,
         ];
         if ([] !== $options['role_hierarchy']) {

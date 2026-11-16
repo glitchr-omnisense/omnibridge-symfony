@@ -65,6 +65,12 @@ final class HostKernel extends Kernel implements CompilerPassInterface
         return new Response('home');
     }
 
+    /** Who the visitors' firewall authenticated: the account's name, or nobody. */
+    public function whoami(#[\Symfony\Component\Security\Http\Attribute\CurrentUser] ?\Symfony\Component\Security\Core\User\UserInterface $user = null): Response
+    {
+        return new Response($user?->getUserIdentifier() ?? 'anonymous');
+    }
+
     protected function configureContainer(ContainerConfigurator $container): void
     {
         $container->extension('framework', [
@@ -95,6 +101,7 @@ final class HostKernel extends Kernel implements CompilerPassInterface
         $routes->add('home', '/')->controller('kernel::home');
         $routes->add('private', '/private')->controller('kernel::home');
         $routes->add('sign_in', '/sign-in')->controller('kernel::home');
+        $routes->add('whoami', '/whoami')->controller('kernel::whoami');
         $routes->add('rescue', '/rescue/private')->controller('kernel::home');
     }
 
@@ -118,6 +125,7 @@ final class HostKernel extends Kernel implements CompilerPassInterface
             }
         }
         $container->setParameter('host_test.doctrine', $calls);
+        $container->setParameter('host_test.providers', array_values(array_filter(array_keys($container->getDefinitions()), static fn (string $id): bool => str_starts_with($id, 'security.user.provider.concrete.'))));
     }
 
     /**

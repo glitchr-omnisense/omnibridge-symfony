@@ -81,7 +81,8 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
             $user = $fresh;
         }
 
-        $this->userTracker->updateConnection($user);
+        // Only the account reloaded: its browser's connection is recorded when it signs in (NewDeviceSubscriber; omniauth's
+        // TrackConnections), not on every request.
 
         return $user;
     }
