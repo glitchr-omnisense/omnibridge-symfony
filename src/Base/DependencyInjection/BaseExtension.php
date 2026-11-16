@@ -180,7 +180,10 @@ class BaseExtension extends AbstractBaseExtension implements PrependExtensionInt
         $types += \Omnibridge\Doctrine\Omnibase\Types::passkey();
 
         // The core's declaration of where its enumerations are and what they extend (Base\Discovery).
-        foreach (\Base\Discovery::enumerations(BaseBundle::getProjectDir(), BaseBundle::getBundleDir()) as $name => $className) {
+        // The application's folder from the kernel: the bundle's own folder says nothing of it where the core is a
+        // checkout linked into vendor/ (a path repository), and an App\Enum\X must win over Base\Enum\X of its name.
+        $projectDir = $builder->hasParameter('kernel.project_dir') ? (string) $builder->getParameter('kernel.project_dir') : BaseBundle::getProjectDir();
+        foreach (\Base\Discovery::enumerations($projectDir, BaseBundle::getBundleDir()) as $name => $className) {
             $types[$name] = $className;
         }
         $builder->prependExtensionConfig('doctrine', ['dbal' => ['types' => $types]]);

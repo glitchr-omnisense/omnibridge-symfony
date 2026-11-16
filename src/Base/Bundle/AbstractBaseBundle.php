@@ -49,9 +49,15 @@ abstract class AbstractBaseBundle extends Bundle
         return dirname((new ReflectionClass(static::class))->getFileName(), 2);
     }
 
+    /**
+     * The application's folder: Composer's root package (a bundle's own folder is no guide where it is a path or
+     * symlinked package), else three levels above the bundle as installed in vendor/<vendor>/<name>.
+     */
     public static function getProjectDir(): string
     {
-        return dirname(static::getBundleDir(), 3);
+        $root = class_exists(\Composer\InstalledVersions::class) ? (\Composer\InstalledVersions::getRootPackage()['install_path'] ?? null) : null;
+
+        return \is_string($root) && false !== ($path = realpath($root)) ? $path : dirname(static::getBundleDir(), 3);
     }
 
     protected static ?array $bundles = null;
