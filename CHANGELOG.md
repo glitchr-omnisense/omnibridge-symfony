@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.0.1]
+
+Fixes found once omnisense/omnibase's PHPStan analyses this package's src/Base (no signature changes):
+- `doctrine:schema:charset` (`Base\Console\Command\DoctrineSchemaCharsetCommand`) read an `$entityManager` its parent
+  command no longer has, and stopped on it: Doctrine's connection now comes from the command's unit of work
+  (`DoctrineUnitOfWork::entityManager()`), with a clear error on another persistence.
+- `uploader:entities` (`UploaderEntitiesCommand::getUploaderAttributes()`): the same, for Doctrine's class metadata.
+- `NotificationController`, `UserProfileController` and `UserSettingsController` called `legacy()` on the
+  `Base\Screen\Responder` interface, which does not declare it: the template variables of a site's override are asked
+  of omnibase's `ScreenResponder` only (an `instanceof` check), none from another responder.
+- Dead code dropped: the private helpers `base:mailer:trap`, `demo:reset` and `doctrine:array:upgrade` kept after
+  their work moved into omnibase's tasks, two unused subscriber helpers, an unused property of `uploader:images:crop`,
+  and the unreachable lines of `FormProcessorTrait::appendPost()` and `appendFiles()`. `doctrine:array:upgrade` and `base:mailer:trap` leave
+  AdapterSizeTest's list of the adapters still above an adapter's size.
+- Types: DBAL 4's type registry iterated directly, the MapRecord expression's arguments filtered without `strlen`,
+  the application folder read from Composer's root package as declared, PHPDoc of a few return types.
+
 ## [3.0.0]
 
 Every package of the ensemble takes its next major version: this is the clean end state, no compatibility layer. What this package is:

@@ -11,6 +11,8 @@ use League\Flysystem\FilesystemException;
 use Base\BaseBundle;
 use Base\Console\Command;
 use Base\Console\Reports;
+use Doctrine\ORM\EntityManagerInterface;
+use Omnibridge\Doctrine\Omnibase\DoctrineUnitOfWork;
 use Omnidrive\Model\Entry;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
@@ -99,7 +101,7 @@ class UploaderEntitiesCommand extends Command
 
         $metadataClasses = [];
         foreach ($classes as $class) {
-            $metadataClasses[$class] = $this->entityManager->getClassMetadata($class);
+            $metadataClasses[$class] = $this->doctrine()->getClassMetadata($class);
         }
 
         $attributes = [];
@@ -207,5 +209,16 @@ class UploaderEntitiesCommand extends Command
 
     public function postProcess(mixed $class, string $field, Uploader $attribute, array $fileList)
     {
+    }
+
+    /** Doctrine's entity manager, through the unit of work the command is given (Doctrine's on a Doctrine host). */
+    private function doctrine(): EntityManagerInterface
+    {
+        $unitOfWork = $this->getUnitOfWork();
+        if (!$unitOfWork instanceof DoctrineUnitOfWork) {
+            throw new \LogicException('The uploader attributes are read from Doctrine\'s metadata (base.persistence: doctrine).');
+        }
+
+        return $unitOfWork->entityManager();
     }
 }

@@ -7,6 +7,7 @@ use App\Form\Type\UserProfileType;
 use Base\Attributes\Attribute\Iconize;
 use Base\Bridge\Symfony\AccountScreens;
 use Base\Screen\Responder;
+use Omnibridge\Symfony\Omnibase\ScreenResponder;
 use Base\Auth\Account\Outcome;
 use Base\Auth\Account\ProfileAccess;
 use Base\Form\Definition\RecordRules;
@@ -92,6 +93,6 @@ class UserProfileController extends AbstractController
         }
         $template = 'client/user/profile_show.html.twig';
 
-        return $responder->respond($request, new View($template, $screens->profile($user), 'Account/Profile'), $responder->legacy($template, fn () => ['user' => $user]));
+        return $responder->respond($request, new View($template, $screens->profile($user), 'Account/Profile'), ($responder instanceof ScreenResponder ? $responder->legacy($template, fn () => ['user' => $user]) : []));
     }
 }

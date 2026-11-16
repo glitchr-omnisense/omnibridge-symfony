@@ -91,49 +91,6 @@ class LocalizerSubscriber implements EventSubscriberInterface
         ];
     }
 
-    /** @var list<string>|null the languages this site speaks */
-    private ?array $languages = null;
-
-    /**
-     * The languages this site speaks: the translator's (the default and its
-     * fallbacks), and those its pages have an address in ("app_legal.de" -
-     * a site may give a language its own addresses without a fallback).
-     *
-     * @return list<string>
-     */
-    private function languages(): array
-    {
-        if (null === $this->languages) {
-            $languages = $this->localizer->getAvailableLocaleLangs();
-            $generator = $this->router->getGenerator();
-            if (method_exists($generator, 'getCompiledRoutes')) {
-                foreach (array_keys($generator->getCompiledRoutes()) as $name) {
-                    if (preg_match('/\.([a-z]{2})$/', (string) $name, $found)) {
-                        $languages[] = $found[1];
-                    }
-                }
-            }
-            // The site's own first: Accept-Language's ties go to it.
-            $this->languages = array_values(array_unique(array_filter($languages)));
-        }
-
-        return $this->languages;
-    }
-
-    /** A locale of this site's ("de", "fr_FR", "fr-FR"), normalized; null for any other. */
-    private function available(?string $locale, bool $declared = false): ?string
-    {
-        if (!is_string($locale) || !preg_match('/^[a-zA-Z]{2}([-_][a-zA-Z]{2})?$/', $locale)) {
-            return null;
-        }
-        // A route's own (_locale: de) is the site's by declaration.
-        if (!$declared && !in_array(strtolower(substr($locale, 0, 2)), $this->languages(), true)) {
-            return null;
-        }
-
-        return $this->localizer::normalizeLocale(strtolower(substr($locale, 0, 2)).substr($locale, 2));
-    }
-
     public function onKernelResponse(ResponseEvent $event): void
     {
         $request = $event->getRequest();

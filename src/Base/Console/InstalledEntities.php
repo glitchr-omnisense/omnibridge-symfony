@@ -46,9 +46,8 @@ final class InstalledEntities
         }
 
         $types = [];
-        // DBAL 4 iterates its registry (getMap() is DBAL 3's).
-        $registry = Type::getTypeRegistry();
-        foreach ($registry instanceof \Traversable ? $registry : $registry->getMap() as $name => $type) {
+        // DBAL 4 iterates its registry.
+        foreach (Type::getTypeRegistry() as $name => $type) {
             if (method_exists($type, 'enumeration')) {
                 $types[$name] = $type->enumeration();
             }

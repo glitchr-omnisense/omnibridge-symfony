@@ -76,6 +76,8 @@ class AutocompleteController extends AbstractController
     /**
      * The repository a picker looks into: the entity's own, or omnibase's parent class built for an entity that has
      * none - either answers the finder language, on any persistence.
+     *
+     * @return ServiceEntityRepository<object>
      */
     protected function repository(string $class): ServiceEntityRepository
     {

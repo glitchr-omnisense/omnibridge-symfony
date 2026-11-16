@@ -91,15 +91,8 @@ trait FormProcessorTrait
      */
     protected function appendPost(Request $request)
     {
+        // Disabled: the request's data is not copied into the form's session.
         return $this;
-        $formSession = $this->getSession($request);
-
-        if (!array_key_exists("POST", $formSession)) {
-            $formSession["POST"] = [];
-        }
-        $formSession["POST"] = array_merge($formSession["POST"], $_POST);
-
-        return $this->setSession($formSession);
     }
 
     /**
@@ -108,20 +101,8 @@ trait FormProcessorTrait
      */
     protected function appendFiles(Request $request)
     {
+        // Disabled: the request's data is not copied into the form's session.
         return $this;
-        $formSession = $this->getSession($request);
-
-        if (!array_key_exists("FILES", $formSession)) {
-            $formSession["FILES"] = [];
-        }
-        foreach ($_FILES as $key => $file) {
-            $_FILES[$key]["tmp_name"] = stream_get_meta_data(tmpfile())['uri'];
-            move_uploaded_file($file["tmp_name"], $_FILES[$key]["tmp_name"]);
-        }
-
-        $formSession["FILES"] = array_merge($formSession["FILES"], $_FILES);
-
-        return $this->setSession($formSession);
     }
 
     /**

@@ -35,8 +35,6 @@ class UploaderImagesCropCommand extends UploaderImagesCommand
     protected $maxDefinition;
     protected $normalize;
 
-    private \Base\Database\Repository\Entities $imageCropRepository;
-
     protected function configure(): void
     {
         $this->addOption('normalize', false, InputOption::VALUE_NONE, 'Do you want to update coordinate system ?');

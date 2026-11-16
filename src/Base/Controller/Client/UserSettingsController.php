@@ -7,6 +7,7 @@ use Base\Auth\Account\Devices;
 use Base\Auth\Account\SecondFactor;
 use Base\Bridge\Symfony\AccountScreens;
 use Base\Screen\Responder;
+use Omnibridge\Symfony\Omnibase\ScreenResponder;
 use Base\Form\Type\Login2FAType;
 use Base\Screen\View;
 use Base\Service\SecurityPolicy;
@@ -56,11 +57,11 @@ class UserSettingsController extends AbstractController
         $sessions = $this->devices->sessions();
         $template = 'client/user/settings.html.twig';
 
-        return $responder->respond($request, new View($template, $screens->settings($user instanceof \Base\Entity\User ? $user : null, $sessions), 'Account/Settings'), $responder->legacy($template, fn () => [
+        return $responder->respond($request, new View($template, $screens->settings($user instanceof \Base\Entity\User ? $user : null, $sessions), 'Account/Settings'), ($responder instanceof ScreenResponder ? $responder->legacy($template, fn () => [
             'user' => $user,
             'sessions' => $sessions,
             'policy' => $this->securityPolicy,
-        ]));
+        ]) : []));
     }
 
     // The one-off "your account needs a second factor" page and its "not now", and the e-mailed code turned on or off,

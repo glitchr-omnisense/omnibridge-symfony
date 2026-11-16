@@ -201,6 +201,7 @@ class IntegritySubscriber implements EventSubscriberInterface
         return $this->vault->seal($marshaller, $this->secret);
     }
 
+    /** @return string the checksum of the default connection's parameters */
     protected function getDoctrineChecksum()
     {
         $doctrine = $this->doctrine;

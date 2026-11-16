@@ -7,6 +7,8 @@ use Omnibridge\Doctrine\Omnibase\Console\Task\DoctrineSchemaCharset;
 use Omnibridge\Doctrine\Omnibase\Console\Task\DoctrineSchemaCharsetInput;
 use Base\Console\Command;
 use Base\Console\Reports;
+use Doctrine\DBAL\Connection;
+use Omnibridge\Doctrine\Omnibase\DoctrineUnitOfWork;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -31,7 +33,7 @@ class DoctrineSchemaCharsetCommand extends Command
 
     protected function readDatabaseVariable(string $name): ?string
     {
-        $connection = $this->entityManager->getConnection();
+        $connection = $this->connection();
         $statement = $connection->prepare("SHOW VARIABLES LIKE '" . $name . "'");
 
         return $statement->executeQuery()->fetchAllKeyValue()[$name] ?? null;
@@ -39,7 +41,7 @@ class DoctrineSchemaCharsetCommand extends Command
 
     protected function writeDatabaseCharsetCollate(string $charset, string $collate): int
     {
-        $connection = $this->entityManager->getConnection();
+        $connection = $this->connection();
         $params = $connection->getParams();
 
         $databaseName = $params["dbname"] ?? null;
@@ -53,21 +55,21 @@ class DoctrineSchemaCharsetCommand extends Command
 
     protected function readTableVariable(string $table, string $name): ?string
     {
-        $connection = $this->entityManager->getConnection();
+        $connection = $this->connection();
         $statement = $connection->prepare("SHOW TABLE STATUS WHERE NAME LIKE '" . $table . "'");
         return $statement->executeQuery()->fetchAllAssociativeIndexed()[$table][$name] ?? null;
     }
 
     protected function writeTableCharsetCollate(string $table, string $charset, string $collate): ?int
     {
-        $connection = $this->entityManager->getConnection();
+        $connection = $this->connection();
         $statement = $connection->prepare("ALTER TABLE " . $table . " CONVERT TO CHARACTER SET " . $charset . " COLLATE " . $collate);
         return $statement->executeStatement();
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        return (new DoctrineSchemaCharset($this->entityManager->getConnection()))->run(new DoctrineSchemaCharsetInput(
+        return (new DoctrineSchemaCharset($this->connection()))->run(new DoctrineSchemaCharsetInput(
             (bool) $input->getOption('update'),
             $input->getOption('charset'),
             $input->getOption('collate'),
@@ -75,5 +77,16 @@ class DoctrineSchemaCharsetCommand extends Command
             $input->getOption('table'),
             $input->getOption('table-collate'),
         ), Reports::printer($input, $output))->status();
+    }
+
+    /** Doctrine's connection, through the unit of work the command is given (Doctrine's on a Doctrine host). */
+    private function connection(): Connection
+    {
+        $unitOfWork = $this->getUnitOfWork();
+        if (!$unitOfWork instanceof DoctrineUnitOfWork) {
+            throw new \LogicException('doctrine:schema:charset runs on Doctrine\'s persistence (base.persistence: doctrine).');
+        }
+
+        return $unitOfWork->entityManager()->getConnection();
     }
 }

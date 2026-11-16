@@ -334,6 +334,7 @@ class SelectType extends AbstractType implements DataMapperInterface
         return array_map(static fn (mixed $entry): mixed => \is_object($entry) ? $id($entry) : array_map($id, $entry), $records);
     }
 
+    /** @return list<object> */
     protected function findEntities(string $class, array $ids): array
     {
         $ids = array_values(array_filter(

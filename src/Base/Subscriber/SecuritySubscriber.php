@@ -210,13 +210,6 @@ class SecuritySubscriber implements EventSubscriberInterface
      * new row pointing at the user would not flush ("A new entity was found
      * through the relationship...").
      */
-    private function poke(BaseUser $user): void
-    {
-        if (!$user->isActive()) {
-            $user->poke(new DateTime("now"));
-            $this->userRepository->flush(false);
-        }
-    }
 
     public function onLoginFailure(LoginFailureEvent $event)
     {

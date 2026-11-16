@@ -19,10 +19,8 @@ final class AdapterSizeTest extends TestCase
     public const STILL_ABOVE = [
         'Console/Command/CacheClearCommand.php',
         'Console/Command/DemoResetCommand.php',
-        'Console/Command/DoctrineArrayUpgradeCommand.php',
         'Console/Command/DoctrineDatabaseImportCommand.php',
         'Console/Command/DoctrineSchemaCharsetCommand.php',
-        'Console/Command/MailTrapCommand.php',
         'Console/Command/UploaderEntitiesCommand.php',
         'Console/Command/UploaderImagesCommand.php',
         'Console/Command/UploaderImagesCropCommand.php',

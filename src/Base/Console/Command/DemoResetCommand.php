@@ -77,44 +77,4 @@ class DemoResetCommand extends Command
 
         return $task->run(new DemoResetInput((bool) $input->getOption('keep-files'), $this->purge, $this->orphans, $this->groups), new ApplicationCommands($this->getApplication(), $output), Reports::printer($input, $output))->status();
     }
-
-    /** @param array<string, mixed> $arguments */
-    private function call(string $command, array $arguments, OutputInterface $output): int
-    {
-        try {
-            $found = $this->getApplication()?->find($command);
-        } catch (CommandNotFoundException) {
-            $found = null;
-        }
-        if (null === $found) {
-            $this->say($output, sprintf('command "%s" not found.', $command), 'warning');
-
-            return self::FAILURE;
-        }
-
-        $input = new ArrayInput($arguments);
-        $input->setInteractive(false);
-
-        return $found->run($input, $output);
-    }
-
-    /** Everything inside a directory, the directory kept (it may be a mounted volume); the number of files removed. */
-    private function emptyDirectory(string $directory): int
-    {
-        if (!is_dir($directory)) {
-            return 0;
-        }
-
-        $files = iterator_count((new Finder())->in($directory)->files()->ignoreDotFiles(false)->ignoreVCS(false));
-        $entries = iterator_to_array((new Finder())->in($directory)->depth(0)->ignoreDotFiles(false)->ignoreVCS(false), false);
-        (new Filesystem())->remove($entries);
-
-        return $files;
-    }
-
-    private function say(OutputInterface $output, string $message, string $level = 'info'): void
-    {
-        $output->writeln(sprintf('%s [demo:reset] %s', gmdate('Y-m-d\TH:i:s\Z'), $message));
-        $this->logger?->log($level, 'demo:reset: '.$message);
-    }
 }

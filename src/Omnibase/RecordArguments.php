@@ -64,7 +64,7 @@ final class RecordArguments implements ValueResolverInterface
             if (!preg_match('/^(\w+)\((.*)\)$/', $options->expr, $call)) {
                 throw new \LogicException(\sprintf('MapRecord expr "%s" is not a finder call "method(param, ...)".', $options->expr));
             }
-            $arguments = array_map(static fn (string $name) => $request->attributes->get(trim($name)), array_filter(explode(',', $call[2]), 'strlen'));
+            $arguments = array_map(static fn (string $name) => $request->attributes->get(trim($name)), array_filter(explode(',', $call[2]), static fn (string $name): bool => '' !== $name));
 
             return $repository->{$call[1]}(...$arguments);
         }

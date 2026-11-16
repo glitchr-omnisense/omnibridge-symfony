@@ -45,7 +45,7 @@ class DoctrineDatabaseImportCommand extends Command
     public const OFFSET = 2;
 
     /**
-     * @var EntityManager
+     * @var EntityManagerInterface|null
      */
     protected $entityManager;
 

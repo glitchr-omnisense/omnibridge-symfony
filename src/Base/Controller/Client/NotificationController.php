@@ -5,6 +5,7 @@ namespace Base\Controller\Client;
 use Base\Auth\Account\Outcome;
 use Base\Bridge\Symfony\AccountScreens;
 use Base\Screen\Responder;
+use Omnibridge\Symfony\Omnibase\ScreenResponder;
 use Base\Notifier\NotificationCenter;
 use Base\Screen\Json;
 use Base\Screen\View;
@@ -45,11 +46,11 @@ class NotificationController extends AbstractController
         [$notifications, $unread] = $page;
         $template = NotificationCenter::TEMPLATE;
 
-        return $responder->respond($request, new View($template, $screens->notifications($notifications, $unread, $unreadOnly), "Account/Notifications"), $responder->legacy($template, fn () => [
+        return $responder->respond($request, new View($template, $screens->notifications($notifications, $unread, $unreadOnly), "Account/Notifications"), ($responder instanceof ScreenResponder ? $responder->legacy($template, fn () => [
             "notifications" => $notifications,
             "unread" => $unread,
             "unreadOnly" => $unreadOnly,
-        ]));
+        ]) : []));
     }
 
     /** What the browser needs before it can subscribe: the VAPID public key, or null when push is off. */

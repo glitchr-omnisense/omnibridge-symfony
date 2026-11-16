@@ -55,7 +55,7 @@ abstract class AbstractBaseBundle extends Bundle
      */
     public static function getProjectDir(): string
     {
-        $root = class_exists(\Composer\InstalledVersions::class) ? (\Composer\InstalledVersions::getRootPackage()['install_path'] ?? null) : null;
+        $root = class_exists(\Composer\InstalledVersions::class) ? \Composer\InstalledVersions::getRootPackage()['install_path'] : null;
 
         return \is_string($root) && false !== ($path = realpath($root)) ? $path : dirname(static::getBundleDir(), 3);
     }
