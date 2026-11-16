@@ -35,7 +35,9 @@ final class SignIn extends AbstractAuthenticator implements AuthenticationEntryP
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
-        return new Response('refused: '.$request->query->get('user'));
+        $minutes = $exception instanceof \Symfony\Component\Security\Core\Exception\TooManyLoginAttemptsAuthenticationException ? ' (throttled, '.$exception->getMessageData()['%minutes%'].' min)' : '';
+
+        return new Response('refused: '.$request->query->get('user').$minutes);
     }
 
     public function start(Request $request, ?AuthenticationException $authException = null): Response

@@ -79,12 +79,14 @@ final class HostKernel extends Kernel implements CompilerPassInterface
             'router' => ['utf8' => true],
             'session' => ['storage_factory_id' => 'session.storage.factory.mock_file'],
             'handle_all_throwables' => true,
+            // login_throttling's limiters (symfony/rate-limiter), as the sites have them.
+            'rate_limiter' => ['enabled' => true],
         ]);
         $container->extension('security', [
             'firewalls' => [
                 'dev' => ['pattern' => '^/_wdt', 'security' => false],
                 'rescue' => ['pattern' => '^/rescue', 'context' => 'common'],
-                'main' => ['pattern' => '^/', 'context' => 'common', 'lazy' => true],
+                'main' => ['pattern' => '^/', 'context' => 'common', 'lazy' => true, 'login_throttling' => ['max_attempts' => 5, 'interval' => '1 minute']],
             ],
         ]);
         $container->extension('doctrine', [
@@ -111,6 +113,8 @@ final class HostKernel extends Kernel implements CompilerPassInterface
         if (class_exists(\Omnibridge\Doctrine\DeclarationDriver::class)) {
             $container->addCompilerPass(new DoctrineConfigurationPass());
         }
+        // login_throttling's refusal said in the window's minutes, as BaseBundle registers its passes.
+        $container->addCompilerPass(new \Base\DependencyInjection\Compiler\Pass\LoginThrottlingPass());
     }
 
     public function process(ContainerBuilder $container): void

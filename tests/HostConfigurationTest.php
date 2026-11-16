@@ -134,6 +134,23 @@ final class HostConfigurationTest extends TestCase
         self::assertInstanceOf(\Symfony\Contracts\Cache\CacheInterface::class, $repository->cache);
     }
 
+    /**
+     * Symfony's login_throttling on the visitors' firewall (five tries a minute, the sites' setting): the sixth wrong
+     * attempt is refused and told to wait one minute - not two (the sites' final pass saw "dans 2 minutes").
+     */
+    public function testTheSixthWrongAttemptWaitsOneMinute(): void
+    {
+        $kernel = $this->boot([], 'throttling');
+        $kernel->getContainer()->get('cache.rate_limiter')->clear();
+        $answers = [];
+        for ($attempt = 1; $attempt <= 6; ++$attempt) {
+            $answers[] = $kernel->handle(Request::create('/sign-in?user=nobody'))->getContent();
+        }
+
+        self::assertSame(array_fill(0, 5, 'refused: nobody'), \array_slice($answers, 0, 5), 'five wrong attempts');
+        self::assertSame('refused: nobody (throttled, 1 min)', $answers[5]);
+    }
+
     public function testAVisitorMeetsTheEntryPointOfEachFirewall(): void
     {
         $kernel = $this->boot(['security' => ['access_control' => [
