@@ -1,5 +1,26 @@
 # Changelog
 
+## [3.1.0]
+
+omnibridge/doctrine 4.0 (`"conflict": {"omnibridge/doctrine": "<4.0"}`): DBAL's static registry holds none of
+omnibase's types any more, and doctrine/orm 3.8's schema editor API is on. No signature of this package changed.
+- The connections' type provider: `DiscoveryPass` registers the service `omnibridge.doctrine.type_provider`
+  (`DiscoveryPass::TYPE_PROVIDER`, `Omnibridge\Doctrine\Omnibase\Types::provider()`) - the core's types, DoctrineBundle's
+  `doctrine.dbal.types` and its `doctrine.dbal.type` services, the enumerations given by name, then those of the core's
+  and the application's `src/Enum` (`EnumerationsPass`) - and gives it to every connection's configuration
+  (`doctrine.dbal.<name>_connection.configuration`, `setTypeProvider()`). It replaces DoctrineBundle's
+  `TypeProviderGlobalFallback` (DoctrineBundle 3.4's provider of a connection, which falls back on DBAL's static
+  registry): a compiler pass at priority -20, after DoctrineBundle's `RegisterDbalTypePass` (-10). The
+  `EnumerationsMiddleware` of omnibridge/doctrine 3.x is no longer registered, and `BaseBundle::boot()` registers no
+  type (`Types::register()`, `registerEnumerations()`) any more.
+- The schema editor API: each entity manager's configuration (`doctrine.orm.<name>_configuration`) is given
+  `setUseSchemaEditorApi(true)` (DoctrineBundle has no option for it; off is deprecated in doctrine/orm 3.8).
+- `ForeignKeyNames`: omnibridge/doctrine's listener is added to every connection's event manager on
+  `ToolEvents::postGenerateSchema`, so a foreign key the schema editor API leaves unnamed keeps the name of before
+  (`FK_` and a CRC32): the schema of a migrated site stays in sync, no migration.
+- `InstalledEntities` reads the enumerations' types from the entity manager's connection
+  (`getConfiguration()->getTypeProvider()`), no longer from DBAL's static registry.
+
 ## [3.0.1]
 
 Fixes found once omnisense/omnibase's PHPStan analyses this package's src/Base (no signature changes):

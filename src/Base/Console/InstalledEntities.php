@@ -3,7 +3,6 @@
 namespace Base\Console;
 
 use Base\Database\Schema\EntitySchema;
-use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\Mapping\Driver\AttributeDriver;
@@ -46,8 +45,8 @@ final class InstalledEntities
         }
 
         $types = [];
-        // DBAL 4 iterates its registry.
-        foreach (Type::getTypeRegistry() as $name => $type) {
+        // The connection's types (omnibridge/doctrine 4.0: DBAL's static registry holds none of omnibase's).
+        foreach ($entityManager->getConnection()->getConfiguration()->getTypeProvider() as $name => $type) {
             if (method_exists($type, 'enumeration')) {
                 $types[$name] = $type->enumeration();
             }

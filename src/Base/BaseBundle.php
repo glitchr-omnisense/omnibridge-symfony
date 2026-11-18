@@ -493,13 +493,9 @@ class BaseBundle extends AbstractBaseBundle
             // Where Doctrine is there (plan "omnibase agnostic", step B3): omnibridge/eloquent casts the same types itself.
             // The enumerations of both folders were found when the container was compiled (EnumerationsPass): the
             // boot registers that list, it no longer reads the folders and loads each of their classes.
+            // omnibridge/doctrine 4.0: the types are in the connections' type provider (DiscoveryPass), built with the
+            // connection - nothing registered in DBAL's static registry here any more.
             if (class_exists(Types::class) && $this->container->has('doctrine.orm.entity_manager')) {
-                if ($this->container->hasParameter(EnumerationsPass::PARAMETER)) {
-                    Types::register();
-                    Types::registerEnumerations($this->container->getParameter(EnumerationsPass::PARAMETER));
-                } else {
-                    Types::register([], EnumerationsPass::directories($this->getProjectDir()));
-                }
                 Configuration::enableFilters($this->container->get('doctrine.orm.entity_manager'), $this->getEnvironment());
             }
         }

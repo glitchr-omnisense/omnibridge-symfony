@@ -2,7 +2,9 @@
 
 namespace Base\DependencyInjection\Compiler;
 
-use Omnibridge\Doctrine\Omnibase\EnumerationsMiddleware;
+use Base\DependencyInjection\Compiler\Pass\EnumerationsPass;
+use Doctrine\DBAL\Types\TypeRegistry;
+use Omnibridge\Doctrine\Omnibase\Types;
 use Omnibridge\Symfony\DependencyInjection\ContractsPass as HostContractsPass;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;
@@ -39,6 +41,12 @@ use Symfony\Component\DependencyInjection\Reference;
  */
 final class DiscoveryPass implements CompilerPassInterface
 {
+    /** The pass giving Doctrine's connections omnibase's types and entity managers the schema editor API (omnibridge/doctrine 4.0). */
+    private const DOCTRINE = 'doctrine';
+
+    /** The type provider of omnibase's connections (omnibridge/doctrine 4.0). */
+    public const TYPE_PROVIDER = 'omnibridge.doctrine.type_provider';
+
     /**
      * The kinds compiled at each moment of Symfony's compilation: the enumerations before DoctrineBundle's
      * MiddlewaresPass (priority 0) collects the doctrine.middleware services, the repositories after its
@@ -67,6 +75,9 @@ final class DiscoveryPass implements CompilerPassInterface
         foreach (self::PRIORITIES as $priority => $kinds) {
             $container->addCompilerPass(new self($registries, $kinds), priority: $priority);
         }
+        // omnibridge/doctrine 4.0: the connections' type provider and the schema editor API, after DoctrineBundle's
+        // RegisterDbalTypePass (-10), which gives each connection a provider of its own since DoctrineBundle 3.4.
+        $container->addCompilerPass(new self($registries, [self::DOCTRINE]), priority: -20);
     }
 
     /**
@@ -92,6 +103,11 @@ final class DiscoveryPass implements CompilerPassInterface
 
     public function process(ContainerBuilder $container): void
     {
+        if ([self::DOCTRINE] === $this->kinds) {
+            $this->doctrine($container);
+
+            return;
+        }
         foreach ($this->kinds as $kind) {
             if (isset($this->registries[$kind])) {
                 $this->{$kind}($container, $this->registries[$kind]);
@@ -233,8 +249,8 @@ final class DiscoveryPass implements CompilerPassInterface
 
     /**
      * The enumerations DoctrineBundle's doctrine.dbal.types were given (BaseExtension's prepend, a bundle's) taken out of
-     * them: DoctrineBundle's connection factory instantiates each type's class, and an enumeration is no Doctrine type
-     * since step F2a - omnibridge/doctrine's middleware registers an adapter of it under the same name.
+     * them: DoctrineBundle instantiates each type's class, and an enumeration is no Doctrine type since step F2a - the
+     * connections' type provider holds an adapter of it under the same name (doctrine()).
      *
      * @param array{extends: string} $enumerations
      */
@@ -253,11 +269,64 @@ final class DiscoveryPass implements CompilerPassInterface
             }
         }
         $container->setParameter('doctrine.dbal.connection_factory.types', $types);
-        // Read by what builds an entity manager from the container's configuration (a test, a command).
+        // Read by what builds an entity manager from the container's configuration (a test, a command), and by doctrine().
         $container->setParameter('base.database.enumerations', $found);
-        $container->register(EnumerationsMiddleware::class, EnumerationsMiddleware::class)
-            ->setArguments([$found])
-            ->addTag('doctrine.middleware');
+    }
+
+    /**
+     * omnibridge/doctrine 4.0, on every Doctrine connection and entity manager of the container:
+     * - the type provider (Omnibridge\Doctrine\Omnibase\Types::provider(); DBAL's static registry is deprecated in DBAL
+     *   4.6, gone in 5): the core's types, DoctrineBundle's doctrine.dbal.types and its doctrine.dbal.type services,
+     *   the enumerations given by name (enumerations()), then those of the core's and the application's src/Enum under
+     *   the names not taken (EnumerationsPass). It replaces the provider DoctrineBundle 3.4 gives a connection
+     *   (TypeProviderGlobalFallback), which would fall back on DBAL's static registry, where omnibase's types no longer are;
+     * - doctrine/orm 3.8's schema editor API (DoctrineBundle has no option for it; off is deprecated in ORM 3.8,
+     *   impossible in ORM 4), with the foreign keys' names of before kept (ForeignKeyNames, on postGenerateSchema).
+     */
+    private function doctrine(ContainerBuilder $container): void
+    {
+        if (!class_exists(Types::class) || !$container->hasParameter('doctrine.connections')) {
+            return;
+        }
+        $types = [];
+        foreach ($container->hasParameter('doctrine.dbal.connection_factory.types') ? $container->getParameter('doctrine.dbal.connection_factory.types') : [] as $name => $type) {
+            if (\is_string($type['class'] ?? null)) {
+                $types[$name] = $container->getParameterBag()->resolveValue($type['class']);
+            }
+        }
+        foreach ($container->findTaggedServiceIds('doctrine.dbal.type') as $id => $tags) {
+            foreach ($tags as $tag) {
+                $types[$tag['type_name'] ?? $id] = new Reference($id);
+            }
+        }
+        $types += $container->hasParameter('base.database.enumerations') ? $container->getParameter('base.database.enumerations') : [];
+        $container->register(self::TYPE_PROVIDER, TypeRegistry::class)
+            ->setFactory([Types::class, 'provider'])
+            ->setArguments([$types, $container->hasParameter(EnumerationsPass::PARAMETER) ? '%'.EnumerationsPass::PARAMETER.'%' : []]);
+        foreach (array_keys($container->getParameter('doctrine.connections')) as $connection) {
+            $configuration = \sprintf('doctrine.dbal.%s_connection.configuration', $connection);
+            if ($container->hasDefinition($configuration)) {
+                $container->getDefinition($configuration)->removeMethodCall('setTypeProvider')->addMethodCall('setTypeProvider', [new Reference(self::TYPE_PROVIDER)]);
+            }
+        }
+
+        if (!$container->hasParameter('doctrine.entity_managers') || !class_exists(\Omnibridge\Doctrine\ForeignKeyNames::class)) {
+            return;
+        }
+        // Added to each connection's event manager itself: DoctrineBundle's listener tags were read already.
+        $container->register(\Omnibridge\Doctrine\ForeignKeyNames::class, \Omnibridge\Doctrine\ForeignKeyNames::class);
+        foreach (array_keys($container->getParameter('doctrine.connections')) as $connection) {
+            $events = \sprintf('doctrine.dbal.%s_connection.event_manager', $connection);
+            if ($container->hasDefinition($events)) {
+                $container->getDefinition($events)->addMethodCall('addEventListener', [[\Doctrine\ORM\Tools\ToolEvents::postGenerateSchema], new Reference(\Omnibridge\Doctrine\ForeignKeyNames::class)]);
+            }
+        }
+        foreach (array_keys($container->getParameter('doctrine.entity_managers')) as $entityManager) {
+            $configuration = \sprintf('doctrine.orm.%s_configuration', $entityManager);
+            if ($container->hasDefinition($configuration)) {
+                $container->getDefinition($configuration)->addMethodCall('setUseSchemaEditorApi', [true]);
+            }
+        }
     }
 
     /**

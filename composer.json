@@ -64,6 +64,9 @@
         "symfony/rate-limiter": "^7.0|^8.0",
         "symfony/translation": "^6.0|^7.0|^8.0"
     },
+    "conflict": {
+        "omnibridge/doctrine": "<4.0"
+    },
     "suggest": {
         "omnibridge/doctrine": "omnibase's persistence on Doctrine's ORM (base.persistence: doctrine, the default where it is installed), with doctrine/doctrine-bundle and symfony/doctrine-bridge: Doctrine's wiring - the entity manager's listeners and filters, the DBAL types, the Doctrine-named commands (doctrine:schema:charset, doctrine:database:import...) - is registered only where it is installed (Persistences::isInstalled('doctrine'), plan \"omnibase agnostic\", step B3); omnibridge/eloquent is the other persistence",
         "doctrine/doctrine-bundle": "Doctrine's entity manager and connection as Symfony services, for omnibridge/doctrine (the persistence on Doctrine) and the packages written on DoctrineBundle (omnibase/admin's EasyAdmin, API Platform's doctrine-orm)",

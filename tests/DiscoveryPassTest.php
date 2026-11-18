@@ -82,7 +82,7 @@ final class DiscoveryPassTest extends TestCase
         self::assertSame(['$challenge' => null, '$google' => false], $admin->getDefinition('guard')->getArguments(), 'what the package does not say: the default, or left as it is');
     }
 
-    public function testTheAutoconfigurationTagsAClassAndThePassRunsAtThreeMoments(): void
+    public function testTheAutoconfigurationTagsAClassAndThePassRunsAtFourMoments(): void
     {
         $container = new ContainerBuilder();
         DiscoveryPass::autoconfigure($container, [
@@ -96,6 +96,7 @@ final class DiscoveryPassTest extends TestCase
         $builder = new ContainerBuilder();
         DiscoveryPass::register($builder, []);
         $passes = array_values(array_filter($builder->getCompilerPassConfig()->getBeforeOptimizationPasses(), static fn (object $pass): bool => $pass instanceof DiscoveryPass));
-        self::assertCount(3, $passes);
+        // PRIORITIES' three moments, then Doctrine's connections at -20, after DoctrineBundle's RegisterDbalTypePass (-10).
+        self::assertCount(4, $passes);
     }
 }
