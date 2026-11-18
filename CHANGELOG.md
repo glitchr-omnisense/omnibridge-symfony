@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.1.1]
+
+- The connections' type provider (`DiscoveryPass::TYPE_PROVIDER`) is given the list of enumerations `EnumerationsPass`
+  compiled itself, no longer the placeholder `%omnibridge.doctrine.enumerations%`: a container where that parameter is
+  missing (omnisense/omnibase's `StaleContainerTest`, which takes it out to shape a container compiled before) failed
+  to compile with "You have requested a non-existent parameter". The parameter is still set; the provider holds the
+  same types under the same names.
+
 ## [3.1.0]
 
 omnibridge/doctrine 4.0 (`"conflict": {"omnibridge/doctrine": "<4.0"}`): DBAL's static registry holds none of

@@ -302,7 +302,9 @@ final class DiscoveryPass implements CompilerPassInterface
         $types += $container->hasParameter('base.database.enumerations') ? $container->getParameter('base.database.enumerations') : [];
         $container->register(self::TYPE_PROVIDER, TypeRegistry::class)
             ->setFactory([Types::class, 'provider'])
-            ->setArguments([$types, $container->hasParameter(EnumerationsPass::PARAMETER) ? '%'.EnumerationsPass::PARAMETER.'%' : []]);
+            // The list itself, not a reference to its parameter: a container whose parameter was taken out (one compiled
+            // before EnumerationsPass, as omnisense/omnibase's StaleContainerTest shapes it) still resolves.
+            ->setArguments([$types, $container->hasParameter(EnumerationsPass::PARAMETER) ? $container->getParameter(EnumerationsPass::PARAMETER) : []]);
         foreach (array_keys($container->getParameter('doctrine.connections')) as $connection) {
             $configuration = \sprintf('doctrine.dbal.%s_connection.configuration', $connection);
             if ($container->hasDefinition($configuration)) {
