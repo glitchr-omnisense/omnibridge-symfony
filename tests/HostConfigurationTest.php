@@ -242,4 +242,35 @@ final class HostConfigurationTest extends TestCase
         $builder->prependExtensionConfig('doctrine', ['orm' => ['entity_managers' => ['default' => [], 'archive' => []]]]);
         self::assertSame(['default', 'archive'], array_keys(HostConfiguration::orm($builder)['entity_managers'] ?? []));
     }
+
+    /**
+     * WebauthnBundle's repositories are prepended; where the site declares its creation profiles, an empty list of
+     * them too, so that the bundle does not build its default profile (whose rp.name it deprecates) for this part.
+     */
+    public function testWebauthnIsGivenTheRepositoriesAndNoDefaultProfileOverTheSites(): void
+    {
+        $webauthn = new class extends \Symfony\Component\DependencyInjection\Extension\Extension {
+            public function load(array $configs, \Symfony\Component\DependencyInjection\ContainerBuilder $container): void
+            {
+            }
+
+            public function getAlias(): string
+            {
+                return 'webauthn';
+            }
+        };
+
+        $builder = new \Symfony\Component\DependencyInjection\ContainerBuilder();
+        $builder->registerExtension($webauthn);
+        HostConfiguration::prepend($builder, false);
+        self::assertSame([['credential_repository' => HostConfiguration::PASSKEYS, 'user_repository' => HostConfiguration::PASSKEY_USERS]], $builder->getExtensionConfig('webauthn'), 'no profile of its own: the bundle\'s default stays');
+
+        $builder = new \Symfony\Component\DependencyInjection\ContainerBuilder();
+        $builder->registerExtension($webauthn);
+        $builder->loadFromExtension('webauthn', ['creation_profiles' => ['default' => ['rp' => ['id' => 'example.org']]]]);
+        HostConfiguration::prepend($builder, false);
+        $configs = $builder->getExtensionConfig('webauthn');
+        self::assertSame([], $configs[0]['creation_profiles'] ?? null);
+        self::assertSame(['default' => ['rp' => ['id' => 'example.org']]], $configs[1]['creation_profiles'] ?? null, 'the site\'s profiles as it wrote them');
+    }
 }

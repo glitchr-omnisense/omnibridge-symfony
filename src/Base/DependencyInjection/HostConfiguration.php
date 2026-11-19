@@ -106,7 +106,17 @@ final class HostConfiguration
             $builder->prependExtensionConfig('framework', ['error_controller' => self::ERROR_CONTROLLER]);
         }
         if ($builder->hasExtension('webauthn')) {
-            $builder->prependExtensionConfig('webauthn', ['credential_repository' => self::PASSKEYS, 'user_repository' => self::PASSKEY_USERS]);
+            $webauthn = ['credential_repository' => self::PASSKEYS, 'user_repository' => self::PASSKEY_USERS];
+            // WebauthnBundle fills a configuration without creation_profiles with its default profile, whose rp.name
+            // it deprecates itself (5.3). Where the site declares its profiles, this configuration declares none of
+            // its own: the site's are merged as they are, and the default is never built.
+            foreach ($builder->getExtensionConfig('webauthn') as $config) {
+                if (\is_array($config) && \array_key_exists('creation_profiles', $config)) {
+                    $webauthn['creation_profiles'] = [];
+                    break;
+                }
+            }
+            $builder->prependExtensionConfig('webauthn', $webauthn);
         }
     }
 

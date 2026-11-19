@@ -184,7 +184,7 @@ final class OmniauthExtension extends Extension
                 // The factories through a service locator, not a tagged iterator: a compiled container (debug off)
                 // that inlined the one factory of the iterator dropped it and passed its own argument (the clock)
                 // in its place (seen on lesringostars' prod_demo_test kernel, Symfony 8.1.5).
-                ->setArguments([$providers, new Reference('router'), new ServiceLocatorArgument($services), new ServiceLocatorArgument(new TaggedIteratorArgument(self::PROVIDER_FACTORY, null, null, true))])
+                ->setArguments([$providers, new Reference('router'), new ServiceLocatorArgument($services), new ServiceLocatorArgument(new TaggedIteratorArgument(self::PROVIDER_FACTORY, needsIndexes: true))])
                 ->setPublic(true);
             $byEmail = $config['oauth']['link_by_email'];
             $linking = match (true) {

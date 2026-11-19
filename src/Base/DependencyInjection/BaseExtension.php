@@ -115,14 +115,14 @@ class BaseExtension extends AbstractBaseExtension implements PrependExtensionInt
         // The core's entities (Base\Entity), mapped by DoctrineBundle's auto_mapping from the bundle's
         // class until 5.0: the bundle is omnibridge/symfony's since the plan "omnibase agnostic"'s step F6,
         // and DoctrineBundle derives an attribute mapping's folder and prefix from the bundle class's own
-        // folder and namespace. Said here, under the bundle's name, as auto_mapping wrote it before.
+        // folder and namespace. Said here, under the bundle's name, as auto_mapping wrote it before; with no
+        // alias, which Doctrine ORM 3 ignores and DoctrineBundle 3.4 deprecates.
         if ($builder->hasExtension('doctrine')) {
             $builder->prependExtensionConfig('doctrine', ['orm' => ['mappings' => ['BaseBundle' => [
                 'is_bundle' => false,
                 'type' => 'attribute',
                 'dir' => BaseBundle::getBundleDir().'/src/Entity',
                 'prefix' => 'Base\\Entity',
-                'alias' => 'BaseBundle',
             ]]]]);
         }
 
