@@ -443,7 +443,8 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // The TimeMachine (the backups) and its commands, only where glitchr/backup-manager is
     // installed, a suggestion since 4.0: Base\Service\TimeMachine extends its Manager, and a
     // definition of a class whose parent is missing would fail the container.
-    $timeMachine = class_exists(\Backup\Manager\Manager::class);
+    // Its dumps go through DoctrineBundle's registry (3.2): without Doctrine (omnibridge/eloquent), none either.
+    $timeMachine = class_exists(\Backup\Manager\Manager::class) && class_exists(\Doctrine\Bundle\DoctrineBundle\Registry::class);
     if ($timeMachine) {
         array_push($commandServices,
             'Base\Console\Command\TimeMachineSnapshotCommand',
@@ -504,7 +505,14 @@ return static function (ContainerConfigurator $container, ContainerBuilder $buil
     // description, where the core describes them with no persistence (5.x) and omnisense/omnibridge writes them.
     if (class_exists(\Base\Database\Schema\EntitySchema::class) && class_exists(\Omnibridge\Schema\Database\SchemaCreator::class)) {
         $services->set(\Base\Console\Command\SchemaCreateCommand::class)
-            ->args([service('doctrine.orm.entity_manager')->nullOnInvalid(), '%kernel.project_dir%', service('omnibridge.eloquent.connection')->nullOnInvalid()])
+            ->args([service('doctrine.orm.entity_manager')->nullOnInvalid(), '%kernel.project_dir%', service('omnibridge.eloquent.connection')->nullOnInvalid(), '%base.database.entities%'])
+            ->tag('console.command');
+    }
+    // omnibridge:schema:update (3.2): an existing database brought to the installed entities' description, where
+    // omnisense/omnibridge writes the ALTERs (2.1, AlterStatements).
+    if (class_exists(\Base\Database\Schema\EntitySchema::class) && interface_exists(\Omnibridge\Schema\Database\AlterStatements::class)) {
+        $services->set(\Base\Console\Command\SchemaUpdateCommand::class)
+            ->args([service('doctrine.orm.entity_manager')->nullOnInvalid(), '%kernel.project_dir%', service('omnibridge.eloquent.connection')->nullOnInvalid(), '%base.database.entities%'])
             ->tag('console.command');
     }
 

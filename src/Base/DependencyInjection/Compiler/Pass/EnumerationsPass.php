@@ -7,8 +7,8 @@ use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
- * The enumerations of the connections' type provider (omnibridge/doctrine's Types: those of the core's src/Enum and of
- * the application's, under the names not taken), found once when the container is compiled, in the parameter
+ * The enumerations of the connections' type provider (omnibridge/doctrine's Types: those of the core's src/Enum, of
+ * the application's and, since 3.2, of each registered omnibase bundle's, under the names not taken), found once when the container is compiled, in the parameter
  * PARAMETER. Types::register() read both folders and loaded each of their classes at every kernel's boot; the list is
  * given to Types::provider() now, the connections' type provider DiscoveryPass registers (omnibridge/doctrine 4.0).
  * Each folder is a resource of the container: in debug, a file
@@ -25,7 +25,7 @@ final class EnumerationsPass implements CompilerPassInterface
             return;
         }
 
-        $directories = self::directories((string) $container->getParameter('kernel.project_dir'));
+        $directories = self::directories((string) $container->getParameter('kernel.project_dir'), \Base\DependencyInjection\Compiler\DiscoveryPass::packages($container));
         foreach ($directories as $directory) {
             $container->fileExists($directory, '/\.php$/');
         }
@@ -33,9 +33,23 @@ final class EnumerationsPass implements CompilerPassInterface
         $container->setParameter(self::PARAMETER, Types::enumerations($directories));
     }
 
-    /** @return list<string> the folders whose enumerations the type provider holds: the core's, then the application's */
-    public static function directories(string $projectDir): array
+    /**
+     * The folders whose enumerations the type provider holds: the core's, the application's, then each registered omnibase
+     * bundle's src/Enum (3.2: what a package registered as doctrine.dbal.types by hand until then).
+     *
+     * @param array<string, string> $packages DiscoveryPass::packages(): folder => namespace
+     *
+     * @return list<string>
+     */
+    public static function directories(string $projectDir, array $packages = []): array
     {
-        return [Types::coreEnumerationDirectory(), $projectDir.'/src/Enum'];
+        $directories = [Types::coreEnumerationDirectory(), $projectDir.'/src/Enum'];
+        foreach (array_keys($packages) as $package) {
+            if (is_dir($package.'/src/Enum')) {
+                $directories[] = $package.'/src/Enum';
+            }
+        }
+
+        return $directories;
     }
 }

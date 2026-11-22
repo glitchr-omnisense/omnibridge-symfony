@@ -108,6 +108,7 @@ final class Persistence
                 // The packages' listeners of the Lifecycle events (omnisense/omnibridge's Lifecycle\Listeners, step B2):
                 // glitchr/typesense-bundle's indexer, which follows Doctrine's writes through Doctrine's own events.
                 new TaggedIteratorArgument(self::LIFECYCLE_LISTENER),
+                '%'.\Base\DependencyInjection\Compiler\DiscoveryPass::ENTITIES.'%',
             ])
             ->setPublic(true)
             ->addTag('kernel.reset', ['method' => 'reset']));

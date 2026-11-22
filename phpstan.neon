@@ -27,6 +27,11 @@ parameters:
         - tests/Fixtures/Host/Entity
         - tests/Fixtures/Host/Repository
         - tests/Fixtures/Host/UserLoaderUsers.php
+        - tests/EntitiesDiscoveryTest.php
+        - tests/SchemaUpdateCommandTest.php
+        - tests/Fixtures/Package
+        # A class whose parent package is absent, on purpose: what DiscoveryPass never loads (DiscoveryPassTest).
+        - tests/Fixtures/Excluded
     ignoreErrors:
         # HostConfigurationTest boots one host for every case: the cases on the core's registries are skipped without
         # omnisense/omnibase, and HostExtension registers those classes only where class_exists() finds them.

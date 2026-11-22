@@ -1,5 +1,33 @@
 # Changelog
 
+## [3.2.0]
+
+Additive, for omnisense/omnibase 7.2 (Doctrine dispensable for a package's entities):
+
+- **`entities`, a kind of DiscoveryPass** (priority 10): the entity folders of the core, of every registered omnibase
+  bundle (a bundle extending `AbstractBaseBundle`: its package's `src/Entity`, `DiscoveryPass::packages()`) and of the
+  application, with `base.entity_folders`' `include` and `exclude`, in the parameter `base.database.entities`
+  (`DiscoveryPass::ENTITIES`: paths, exclude, packages, resolve_target_entities). omnibridge/eloquent describes them
+  (`EloquentHost::persistence()`'s new last argument), with or without DoctrineBundle. Where DoctrineBundle is
+  registered, the same discovery feeds its default entity manager: the folders it does not map yet through one
+  attribute driver of their own (`omnibridge.doctrine.discovered_metadata_driver`; what auto_mapping or a package's
+  prepend maps is kept as it is), the excluded files and folders on every attribute driver, the packages'
+  `#[ResolveTargetEntity]` interfaces on the `resolve_target_entities` listener (doctrine.yaml's prevail).
+  `EnumerationsPass` adds each registered omnibase bundle's `src/Enum` to the connections' type provider. A package no
+  longer needs `prependExtensionConfig('doctrine', ...)` for its entities or enumerations; the existing prepends still
+  work.
+- **`omnibridge:schema:update`** (`--dump-sql`, `--force`): an existing database brought to the description through
+  omnisense/omnibridge 2.1's `SchemaCreator::update()` (MySQL, SQLite), with Doctrine or without; the tables the
+  description does not hold are never dropped. `InstalledEntities::schema()` is what both schema commands work on;
+  `InstalledEntities::options()`/`database()` take the discovered entities, `InstalledEntities::eloquent()` and
+  `discovered()` are new.
+- **Fixed:** `DiscoveryPass::collect()` asked `class_exists()` of the abstract `container.excluded` definitions Symfony
+  keeps for the files a resource's `exclude` leaves out: a fatal error where such a class stands on an optional
+  package that is not installed (omnipack/forge's features that are off). Abstract and excluded definitions are
+  skipped (DiscoveryPassTest).
+- The TimeMachine's commands are registered where DoctrineBundle's registry is installed too, as the core declares
+  the TimeMachine since 7.2: a container without Doctrine compiled no longer with glitchr/backup-manager installed.
+
 ## [3.1.1]
 
 - The connections' type provider (`DiscoveryPass::TYPE_PROVIDER`) is given the list of enumerations `EnumerationsPass`

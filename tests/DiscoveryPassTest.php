@@ -37,6 +37,26 @@ final class DiscoveryPassTest extends TestCase
         'repositories' => ['App\Repository\Things' => 'App\Repository\ThingRepository'],
     ];
 
+    /**
+     * The definitions Symfony keeps for the files a resource's `exclude` left out (abstract, tagged container.excluded)
+     * are never asked whether they are a class of the collection: their class may stand on a package that is not
+     * installed (omnipack/forge's features that are off), and class_exists() loading it is a fatal error.
+     */
+    public function testAnExcludedDefinitionIsNeverLoaded(): void
+    {
+        $container = new ContainerBuilder();
+        $container->register('by.class', \ArrayObject::class);
+        $container->register(\ArrayIterator::class, \ArrayIterator::class);
+        $excluded = 'Omnibridge\Symfony\Tests\Fixtures\Excluded\OffFeature';
+        $container->setDefinition($excluded, (new Definition($excluded))->setAbstract(true)->addTag('container.excluded', ['source' => 'in "Fixtures/"']));
+        $container->setDefinition('Omnibridge\Symfony\Tests\Fixtures\Excluded\Abstract', (new Definition($excluded))->setAbstract(true));
+
+        (new DiscoveryPass(['collect' => [['service' => 'by.class', 'method' => 'add', 'instanceof' => \Countable::class]]], ['collect']))->process($container);
+
+        self::assertEquals([['add', [new Reference(\ArrayIterator::class)]]], $container->getDefinition('by.class')->getMethodCalls());
+        self::assertFalse(class_exists($excluded, false), 'the excluded class was not loaded');
+    }
+
     public function testEachKindIsCompiled(): void
     {
         $container = new ContainerBuilder();

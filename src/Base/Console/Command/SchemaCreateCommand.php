@@ -2,10 +2,8 @@
 
 namespace Base\Console\Command;
 
-use Base\Database\Schema\EntitySchema;
 use Doctrine\ORM\EntityManagerInterface;
 use Base\Console\InstalledEntities;
-use Omnibridge\Schema\Database\SchemaCreator;
 use Omnibridge\Schema\Database\SchemaNotEmpty;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -31,11 +29,13 @@ final class SchemaCreateCommand extends Command
      * @param EntityManagerInterface|null $entityManager Doctrine's where it is there: its entity folders and connection
      * @param object|null                 $connection    omnibridge/eloquent's (Illuminate\Database\Connection) without Doctrine
      *                                                   (plan "omnibase agnostic", step B3): the core's and the application's folders
+     * @param array<string, mixed>        $entities      what the container discovered (DiscoveryPass::ENTITIES, 3.2)
      */
     public function __construct(
         private readonly ?EntityManagerInterface $entityManager,
         private readonly string $projectDir,
         private readonly ?object $connection = null,
+        private readonly array $entities = [],
     ) {
         parent::__construct();
     }
@@ -47,24 +47,13 @@ final class SchemaCreateCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $database = InstalledEntities::database($this->entityManager, $this->connection, $this->projectDir);
-        if (null === $database) {
-            $output->writeln('<error>No database: neither Doctrine\'s entity manager nor omnibridge/eloquent\'s connection is there.</error>');
+        $schema = InstalledEntities::schema($this->entityManager, $this->connection, $this->projectDir, $this->entities);
+        if (\is_string($schema)) {
+            $output->writeln('<error>'.$schema.'</error>');
 
             return Command::FAILURE;
         }
-        ['options' => $options, 'pdo' => $pdo, 'table_options' => $tableOptions] = $database;
-        $description = EntitySchema::describe($options['paths'], $options);
-        if (!$pdo instanceof \PDO) {
-            $output->writeln('<error>The connection is no PDO one: omnibridge:schema:create writes through PDO.</error>');
-
-            return Command::FAILURE;
-        }
-        $creator = new SchemaCreator($pdo, EntitySchema::columnTypes($options), [
-            'charset' => $tableOptions['charset'] ?? 'utf8mb4',
-            'collation' => $tableOptions['collate'] ?? $tableOptions['collation'] ?? null,
-            'engine' => $tableOptions['engine'] ?? 'InnoDB',
-        ]);
+        ['description' => $description, 'creator' => $creator] = $schema;
 
         if ($input->getOption('dump-sql')) {
             foreach ($creator->statements($description) as $statement) {
